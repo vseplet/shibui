@@ -36,4 +36,4 @@ jobs:
         with:
           project: "shibui"
           entrypoint: "https://deno.land/std@0.188.0/http/file_server.ts" # 📝 Update the entrypoint if necessary
-          root: "./webiste/build" # 📝 Update the root if necessary
+          root: "./website/build" # 📝 Update the root if necessary
