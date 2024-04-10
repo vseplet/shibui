@@ -11,7 +11,7 @@
  */
 
 import core from "../../core/mod.ts";
-import { SourceType } from "../../events/LogEvents.ts";
+import { SourceType } from "../../core/types.ts";
 import { IManifest } from "../entities/Manifest.ts";
 import { IPlugin } from "../entities/Plugin.ts";
 

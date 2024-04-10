@@ -12,12 +12,13 @@
 
 import framework from "../../mod.ts";
 import luminous from "https://deno.land/x/luminous@0.1.5/mod.ts";
-import { Level, LogEvent } from "../../../events/LogEvents.ts";
+import { LogEvent } from "../../../events/LogEvents.ts";
 import {
   AbstractFormatter,
   IDataForFormatting,
 } from "https://deno.land/x/luminous@0.1.5/src/Formatter.ts";
 import * as colors from "https://deno.land/std@0.196.0/fmt/colors.ts";
+import { Level } from "../../../core/types.ts";
 
 interface IShibuiTextFormatterOptions {
   showMetadata?: boolean;

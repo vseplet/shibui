@@ -11,8 +11,8 @@
  */
 
 import core from "../../core/mod.ts";
+import { SourceType } from "../../core/types.ts";
 import { join, relative, resolve } from "../../deps.ts";
-import { SourceType } from "../../events/LogEvents.ts";
 import { readDirRecursive } from "../../helpers/_readDirRecursive.ts";
 
 const log = core.api.createLogger({

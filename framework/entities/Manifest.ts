@@ -10,9 +10,8 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { ITaskBuilder } from "../../core/entities/TaskBuilder.ts";
-import { IWorkflowBuilder } from "../../core/entities/WorkflowBuilder.ts";
 // import { IMiddleware } from "./Middleware.ts";
+import { ITaskBuilder, IWorkflowBuilder } from "../../core/types.ts";
 import { IPlugin } from "./Plugin.ts";
 
 export interface IManifest {
