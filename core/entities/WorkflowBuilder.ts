@@ -11,45 +11,15 @@
  */
 
 import { Constructor } from "../../helpers/types.ts";
-// import { ContextPot } from "../../pots/ContextPot.ts";
-// import { CoreStartPot } from "../../pots/CoreStartPot.ts";
-import { EventDrivenLogger } from "../components/EventDrivenLogger.ts";
-import { IPot } from "./Pot.ts";
-import { ITask, ITaskBuilder, task1, TaskBuilder } from "./TaskBuilder.ts";
-
-type WorkflowTriggerHandler<
-  ContextPot extends IPot,
-  TriggerPot extends IPot,
-> = (args: { pot: TriggerPot; log: EventDrivenLogger }) => ContextPot | null;
-
-interface IWorkflowBuilderSetupArgs<ContextPot extends IPot> {
-  task1: () => TaskBuilder<
-    ContextPot
-  >;
-}
-
-export type WorkflowTrigger = {
-  workflowName: string;
-  potConstructor: Constructor<IPot>;
-  test({}): IPot | null;
-};
-
-export interface IWorkflow {
-  name: string;
-  triggers: {
-    [key: string]: WorkflowTrigger;
-  };
-  tasks: Array<ITask>;
-  firstTaskName: string;
-}
-
-export interface IWorkflowBuilder {
-  workflow: IWorkflow;
-  taskBuilders: Array<
-    ITaskBuilder
-  >;
-  build(): IWorkflow;
-}
+import {
+  IPot,
+  ITaskBuilder,
+  IWorkflow,
+  IWorkflowBuilder,
+  IWorkflowBuilderSetupArgs,
+  WorkflowTriggerHandler,
+} from "../types.ts";
+import { task1 } from "./TaskBuilder.ts";
 
 export class WorkflowBuilder<ContextPot extends IPot>
   implements IWorkflowBuilder {

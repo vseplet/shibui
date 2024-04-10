@@ -12,146 +12,17 @@
 
 // deno-lint-ignore-file
 import { Constructor } from "../../helpers/types.ts";
-import { EventDrivenLogger } from "../components/EventDrivenLogger.ts";
-import { IPot } from "./Pot.ts";
-import core from "../mod.ts";
-import { IWorkflowBuilder } from "./WorkflowBuilder.ts";
-import { ExternalPot } from "../../pots/ExternalPot.ts";
 import { TaskNameMissingError } from "../errors/TaskNameMissingError.ts";
-
-export interface ITask {
-  name: string;
-  attempts: number;
-  timeout: number;
-  slotsCount: number;
-  triggers: {
-    [key: string]: Array<TaskTrigger>;
-  };
-  do({}): Promise<DoHandlerResult>;
-  belongsToWorkflow: string | undefined;
-}
-
-export interface ITaskBuilder {
-  task: ITask;
-  build(): ITask;
-}
-
-export enum TriggerHandlerOp {
-  ALLOW,
-  DENY,
-}
-
-export type TriggerHandlerArgs<
-  P1 extends IPot,
-  P2 extends IPot | undefined = undefined,
-  P3 extends IPot | undefined = undefined,
-  P4 extends IPot | undefined = undefined,
-  P5 extends IPot | undefined = undefined,
-> = {
-  api: typeof core.api;
-  pots: [P1, P2, P3, P4, P5];
-  log: EventDrivenLogger;
-  allow: (
-    potIndex?: number,
-  ) => { op: TriggerHandlerOp.ALLOW; potIndex: number };
-  deny: () => { op: TriggerHandlerOp.DENY };
-};
-
-export type TriggerHandlerResult =
-  | {
-    op: TriggerHandlerOp.ALLOW;
-    potIndex: number;
-  }
-  | {
-    op: TriggerHandlerOp.DENY;
-  };
-
-export enum DoHandlerOp {
-  NEXT,
-  FAIL,
-  FINISH,
-  REPEAT,
-}
-
-export type DoHandlerArgs<
-  P1 extends IPot,
-  P2 extends IPot | undefined = undefined,
-  P3 extends IPot | undefined = undefined,
-  P4 extends IPot | undefined = undefined,
-  P5 extends IPot | undefined = undefined,
-> = {
-  api: typeof core.api;
-  log: EventDrivenLogger;
-  pots: [P1, P2, P3, P4, P5];
-
-  next: (
-    tasks: ITaskBuilder | Array<ITaskBuilder>,
-    data?: Array<[
-      Partial<P1["data"]>,
-      Partial<P2 extends IPot ? P2["data"] : never>,
-      Partial<P3 extends IPot ? P3["data"] : never>,
-      Partial<P4 extends IPot ? P4["data"] : never>,
-      Partial<P5 extends IPot ? P5["data"] : never>,
-    ]>,
-  ) => {
-    op: DoHandlerOp.NEXT;
-    tasks: Array<ITaskBuilder>;
-    data?: Array<[
-      Partial<P1["data"]>,
-      Partial<P2 extends IPot ? P2["data"] : never>,
-      Partial<P3 extends IPot ? P3["data"] : never>,
-      Partial<P4 extends IPot ? P4["data"] : never>,
-      Partial<P5 extends IPot ? P5["data"] : never>,
-    ]>;
-  };
-
-  fail: (reason?: string) => {
-    op: DoHandlerOp.FAIL;
-    reason: string;
-  };
-
-  finish: () => {
-    op: DoHandlerOp.FINISH;
-  };
-
-  repeat: (
-    data?: Array<[
-      Partial<P1["data"]>,
-      Partial<P2 extends IPot ? P2["data"] : never>,
-      Partial<P3 extends IPot ? P3["data"] : never>,
-      Partial<P4 extends IPot ? P4["data"] : never>,
-      Partial<P5 extends IPot ? P5["data"] : never>,
-    ]>,
-  ) => {
-    op: DoHandlerOp.REPEAT;
-  };
-};
-
-export type DoHandlerResult =
-  | {
-    op: DoHandlerOp.NEXT;
-    tasks: Array<ITaskBuilder>;
-    data?: Partial<IPot["data"]>;
-  }
-  | {
-    op: DoHandlerOp.FAIL;
-    reason: string;
-  }
-  | {
-    op: DoHandlerOp.FINISH;
-  }
-  | {
-    op: DoHandlerOp.REPEAT;
-    data?: Partial<IPot["data"]>;
-  };
-
-export type TaskTrigger = {
-  taskName: string;
-  potConstructor: Constructor<IPot>;
-  slot: number;
-  handler({}): TriggerHandlerResult;
-  belongsToWorkflow: string | undefined;
-};
+import {
+  DoHandlerArgs,
+  DoHandlerResult,
+  IPot,
+  ITask,
+  ITaskBuilder,
+  IWorkflowBuilder,
+  TriggerHandlerArgs,
+  TriggerHandlerResult,
+} from "../types.ts";
 
 export class TaskBuilder<
   P1 extends IPot,

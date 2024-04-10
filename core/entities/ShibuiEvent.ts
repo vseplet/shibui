@@ -10,20 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-export enum ShibuiEventType {
-  UNKNOWN,
-  CORE,
-  LOG,
-  RUNNER,
-  WORKFLOW,
-  TASK,
-}
-
-export interface IShibuiEvent {
-  type: ShibuiEventType;
-  name: string;
-  timestamp: number;
-}
+import { ShibuiEventType } from "../types.ts";
 
 export class ShibuiEvent {
   type = ShibuiEventType.UNKNOWN;

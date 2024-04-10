@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Vsevolod Plentev
+ * Copyright 2024 Vsevolod Plentev
  *
  * This program is licensed under the Creative Commons Attribution-NonCommercial 3.0 Unported License (CC BY-NC 3.0).
  * You may obtain a copy of the license at https://creativecommons.org/licenses/by-nc/3.0/legalcode.
@@ -10,32 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-export enum PotType {
-  UNKNOWN = "UNKNOWN",
-  EXTERNAL = "EXTERNAL",
-  INTERNAL = "INTERNAL",
-  SYSTEM = "SYSTEM",
-  CONTEXT = "CONTEXT",
-}
-
-export interface IPot {
-  toc: number;
-  uuid: string;
-  name: string;
-  type: PotType;
-  from: {
-    workflow: string;
-    task: string;
-  };
-  to: {
-    workflow: string;
-    task: string;
-  };
-  ttl: number;
-  data: unknown;
-}
-
-export type IPotPack = Array<IPot>;
+import { IPot, PotType } from "../types.ts";
 
 export class Pot<
   D extends { [key: string]: unknown },

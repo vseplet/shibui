@@ -10,9 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-export interface IShibuiError {
-  createdAt: number;
-}
+import { IShibuiError } from "../types.ts";
 
 export class ShibuiError extends Error implements IShibuiError {
   createdAt = new Date().getTime();
