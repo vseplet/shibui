@@ -26,7 +26,8 @@ interface IShibuiTextFormatterOptions {
   timestampPattern?: string;
 }
 
-class ShibuiTextFormatter extends AbstractFormatter<IShibuiTextFormatterOptions> {
+class ShibuiTextFormatter
+  extends AbstractFormatter<IShibuiTextFormatterOptions> {
   #colorizeByLevel = {
     [Level.UNKNOWN]: colors.dim,
     [Level.DEBUG]: colors.blue,

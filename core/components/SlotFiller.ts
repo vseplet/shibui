@@ -11,7 +11,7 @@
  */
 
 import { IPot } from "../entities/Pot.ts";
-import { ITask } from "../entities/Task.ts";
+import { ITask } from "../entities/TaskBuilder.ts";
 import { EventDrivenLogger } from "../components/EventDrivenLogger.ts";
 import { SourceType } from "../../events/LogEvents.ts";
 

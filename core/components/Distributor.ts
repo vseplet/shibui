@@ -16,13 +16,14 @@ import {
   ITaskBuilder,
   TaskBuilder,
   TaskTrigger,
-} from "../entities/Task.ts";
+  TriggerHandlerOp,
+} from "../entities/TaskBuilder.ts";
 import {
   IWorkflow,
   IWorkflowBuilder,
   WorkflowBuilder,
   WorkflowTrigger,
-} from "../entities/Workflow.ts";
+} from "../entities/WorkflowBuilder.ts";
 import { EventDrivenLogger } from "./EventDrivenLogger.ts";
 import PotQueue from "./PotQueue.ts";
 import Runner from "./Runner.ts";
@@ -71,9 +72,9 @@ export default class Distributor {
 
     this.#filler.allocateSlots(task);
 
-    if (task.ofWorkflow) {
+    if (task.belongsToWorkflow) {
       this.#logger.inf(
-        `registered task '${task.name}' of workflow '${task.ofWorkflow}'`,
+        `registered task '${task.name}' of workflow '${task.belongsToWorkflow}'`,
       );
     } else {
       this.#logger.inf(`registered task '${task.name}'`);
@@ -162,13 +163,13 @@ export default class Distributor {
         `trying to exec trigger handler from task '${trigger.taskName}' by pot '${pot.name}'...`,
       );
 
-      const result = trigger.test({
+      const result = trigger.handler({
         api: core.api,
         allow: (index?: number) => ({
-          op: "allow",
+          op: TriggerHandlerOp.ALLOW,
           potIndex: index ? index : trigger.slot,
         }),
-        deny: () => ({ op: "deny" }),
+        deny: () => ({ op: TriggerHandlerOp.DENY }),
         log: new EventDrivenLogger({
           sourceType: SourceType.TASK,
           sourceName: `ON (${[pot.name]}): ${trigger.taskName}`,
@@ -176,13 +177,13 @@ export default class Distributor {
         ctx: pot,
       });
 
-      if (result.op == "allow") {
+      if (result.op == TriggerHandlerOp.ALLOW) {
         this.#logger.vrb(
           `allow run '${trigger.taskName}' by pot '${pot.name}'`,
         );
         this.#filler.fill(trigger.taskName, pot, result.potIndex);
         return true;
-      } else if (result.op == "deny") {
+      } else if (result.op == TriggerHandlerOp.DENY) {
         this.#logger.trc(`deny run '${trigger.taskName}' by pot '${pot.name}'`);
         return false;
       }
@@ -206,7 +207,7 @@ export default class Distributor {
       if (pot.type === PotType.CONTEXT) {
         if (
           pot.to.task !== trigger.taskName ||
-          pot.to.workflow !== trigger.ofWorkflow
+          pot.to.workflow !== trigger.belongsToWorkflow
         ) {
           return false;
         }
@@ -215,10 +216,10 @@ export default class Distributor {
           `trying to exec trigger handler from '${trigger.taskName}' by context pot '${pot.name}'...`,
         );
 
-        const result = trigger.test({
+        const result = trigger.handler({
           api: core.api,
           allow: (index?: number) => ({
-            op: "allow",
+            op: TriggerHandlerOp.ALLOW,
             potIndex: index ? index : trigger.slot,
           }),
           deny: () => ({ op: "deny" }),
@@ -229,7 +230,7 @@ export default class Distributor {
           ctx: pot,
         });
 
-        if (result.op == "allow") {
+        if (result.op == TriggerHandlerOp.ALLOW) {
           this.#logger.vrb(
             `allow run '${trigger.taskName}' by pot '${pot.name}'`,
           );
@@ -242,7 +243,7 @@ export default class Distributor {
           ) {
             return true;
           }
-        } else if (result.op == "deny") {
+        } else if (result.op == TriggerHandlerOp.DENY) {
           this.#logger.trc(
             `deny run '${trigger.taskName}' by pot '${pot.name}'`,
           );
@@ -259,10 +260,10 @@ export default class Distributor {
           `trying to exec trigger handler from '${trigger.taskName}' by context pot ${ctx.name} and pot '${pot.name}'...`,
         );
 
-        const result = trigger.test({
+        const result = trigger.handler({
           api: core.api,
           allow: (index?: number) => ({
-            op: "allow",
+            op: TriggerHandlerOp.ALLOW,
             potIndex: index ? index : trigger.slot,
           }),
           deny: () => ({ op: "deny" }),
@@ -274,7 +275,7 @@ export default class Distributor {
           pot: pot,
         });
 
-        if (result.op == "allow") {
+        if (result.op == TriggerHandlerOp.ALLOW) {
           this.#logger.vrb(
             `allow run '${trigger.taskName}' by pot '${pot.name}'`,
           );
@@ -287,7 +288,7 @@ export default class Distributor {
             )
           ) dec++;
           res = true;
-        } else if (result.op == "deny") {
+        } else if (result.op == TriggerHandlerOp.DENY) {
           this.#logger.trc(
             `deny run '${trigger.taskName}' by pot '${pot.name}'`,
           );
@@ -333,7 +334,7 @@ export default class Distributor {
     );
 
     return triggers.map((trigger) =>
-      trigger.ofWorkflow === undefined
+      trigger.belongsToWorkflow === undefined
         ? this.#runSingleTaskTriggerHandler(pot, trigger)
         // @ts-ignore
         : this.#runWorkflowTaskTriggerHandler(pot, trigger)

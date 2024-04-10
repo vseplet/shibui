@@ -10,8 +10,8 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { workflow } from "./entities/Workflow.ts";
-import { task } from "./entities/Task.ts";
+import { workflow } from "./entities/WorkflowBuilder.ts";
+import { task } from "./entities/TaskBuilder.ts";
 import api from "./api.ts";
 import emitters from "./emitters.ts";
 

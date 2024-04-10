@@ -14,8 +14,8 @@
 import { syncPromiseWithTimeout } from "../helpers/syncPromiseWithTimeout.ts";
 import Distributor from "./components/Distributor.ts";
 import { IPot } from "./entities/Pot.ts";
-import { ITaskBuilder } from "./entities/Task.ts";
-import { IWorkflowBuilder } from "./entities/Workflow.ts";
+import { ITaskBuilder } from "./entities/TaskBuilder.ts";
+import { IWorkflowBuilder } from "./entities/WorkflowBuilder.ts";
 import {
   EventDrivenLogger,
   ILoggerOptions,

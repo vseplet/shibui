@@ -11,10 +11,15 @@
  */
 
 import { IPot, Pot } from "../entities/Pot.ts";
-import { DoHandlerResult, ITask, ITaskBuilder } from "../entities/Task.ts";
+import {
+  DoHandlerResult,
+  ITask,
+  ITaskBuilder,
+} from "../entities/TaskBuilder.ts";
 import { EventDrivenLogger } from "../components/EventDrivenLogger.ts";
 import core from "../mod.ts";
 import { SourceType } from "../../events/LogEvents.ts";
+import { DoHandlerOp } from "../entities/TaskBuilder.ts";
 
 export default class Runner {
   #logger = new EventDrivenLogger({
@@ -32,23 +37,23 @@ export default class Runner {
     result: DoHandlerResult,
   ): boolean {
     try {
-      if (result.op === "finish") {
+      if (result.op === DoHandlerOp.FINISH) {
         // core.api.send(new core.pots.task.TaskFinishedPot());
-      } else if (result.op === "next") {
+      } else if (result.op === DoHandlerOp.NEXT) {
         //TODO: пофиксить преобразование данных в next
-        result.taskBuilders.forEach((builder) => {
+        result.tasks.forEach((builder) => {
           const copyOfContextPot = pots[0].copy(result.data || pots[0].data);
           copyOfContextPot.from.task = builder.task.name;
-          copyOfContextPot.from.workflow = builder.task.ofWorkflow;
+          copyOfContextPot.from.workflow = builder.task.belongsToWorkflow;
           copyOfContextPot.to.task = builder.task.name;
-          copyOfContextPot.to.workflow = builder.task.ofWorkflow;
+          copyOfContextPot.to.workflow = builder.task.belongsToWorkflow;
           core.api.send(copyOfContextPot);
           // core.api.send(new core.pots.task.TaskCallingNext());
         });
-      } else if (result.op === "repeat") {
+      } else if (result.op === DoHandlerOp.REPEAT) {
         // core.api.send(new core.pots.task.TaskRepeatedPot());
         return true;
-      } else if (result.op === "fail") {
+      } else if (result.op === DoHandlerOp.FAIL) {
         // core.api.send(new core.pots.task.TaskFailedPot());
       }
     } catch (err: unknown) {

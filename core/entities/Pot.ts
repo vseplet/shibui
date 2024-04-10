@@ -23,7 +23,6 @@ export interface IPot {
   uuid: string;
   name: string;
   type: PotType;
-
   from: {
     workflow: string;
     task: string;
@@ -33,7 +32,6 @@ export interface IPot {
     task: string;
   };
   ttl: number;
-
   data: unknown;
 }
 

@@ -25,7 +25,7 @@ export default class PotQueue<T extends IPot> {
 
   constructor() {
     // this.#db.listenQueue(async (pot) => {
-      
+
     // });
   }
 

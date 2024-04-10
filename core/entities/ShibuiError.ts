@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Vsevolod Plentev
+ * Copyright 2024 Vsevolod Plentev
  *
  * This program is licensed under the Creative Commons Attribution-NonCommercial 3.0 Unported License (CC BY-NC 3.0).
  * You may obtain a copy of the license at https://creativecommons.org/licenses/by-nc/3.0/legalcode.
