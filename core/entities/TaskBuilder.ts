@@ -50,7 +50,8 @@ export class TaskBuilder<
     p4?: Constructor<P4>,
     p5?: Constructor<P5>,
   ) {
-    this.task.slotsCount = arguments.length;
+    this.task.slotsCount =
+      Array.from(arguments).filter((arg) => arg !== undefined).length;
   }
 
   belongsToWorkflow(builder: IWorkflowBuilder) {

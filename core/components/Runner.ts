@@ -10,16 +10,17 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { IPot, Pot } from "../entities/Pot.ts";
-import {
-  DoHandlerResult,
-  ITask,
-  ITaskBuilder,
-} from "../entities/TaskBuilder.ts";
+import { Pot } from "../entities/Pot.ts";
 import { EventDrivenLogger } from "../components/EventDrivenLogger.ts";
 import core from "../mod.ts";
-import { SourceType } from "../../events/LogEvents.ts";
-import { DoHandlerOp } from "../entities/TaskBuilder.ts";
+import {
+  DoHandlerOp,
+  DoHandlerResult,
+  IPot,
+  ITask,
+  ITaskBuilder,
+  SourceType,
+} from "../types.ts";
 
 export default class Runner {
   #logger = new EventDrivenLogger({
@@ -91,11 +92,7 @@ export default class Runner {
             sourceType: SourceType.TASK,
             sourceName: `DO: ${taskName}`,
           }),
-          ctx: pots[0],
-          p1: pots[0],
-          p2: pots[1] ? pots[1] : {} as IPot,
-          p3: pots[2] ? pots[2] : {} as IPot,
-          p4: pots[3] ? pots[3] : {} as IPot,
+          pots,
           next: (
             taskBuilders: ITaskBuilder | Array<ITaskBuilder>,
             data?: Partial<IPot["data"]>,

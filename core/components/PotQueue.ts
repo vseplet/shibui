@@ -10,9 +10,8 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { IPot } from "../entities/Pot.ts";
 import { EventDrivenLogger } from "../components/EventDrivenLogger.ts";
-import { SourceType } from "../../events/LogEvents.ts";
+import { IPot, SourceType } from "../types.ts";
 
 export default class PotQueue<T extends IPot> {
   #logger = new EventDrivenLogger({

@@ -10,10 +10,8 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { IPot } from "../entities/Pot.ts";
-import { ITask } from "../entities/TaskBuilder.ts";
 import { EventDrivenLogger } from "../components/EventDrivenLogger.ts";
-import { SourceType } from "../../events/LogEvents.ts";
+import { IPot, ITask, SourceType } from "../types.ts";
 
 export default class SlotFiller {
   #logger = new EventDrivenLogger({

@@ -2,7 +2,7 @@
   "lock": false,
   "tasks": {
     "serve": "deno run --allow-all --unstable-broadcast-channel ./moduleServe.ts",
-    "ex1": "deno run --allow-all --unstable-broadcast-channel ./core/examples/ex1.ts",
+    "ex1": "deno run --allow-all --unstable-broadcast-channel ./core/examples/ex1-simple-task.ts",
     "ex2": "deno run --allow-all --unstable-broadcast-channel ./core/examples/ex2.ts",
     "ex3": "deno run --allow-all --unstable-broadcast-channel ./core/examples/ex3.ts",
     "ex4": "deno run --allow-all --unstable-broadcast-channel ./core/examples/ex4.ts",

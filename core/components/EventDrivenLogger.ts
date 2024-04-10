@@ -18,12 +18,11 @@ import {
   ErrorLogEvent,
   FatalLogEvent,
   InfoLogEvent,
-  Level,
-  SourceType,
   TraceLogEvent,
   VerboseLogEvent,
   WarnLogEvent,
 } from "../../events/LogEvents.ts";
+import { ILoggerOptions, Level, SourceType } from "../types.ts";
 
 const colorizeByLevel = {
   [Level.UNKNOWN]: colors.dim,
@@ -46,11 +45,6 @@ const levelName = [
   "ERR",
   "FTL",
 ];
-
-export interface ILoggerOptions {
-  sourceType?: SourceType;
-  sourceName?: string;
-}
 
 export class EventDrivenLogger {
   #options = {

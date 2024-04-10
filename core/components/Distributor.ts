@@ -10,20 +10,6 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { IPot, Pot, PotType } from "../entities/Pot.ts";
-import {
-  ITask,
-  ITaskBuilder,
-  TaskBuilder,
-  TaskTrigger,
-  TriggerHandlerOp,
-} from "../entities/TaskBuilder.ts";
-import {
-  IWorkflow,
-  IWorkflowBuilder,
-  WorkflowBuilder,
-  WorkflowTrigger,
-} from "../entities/WorkflowBuilder.ts";
 import { EventDrivenLogger } from "./EventDrivenLogger.ts";
 import PotQueue from "./PotQueue.ts";
 import Runner from "./Runner.ts";
@@ -31,7 +17,21 @@ import core from "../mod.ts";
 import { delay } from "https://deno.land/std@0.196.0/async/delay.ts";
 import SlotFiller from "../components/SlotFiller.ts";
 import { CoreStartPot } from "../../pots/CoreStartPot.ts";
-import { SourceType } from "../../events/LogEvents.ts";
+import { Pot } from "../entities/Pot.ts";
+import { TaskBuilder } from "../entities/TaskBuilder.ts";
+import { WorkflowBuilder } from "../entities/WorkflowBuilder.ts";
+import {
+  IPot,
+  ITask,
+  ITaskBuilder,
+  IWorkflow,
+  IWorkflowBuilder,
+  PotType,
+  SourceType,
+  TaskTrigger,
+  TriggerHandlerOp,
+  WorkflowTrigger,
+} from "../types.ts";
 
 export default class Distributor {
   #logger = new EventDrivenLogger({
@@ -174,7 +174,7 @@ export default class Distributor {
           sourceType: SourceType.TASK,
           sourceName: `ON (${[pot.name]}): ${trigger.taskName}`,
         }),
-        ctx: pot,
+        pots: [pot],
       });
 
       if (result.op == TriggerHandlerOp.ALLOW) {

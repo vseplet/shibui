@@ -12,36 +12,13 @@
 
 // deno-lint-ignore-file
 
-import { ShibuiEvent, ShibuiEventType } from "../core/entities/ShibuiEvent.ts";
-
-export enum Level {
-  UNKNOWN = 0,
-  TRACE = 1,
-  DEBUG = 2,
-  VERBOSE = 3,
-  INFO = 4,
-  WARN = 5,
-  ERROR = 6,
-  FATAL = 7,
-}
-
-export enum SourceType {
-  UNKNOWN = "UNKNOWN",
-  CORE = "CORE",
-  TASK = "TASK",
-  TASK_TEST = "TASK.ON",
-  TASK_DO = "TASK.DO",
-  WORKFLOW = "WORKFLOW",
-  WORKFLOW_TEST = "WORKFLOW.TEST",
-  WORKFLOW_FAIL = "WORKFLOW.FAIL",
-  FRAMEWORK = "FRAMEWORK",
-  PLUGIN = "PLUGIN",
-}
-
-interface ILogEventArgs {
-  sourceType: SourceType;
-  sourceName: string;
-}
+import { ShibuiEvent } from "../core/entities/ShibuiEvent.ts";
+import {
+  ILogEventArgs,
+  Level,
+  ShibuiEventType,
+  SourceType,
+} from "../core/types.ts";
 
 export class LogEvent<T> extends ShibuiEvent {
   type = ShibuiEventType.LOG;

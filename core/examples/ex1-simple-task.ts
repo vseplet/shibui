@@ -9,15 +9,15 @@ class SimplePot extends InternalPot<{ value: number }> {
   };
 }
 
-const task = core.task<SimplePot>()
+const task = core.task(SimplePot)
   .name`Simple Task`
-  .on(SimplePot, ({ allow, deny, ctx, log }) => {
+  .on(SimplePot, ({ allow, deny, pots, log }) => {
     log.dbg(`run test function... `);
     return Math.random() > 0.7 ? allow() : deny();
   })
-  .do(async ({ finish, ctx, log }) => {
+  .do(async ({ finish, pots, log }) => {
     log.dbg(`run do function...`);
-    log.dbg(`value: ${ctx.data.value}`);
+    log.dbg(`value: ${pots[0].data.value}`);
 
     return finish();
   });

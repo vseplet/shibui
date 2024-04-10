@@ -228,3 +228,37 @@ export interface IWorkflowBuilder {
   >;
   build(): IWorkflow;
 }
+
+export enum Level {
+  UNKNOWN = 0,
+  TRACE = 1,
+  DEBUG = 2,
+  VERBOSE = 3,
+  INFO = 4,
+  WARN = 5,
+  ERROR = 6,
+  FATAL = 7,
+}
+
+export enum SourceType {
+  UNKNOWN = "UNKNOWN",
+  CORE = "CORE",
+  TASK = "TASK",
+  TASK_TEST = "TASK.ON",
+  TASK_DO = "TASK.DO",
+  WORKFLOW = "WORKFLOW",
+  WORKFLOW_TEST = "WORKFLOW.TEST",
+  WORKFLOW_FAIL = "WORKFLOW.FAIL",
+  FRAMEWORK = "FRAMEWORK",
+  PLUGIN = "PLUGIN",
+}
+
+export interface ILogEventArgs {
+  sourceType: SourceType;
+  sourceName: string;
+}
+
+export interface ILoggerOptions {
+  sourceType?: SourceType;
+  sourceName?: string;
+}
