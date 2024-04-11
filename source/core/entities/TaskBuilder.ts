@@ -154,6 +154,53 @@ export class TaskBuilder<
     return this;
   }
 
+  onRule<TP extends Exclude<P1 | P2 | P3 | P4, undefined>>(
+    rule: "ForThisTask" | "ForAnyTask" | "ForUnknown",
+    potConstructor: Constructor<TP>,
+    slot?: number,
+  ) {
+    let test;
+
+    if (
+      !this.task
+        .triggers[potConstructor.name]
+    ) {
+      this.task
+        .triggers[potConstructor.name] = [];
+    }
+
+    if (rule === "ForThisTask") {
+      test = ({ allow, deny, pots }: TriggerHandlerArgs<TP>) => {
+        return pots[0].to.task === this.task.name ? allow() : deny();
+      };
+    } else if (rule == "ForAnyTask") {
+      test = ({ allow, deny, pots }: TriggerHandlerArgs<TP>) => {
+        return pots[0].to.task !== this.task.name &&
+            pots[0].to.task !== "unknown"
+          ? allow()
+          : deny();
+      };
+    } else if (rule == "ForUnknown") {
+      test = ({ allow, deny, pots }: TriggerHandlerArgs<TP>) => {
+        return pots[0].to.task === "unknown" ? allow() : deny();
+      };
+    } else {
+      test = ({ deny }: TriggerHandlerArgs<TP>) => {
+        return deny();
+      };
+    }
+
+    this.task.triggers[potConstructor.name].push({
+      taskName: this.task.name,
+      potConstructor,
+      slot: slot || this.task.triggers[potConstructor.name].length,
+      handler: test,
+      belongsToWorkflow: this.task.belongsToWorkflow,
+    });
+
+    return this;
+  }
+
   do(
     handler: (
       args: DoHandlerArgs<P1, P2, P3, P4, P5>,

@@ -40,9 +40,10 @@ export default class Runner {
     try {
       if (result.op === DoHandlerOp.FINISH) {
         // core.api.send(new core.pots.task.TaskFinishedPot());
-      } else if (result.op === DoHandlerOp.NEXT) {
+      } else if (result.op == DoHandlerOp.NEXT) {
         //TODO: пофиксить преобразование данных в next
-        result.tasks.forEach((builder) => {
+
+        result.taskBuilders.forEach((builder) => {
           const copyOfContextPot = pots[0].copy(result.data || pots[0].data);
           copyOfContextPot.from.task = builder.task.name;
           copyOfContextPot.from.workflow = builder.task.belongsToWorkflow;
@@ -97,15 +98,20 @@ export default class Runner {
             taskBuilders: ITaskBuilder | Array<ITaskBuilder>,
             data?: Partial<IPot["data"]>,
           ) => ({
-            op: "next",
+            op: DoHandlerOp.NEXT,
             taskBuilders: taskBuilders instanceof Array
               ? taskBuilders
               : [taskBuilders],
             data,
           }),
-          fail: (reason?: string) => ({ op: "fail", reason: reason || "" }),
-          finish: () => ({ op: "finish" }),
-          repeat: (_data?: Partial<IPot["data"]>) => ({ op: "repeat" }),
+          fail: (reason?: string) => ({
+            op: DoHandlerOp.FAIL,
+            reason: reason || "",
+          }),
+          finish: () => ({ op: DoHandlerOp.FINISH }),
+          repeat: (_data?: Partial<IPot["data"]>) => ({
+            op: DoHandlerOp.REPEAT,
+          }),
         });
 
         if (!this.#processDoHandlerResult(pots, task, doResult)) {
@@ -121,7 +127,7 @@ export default class Runner {
           this.#logger.err(
             `trying to exec do handler from task '${taskName}' by pot '${
               pots[0].name
-            }' failed with error: '${err.message}'`,
+            }' failed with error: '${err.stack}'`,
           );
         } else {
           this.#logger.flt(

@@ -10,7 +10,8 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { ShibuiEvent, ShibuiEventType } from "../core/entities/ShibuiEvent.ts";
+import { ShibuiEvent } from "../core/entities/ShibuiEvent.ts";
+import { ShibuiEventType } from "../core/types.ts";
 
 export class CoreEvent extends ShibuiEvent {
   type = ShibuiEventType.CORE;

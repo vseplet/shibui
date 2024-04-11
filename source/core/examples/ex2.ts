@@ -1,7 +1,7 @@
 // deno-lint-ignore-file require-await
 import core from "../mod.ts";
 import { InternalPot } from "../../pots/InternalPot.ts";
-import { SourceType } from "../../events/LogEvents.ts";
+import { SourceType } from "../types.ts";
 
 class SimplePot extends InternalPot<{ value: number }> {
   ttl = 1;
@@ -10,31 +10,31 @@ class SimplePot extends InternalPot<{ value: number }> {
   };
 }
 
-const task1 = core.task<SimplePot>()
+const task1 = core.task(SimplePot)
   .name`Task 1`
   .onRule("ForThisTask", SimplePot)
-  .do(async ({ log, ctx, next }) => {
-    log.dbg(`value: ${ctx.data.value}`);
+  .do(async ({ log, pots, next }) => {
+    log.dbg(`value: ${pots[0].data.value}`);
     return next(task2, {
-      value: ctx.data.value += 1,
+      value: pots[0].data.value += 1,
     });
   });
 
-const task2 = core.task<SimplePot>()
+const task2 = core.task(SimplePot)
   .name`Task 2`
   .onRule("ForThisTask", SimplePot)
-  .do(async ({ log, ctx, next }) => {
-    log.dbg(`value: ${ctx.data.value}`);
+  .do(async ({ log, pots, next }) => {
+    log.dbg(`value: ${pots[0].data.value}`);
     return next(task3, {
-      value: ctx.data.value += 1,
+      value: pots[0].data.value += 1,
     });
   });
 
-const task3 = core.task<SimplePot>()
+const task3 = core.task(SimplePot)
   .name`Task 3`
   .onRule("ForThisTask", SimplePot)
-  .do(async ({ log, ctx, finish }) => {
-    log.dbg(`value: ${ctx.data.value}`);
+  .do(async ({ log, pots, finish }) => {
+    log.dbg(`value: ${pots[0].data.value}`);
     return finish();
   });
 

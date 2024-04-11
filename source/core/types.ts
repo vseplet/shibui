@@ -127,24 +127,12 @@ export type DoHandlerArgs<
   pots: [P1, P2, P3, P4, P5];
 
   next: (
-    tasks: ITaskBuilder | Array<ITaskBuilder>,
-    data?: Array<[
-      Partial<P1["data"]>,
-      Partial<P2 extends IPot ? P2["data"] : never>,
-      Partial<P3 extends IPot ? P3["data"] : never>,
-      Partial<P4 extends IPot ? P4["data"] : never>,
-      Partial<P5 extends IPot ? P5["data"] : never>,
-    ]>,
+    taskBuilders: ITaskBuilder | Array<ITaskBuilder>,
+    data?: Partial<P1["data"]>,
   ) => {
     op: DoHandlerOp.NEXT;
-    tasks: Array<ITaskBuilder>;
-    data?: Array<[
-      Partial<P1["data"]>,
-      Partial<P2 extends IPot ? P2["data"] : never>,
-      Partial<P3 extends IPot ? P3["data"] : never>,
-      Partial<P4 extends IPot ? P4["data"] : never>,
-      Partial<P5 extends IPot ? P5["data"] : never>,
-    ]>;
+    taskBuilders: Array<ITaskBuilder>;
+    data?: Partial<P1["data"]>;
   };
 
   fail: (reason?: string) => {
@@ -157,22 +145,17 @@ export type DoHandlerArgs<
   };
 
   repeat: (
-    data?: Array<[
-      Partial<P1["data"]>,
-      Partial<P2 extends IPot ? P2["data"] : never>,
-      Partial<P3 extends IPot ? P3["data"] : never>,
-      Partial<P4 extends IPot ? P4["data"] : never>,
-      Partial<P5 extends IPot ? P5["data"] : never>,
-    ]>,
+    data?: Partial<P1["data"]>,
   ) => {
     op: DoHandlerOp.REPEAT;
+    data?: Partial<P1["data"]>;
   };
 };
 
 export type DoHandlerResult =
   | {
     op: DoHandlerOp.NEXT;
-    tasks: Array<ITaskBuilder>;
+    taskBuilders: Array<ITaskBuilder>;
     data?: Partial<IPot["data"]>;
   }
   | {
