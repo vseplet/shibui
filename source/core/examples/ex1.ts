@@ -1,6 +1,7 @@
 // deno-lint-ignore-file
 import { InternalPot } from "../../pots/InternalPot.ts";
 import core from "../mod.ts";
+import { SourceType } from "../types.ts";
 
 class SimplePot extends InternalPot<{ value: number }> {
   ttl = 5;
@@ -21,6 +22,12 @@ const task = core.task(SimplePot)
 
     return finish();
   });
+
+core.api.settings.DEFAULT_LOGGING_LEVEL = 0;
+core.api.settings.ALLOWED_LOGGING_SOURCE_TYPES = [
+  SourceType.TASK,
+  // SourceType.CORE,
+];
 
 core.api.register(task);
 core.api.send(new SimplePot());

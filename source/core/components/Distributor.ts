@@ -222,12 +222,12 @@ export default class Distributor {
             op: TriggerHandlerOp.ALLOW,
             potIndex: index ? index : trigger.slot,
           }),
-          deny: () => ({ op: "deny" }),
+          deny: () => ({ op: TriggerHandlerOp.DENY }),
           log: new EventDrivenLogger({
             sourceType: SourceType.TASK,
             sourceName: `ON (${[pot.name]}): ${trigger.taskName}`,
           }),
-          ctx: pot,
+          pots: [pot],
         });
 
         if (result.op == TriggerHandlerOp.ALLOW) {
@@ -266,13 +266,12 @@ export default class Distributor {
             op: TriggerHandlerOp.ALLOW,
             potIndex: index ? index : trigger.slot,
           }),
-          deny: () => ({ op: "deny" }),
+          deny: () => ({ op: TriggerHandlerOp.DENY }),
           log: new EventDrivenLogger({
             sourceType: SourceType.TASK,
             sourceName: `ON (${[pot.name]}): ${trigger.taskName}`,
           }),
-          ctx: ctx,
-          pot: pot,
+          pots: [ctx, pot],
         });
 
         if (result.op == TriggerHandlerOp.ALLOW) {
