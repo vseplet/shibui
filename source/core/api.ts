@@ -78,12 +78,8 @@ const enable = (builder: ITaskBuilder | IWorkflowBuilder) => {
   globalPotDistributor.enable(builder);
 };
 
-const send = (pot: IPot) => {
-  globalPotDistributor.send(pot);
-};
-
-const sendTo = (builder: ITaskBuilder, pot: IPot) => {
-  pot.to.task = builder.task.name;
+const send = (pot: IPot, builder?: ITaskBuilder) => {
+  if (builder) pot.to.task = builder.task.name;
   globalPotDistributor.send(pot);
 };
 
@@ -97,7 +93,6 @@ const api = {
   disable,
   enable,
   send,
-  sendTo,
   execute,
   executeSync,
   settings,
