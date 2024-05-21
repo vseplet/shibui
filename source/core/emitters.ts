@@ -10,8 +10,8 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { CoreEvent } from "../events/CoreEvent.ts";
-import { LogEvent } from "../events/LogEvents.ts";
+import { CoreEvent } from "./events/CoreEvent.ts";
+import { LogEvent } from "./events/LogEvents.ts";
 import { EventEmitter } from "./components/EventEmitter.ts";
 
 const emitters = {

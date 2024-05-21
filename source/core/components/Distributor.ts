@@ -16,7 +16,7 @@ import Runner from "./Runner.ts";
 import core from "../mod.ts";
 import { delay } from "https://deno.land/std@0.196.0/async/delay.ts";
 import SlotFiller from "../components/SlotFiller.ts";
-import { CoreStartPot } from "../../pots/CoreStartPot.ts";
+import { CoreStartPot } from "../pots/CoreStartPot.ts";
 import { Pot } from "../entities/Pot.ts";
 import { TaskBuilder } from "../entities/TaskBuilder.ts";
 import { WorkflowBuilder } from "../entities/WorkflowBuilder.ts";

@@ -1,4 +1,4 @@
-import { ExternalPot } from "../../../pots/ExternalPot.ts";
+import { ExternalPot } from "../../../core/pots/ExternalPot.ts";
 
 export class HttpRequestPot extends ExternalPot<
   {

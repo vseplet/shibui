@@ -1,5 +1,5 @@
-import { ContextPot } from "../../pots/ContextPot.ts";
-import { CoreStartPot } from "../../pots/CoreStartPot.ts";
+import { ContextPot } from "../pots/ContextPot.ts";
+import { CoreStartPot } from "../pots/CoreStartPot.ts";
 import core from "../mod.ts";
 
 const w1 = core.workflow(class CTX extends ContextPot<{}> {})

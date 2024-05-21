@@ -1,5 +1,5 @@
 // deno-lint-ignore-file
-import { InternalPot } from "../../pots/InternalPot.ts";
+import { InternalPot } from "../pots/InternalPot.ts";
 import core from "../mod.ts";
 import { SourceType } from "../types.ts";
 

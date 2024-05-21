@@ -21,7 +21,7 @@ import {
   TraceLogEvent,
   VerboseLogEvent,
   WarnLogEvent,
-} from "../../events/LogEvents.ts";
+} from "../events/LogEvents.ts";
 import { ILoggerOptions, Level, SourceType } from "../types.ts";
 
 const colorizeByLevel = {
