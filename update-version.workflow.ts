@@ -96,12 +96,13 @@ const workflow = core.workflow(UpdateVersionContext)
     const t4 = task1()
       .name("Commit and push changes")
       .do(async ({ log, next }) => {
-        await shelly("git add -A");
-        await shelly(
-          "git commit -m 'Apply changes from update-version.ts script'",
+        console.log((await shelly("git add -A")).stdout);
+        console.log(
+          await shelly(
+            "git commit -m 'Apply changes from update-version.ts script'",
+          ),
         );
-        await shelly("git push origin main");
-
+        console.log(await shelly("git push origin main"));
         return next(t5);
       });
 
@@ -109,9 +110,8 @@ const workflow = core.workflow(UpdateVersionContext)
       .name("Push tag to repository")
       .do(async ({ pots, log }) => {
         const [ctx] = pots;
-
-        await shelly(`git tag ${ctx.data.version}`);
-        await shelly("git push origin main");
+        console.log(await shelly(`git tag ${ctx.data.version}`));
+        console.log(await shelly("git push origin main"));
         Deno.exit(0);
       });
 
