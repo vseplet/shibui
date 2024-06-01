@@ -21,7 +21,7 @@ import { IPlugin } from "../entities/Plugin.ts";
 const prod = async (manifest: IManifest, plugins: Array<IPlugin> = []) => {
   console.log(colors.magenta(INTRO_TEXT));
   core.api.settings.DEFAULT_LOGGING_ENABLED = false;
-  initCore(manifest, plugins);
+  await initCore(manifest, plugins);
 };
 
 export default prod;

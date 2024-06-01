@@ -20,7 +20,10 @@ const log = core.api.createLogger({
   sourceType: SourceType.FRAMEWORK,
 });
 
-export const initCore = (manifest: IManifest, plugins: Array<IPlugin> = []) => {
+export const initCore = async (
+  manifest: IManifest,
+  plugins: Array<IPlugin> = [],
+) => {
   log.inf(`init plugins...`);
   for (const path in manifest.plugins) {
     const plugin = manifest.plugins[path];
@@ -57,5 +60,5 @@ export const initCore = (manifest: IManifest, plugins: Array<IPlugin> = []) => {
     core.api.register(manifest.workflows[path]);
   }
 
-  core.api.start();
+  await core.api.start();
 };

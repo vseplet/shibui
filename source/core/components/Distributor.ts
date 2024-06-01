@@ -351,7 +351,9 @@ export default class Distributor {
     );
   }
 
-  start() {
+  async start() {
+    await this.init();
+
     this.#kv.listenQueue((jsonPotObj: IPot) => {
       try {
         const pot = new Pot().deserialize(jsonPotObj);

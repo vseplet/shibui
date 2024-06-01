@@ -66,8 +66,8 @@ const init = async () => {
   await globalPotDistributor.init();
 };
 
-const start = () => {
-  globalPotDistributor.start();
+const start = async () => {
+  await globalPotDistributor.start();
 };
 
 const register = (builder: ITaskBuilder | IWorkflowBuilder) => {

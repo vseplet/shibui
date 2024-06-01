@@ -26,10 +26,9 @@ const task = core.task(SimplePot)
 core.api.settings.DEFAULT_LOGGING_LEVEL = 0;
 core.api.settings.ALLOWED_LOGGING_SOURCE_TYPES = [
   SourceType.TASK,
-  // SourceType.CORE,
+  SourceType.CORE,
 ];
 
-await core.api.init();
 core.api.register(task);
+await core.api.start();
 core.api.send(new SimplePot());
-core.api.start();
