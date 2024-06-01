@@ -52,9 +52,26 @@ export class Pot<
     return this;
   }
 
+  deserialize(jsonObj: IPot): Pot<D> {
+    this.toc = jsonObj.toc;
+    this.uuid = jsonObj.uuid;
+    this.name = jsonObj.name;
+    this.type = jsonObj.type;
+
+    this.from = jsonObj.from;
+    this.to = jsonObj.to;
+    this.ttl = jsonObj.ttl;
+
+    this.data = jsonObj.data as D;
+
+    return this;
+  }
+
   copy(partialData?: Partial<D>) {
     // @ts-ignore
     const copy = new this.constructor();
+    copy.name = this.name;
+    copy.type = this.type;
     copy.init(self.structuredClone(this.data));
     // TDOD: подумать над тем, как оптимизировать этот костыль
     if (partialData) {

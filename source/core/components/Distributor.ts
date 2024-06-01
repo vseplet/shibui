@@ -352,8 +352,10 @@ export default class Distributor {
   }
 
   start() {
-    this.#kv.listenQueue((pot: IPot) => {
+    this.#kv.listenQueue((jsonPotObj: IPot) => {
       try {
+        const pot = new Pot().deserialize(jsonPotObj);
+
         if (pot) {
           this.#logger.vrb(`received a pot '${pot.name}, ttl:{${pot.ttl}}'`);
 

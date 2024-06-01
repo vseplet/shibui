@@ -25,7 +25,7 @@ export enum PotType {
 
 export interface IPot {
   toc: number;
-  uuid: string;
+  uuid: `${string}-${string}-${string}-${string}-${string}`;
   name: string;
   type: PotType;
   from: {

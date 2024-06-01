@@ -10,7 +10,7 @@ const w1 = core.workflow(class CTX extends ContextPot<{}> {})
       .name("single workflow task")
       .do(async ({ pots, log, finish }) => {
         const [ctx] = pots;
-        log.dbg(`context data: ${ctx.data}`);
+        log.dbg(`context data: ${JSON.stringify(ctx.data)}`);
         return finish();
       })
   );

@@ -45,10 +45,14 @@ export default class Runner {
 
         result.taskBuilders.forEach((builder) => {
           const copyOfContextPot = pots[0].copy(result.data || pots[0].data);
-          copyOfContextPot.from.task = builder.task.name;
-          copyOfContextPot.from.workflow = builder.task.belongsToWorkflow;
+          copyOfContextPot.from.task = task.name;
+          copyOfContextPot.from.workflow = task.belongsToWorkflow;
           copyOfContextPot.to.task = builder.task.name;
           copyOfContextPot.to.workflow = builder.task.belongsToWorkflow;
+
+          // console.log(pots[0]);
+          // console.log(copyOfContextPot);
+
           core.api.send(copyOfContextPot);
           // core.api.send(new core.pots.task.TaskCallingNext());
         });
