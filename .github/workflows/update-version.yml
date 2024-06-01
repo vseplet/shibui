@@ -50,5 +50,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Pushing tag: ${{ env.TAG_NAME }}"  # Вывод тега в консоль
-        #  git tag ${{ env.TAG_NAME }}
-        #  git push origin ${{ env.TAG_NAME }}
+          git tag ${{ env.TAG_NAME }}
+          git push origin ${{ env.TAG_NAME }}
