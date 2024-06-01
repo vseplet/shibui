@@ -11,10 +11,10 @@ Let's translate `docs/intro.md` to French.
 Modify `docusaurus.config.js` to add support for the `fr` locale:
 
 ```js title="docusaurus.config.js"
-module.exports = {
+export default {
   i18n: {
-    defaultLocale: "en",
-    locales: ["en", "fr"],
+    defaultLocale: 'en',
+    locales: ['en', 'fr'],
   },
 };
 ```
@@ -39,13 +39,11 @@ Start your site on the French locale:
 npm run start -- --locale fr
 ```
 
-Your localized site is accessible at
-[http://localhost:3000/fr/](http://localhost:3000/fr/) and the `Getting Started`
-page is translated.
+Your localized site is accessible at [http://localhost:3000/fr/](http://localhost:3000/fr/) and the `Getting Started` page is translated.
 
 :::caution
 
-In development, you can only use one locale at a same time.
+In development, you can only use one locale at a time.
 
 :::
 
@@ -56,13 +54,13 @@ To navigate seamlessly across languages, add a locale dropdown.
 Modify the `docusaurus.config.js` file:
 
 ```js title="docusaurus.config.js"
-module.exports = {
+export default {
   themeConfig: {
     navbar: {
       items: [
         // highlight-start
         {
-          type: "localeDropdown",
+          type: 'localeDropdown',
         },
         // highlight-end
       ],
