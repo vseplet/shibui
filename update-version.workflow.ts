@@ -4,7 +4,7 @@ import { CoreStartPot } from "https://deno.land/x/shibui@v0.3.0.4-alpha/core/pot
 import { ContextPot } from "https://deno.land/x/shibui@v0.3.0.4-alpha/core/pots/ContextPot.ts";
 import { SourceType } from "https://deno.land/x/shibui@v0.3.0.4-alpha/core/types.ts";
 import { walk } from "https://deno.land/std@0.224.0/fs/mod.ts";
-import { shelly } from "https://deno.land/x/shelly@v0.1.1/mod.ts";
+import { sh } from "https://deno.land/x/shelly@v0.1.1/mod.ts";
 
 const versionsFilePath = "./source/versions.ts";
 const mdUrlPattern = /https:\/\/deno\.land\/x\/shibui@[^/]+\//;
@@ -96,13 +96,13 @@ const workflow = core.workflow(UpdateVersionContext)
     const t4 = task1()
       .name("Commit and push changes")
       .do(async ({ log, next }) => {
-        console.log((await shelly("git add -A")).stdout);
+        console.log(await sh("git add -A"));
         console.log(
-          await shelly(
-            "git commit -m 'Apply changes from update-version.ts script'",
-          ),
+          (await sh(
+            `git commit -m "Apply changes from update-version.ts script"`,
+          )).stderr,
         );
-        console.log(await shelly("git push origin main"));
+        console.log(await sh("git push origin main"));
         return next(t5);
       });
 
@@ -110,8 +110,8 @@ const workflow = core.workflow(UpdateVersionContext)
       .name("Push tag to repository")
       .do(async ({ pots, log }) => {
         const [ctx] = pots;
-        console.log(await shelly(`git tag ${ctx.data.version}`));
-        console.log(await shelly("git push origin main"));
+        console.log(await sh(`git tag ${ctx.data.version}`));
+        console.log(await sh("git push origin main"));
         Deno.exit(0);
       });
 
