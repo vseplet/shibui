@@ -62,6 +62,10 @@ const executeSync = (
   return syncPromiseWithTimeout<IPot>(() => execute(builder, pots));
 };
 
+const init = async () => {
+  await globalPotDistributor.init();
+};
+
 const start = () => {
   globalPotDistributor.start();
 };
@@ -88,6 +92,7 @@ const createLogger = (options: ILoggerOptions) => {
 };
 
 const api = {
+  init,
   start,
   register,
   disable,

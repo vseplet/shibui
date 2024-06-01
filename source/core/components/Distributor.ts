@@ -14,7 +14,6 @@ import { EventDrivenLogger } from "./EventDrivenLogger.ts";
 import PotQueue from "./PotQueue.ts";
 import Runner from "./Runner.ts";
 import core from "../mod.ts";
-import { delay } from "https://deno.land/std@0.196.0/async/delay.ts";
 import SlotFiller from "../components/SlotFiller.ts";
 import { CoreStartPot } from "../pots/CoreStartPot.ts";
 import { Pot } from "../entities/Pot.ts";
@@ -346,45 +345,38 @@ export default class Distributor {
     return a || b;
   }
 
+  async init() {
+    await this.#queue.init();
+  }
+
   start() {
-    // deno-lint-ignore require-await
-    const update = async () => {
-      for (let i = 100; i--;) { // WARN: ? при i > 1 TTL может истечь быстрее, чем смогут отработать do handler'ы
-        // console.log(`----------------- update queue -----------------`);
-        // console.log(this.#queue.get());
+    this.#queue.db.listenQueue((pot: IPot) => {
+      try {
+        if (pot) {
+          this.#logger.vrb(`received a pot '${pot.name}, ttl:{${pot.ttl}}'`);
 
-        try {
-          const pot = this.#queue.popFirst();
-          if (pot) {
-            this.#logger.vrb(`received a pot '${pot.name}, ttl:{${pot.ttl}}'`);
-
-            if (!this.#test(pot) && pot.ttl > 0) {
-              this.#resend(pot);
-            } else {
-              this.#logger.vrb(`drop the pot '${pot.name} from queue`);
-            }
+          if (!this.#test(pot) && pot.ttl > 0) {
+            this.#resend(pot);
           } else {
-            break;
+            this.#logger.vrb(`drop the pot '${pot.name} from queue`);
           }
-        } catch (err: unknown) {
-          if (err instanceof Error) {
-            this.#logger.flt(
-              `failure in pot processing cycle with error: ${err.message} ${err.stack}`,
-            );
-
-            // core.api.send(new core.pots.core.CoreLoopCrushedPot());
-          }
+        } else {
+          return;
         }
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          this.#logger.flt(
+            `failure in pot processing cycle with error: ${err.message} ${err.stack}`,
+          );
 
-        await delay(0); // WARN: позволяем отработать другим микротаскам (обработать резульатат do handler'ов?)
+          // core.api.send(new core.pots.core.CoreLoopCrushedPot());
+        }
       }
-
-      setTimeout(update);
-    };
+    });
 
     this.#logger.inf(`starting update cycle...`);
     core.api.send(new CoreStartPot());
-    update();
+    // oldUpdate();
   }
 
   register(builder: IWorkflowBuilder | ITaskBuilder) {

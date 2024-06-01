@@ -20,24 +20,21 @@ export default class PotQueue<T extends IPot> {
   });
 
   #queue: Array<T> = [];
-  #db: Deno.Kv = undefined as unknown as Deno.Kv;
-
-  constructor() {
-    // this.#db.listenQueue(async (pot) => {
-
-    // });
-  }
+  db: Deno.Kv = undefined as unknown as Deno.Kv;
 
   get() {
     return this.#queue;
   }
 
   pushLast(pot: T) {
-    this.#logger.trc(
-      `push last pot ${pot.name} to queue'`,
-    );
-
     this.#queue.push(pot);
+    this.db.enqueue(pot)
+      .then(() => {
+        this.#logger.trc(
+          `push last pot ${pot.name} to queue'`,
+        );
+      }).catch((err) => {
+      });
   }
 
   popFirst(): T | undefined {
@@ -51,6 +48,9 @@ export default class PotQueue<T extends IPot> {
   }
 
   async init(path?: string) {
-    this.#db = await Deno.openKv(path);
+    this.db = await Deno.openKv();
+    this.#logger.inf(
+      `init deno kv`,
+    );
   }
 }

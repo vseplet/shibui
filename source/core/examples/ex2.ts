@@ -47,5 +47,6 @@ core.api.register(task1);
 core.api.register(task2);
 core.api.register(task3);
 
+await core.api.init();
 core.api.send(new SimplePot(), task1);
 core.api.start();
