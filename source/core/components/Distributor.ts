@@ -11,7 +11,6 @@
  */
 
 import { EventDrivenLogger } from "./EventDrivenLogger.ts";
-import PotQueue from "./PotQueue.ts";
 import Runner from "./Runner.ts";
 import core from "../mod.ts";
 import SlotFiller from "../components/SlotFiller.ts";
@@ -37,7 +36,7 @@ export default class Distributor {
     sourceType: SourceType.CORE,
     sourceName: "Distributor",
   });
-  #queue = new PotQueue<IPot>();
+  #kv: Deno.Kv = undefined as unknown as Deno.Kv;
   #filler = new SlotFiller();
   #defaultRunner = new Runner();
 
@@ -108,7 +107,7 @@ export default class Distributor {
         `return pot '${pot.name}' with ttl:{${pot.ttl}} back to the queue`,
       );
       pot.ttl--;
-      this.#queue.pushLast(pot);
+      this.#kv.enqueue(pot);
     } else {
       this.#logger.wrn(
         `pot '${pot.name}' ran out of ttl =(`,
@@ -346,11 +345,14 @@ export default class Distributor {
   }
 
   async init() {
-    await this.#queue.init();
+    this.#kv = await Deno.openKv();
+    this.#logger.inf(
+      `init deno kv`,
+    );
   }
 
   start() {
-    this.#queue.db.listenQueue((pot: IPot) => {
+    this.#kv.listenQueue((pot: IPot) => {
       try {
         if (pot) {
           this.#logger.vrb(`received a pot '${pot.name}, ttl:{${pot.ttl}}'`);
@@ -401,6 +403,6 @@ export default class Distributor {
 
   send(pot: IPot) {
     this.#logger.trc(`sending pot '${pot.name} to queue'`);
-    this.#queue.pushLast(pot);
+    this.#kv.enqueue(pot);
   }
 }
