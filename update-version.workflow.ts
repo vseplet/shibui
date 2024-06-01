@@ -3,8 +3,10 @@ import core from "https://deno.land/x/shibui@v0.3.0.4-alpha/core/mod.ts";
 import { CoreStartPot } from "https://deno.land/x/shibui@v0.3.0.4-alpha/core/pots/CoreStartPot.ts";
 import { ContextPot } from "https://deno.land/x/shibui@v0.3.0.4-alpha/core/pots/ContextPot.ts";
 import { SourceType } from "https://deno.land/x/shibui@v0.3.0.4-alpha/core/types.ts";
+import { walk } from "https://deno.land/std/fs/mod.ts";
 
-const filePath = "./source/versions.ts";
+const versionsFilePath = "./source/versions.ts";
+const mdUrlPattern = /https:\/\/deno\.land\/x\/shibui@[^/]+\//;
 
 class UpdateVersionContext extends ContextPot<{}> {
   data = {
@@ -21,7 +23,7 @@ const workflow = core.workflow(UpdateVersionContext)
       .do(async ({ pots, log, next }) => {
         const [ctx] = pots;
 
-        const data = await Deno.readTextFile(filePath);
+        const data = await Deno.readTextFile(versionsFilePath);
         const regex = /export default \[\s*([\s\S]*?)\s*\];/;
         const match = data.match(regex);
 
@@ -45,10 +47,10 @@ const workflow = core.workflow(UpdateVersionContext)
               )
           } ];`;
 
-          await Deno.writeTextFile(filePath, newContent);
+          await Deno.writeTextFile(versionsFilePath, newContent);
         } else {
           const newContent = `export default ["${ctx.data.version}"];`;
-          await Deno.writeTextFile(filePath, newContent);
+          await Deno.writeTextFile(versionsFilePath, newContent);
         }
 
         log.inf(ctx.data.version);
@@ -58,18 +60,33 @@ const workflow = core.workflow(UpdateVersionContext)
       });
 
     const t2 = task1()
-      .name("Update README.md")
+      .name("Update all links in .md files")
       .do(async ({ pots, log, next }) => {
         const [ctx] = pots;
 
-        log.inf(ctx.data.version);
+        for await (const entry of walk(".", { exts: ["md"] })) {
+          if (entry.isFile) {
+            const fileContent = await Deno.readTextFile(entry.path);
+            const updatedContent = fileContent.replace(
+              mdUrlPattern,
+              (match) => {
+                return match.replace(/@[^/]+\//, `@${ctx.data.version}/`);
+              },
+            );
+
+            if (fileContent !== updatedContent) {
+              await Deno.writeTextFile(entry.path, updatedContent);
+              log.trc(`file ${entry.path} updates.`);
+            }
+          }
+        }
 
         return next(t3);
       });
 
     const t3 = task1()
       .name("Create TAG-NAME.txt")
-      .do(async ({ pots, log, finish }) => {
+      .do(async ({ pots, log }) => {
         const [ctx] = pots;
         await Deno.writeTextFile("TAG-NAME.txt", ctx.data.version);
         log.inf(`generated tag in TAG-NAME.txt: ${ctx.data.version}`);
