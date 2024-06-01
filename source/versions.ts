@@ -1,3 +1,3 @@
 export default [
-  "0.0.1-alpha",
+  "v0.3.0.1-alpha",
 ];
