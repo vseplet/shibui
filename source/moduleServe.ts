@@ -19,6 +19,5 @@ Deno.serve(async (req: Request) => {
 
   const readableStream = file.readable;
 
-  // Build and send the response
   return new Response(readableStream);
 });
