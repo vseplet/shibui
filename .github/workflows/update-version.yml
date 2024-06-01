@@ -29,15 +29,15 @@ jobs:
       - name: Update version
         run: deno run --allow-all --unstable-broadcast-channel --unstable-kv ./update-version.workflow.ts
 
-      - name: Commit and push changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Apply changes from update-version.ts script"
-          git push origin main
+      # - name: Commit and push changes
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     git config --global user.name "github-actions[bot]"
+      #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      #     git add -A
+      #     git commit -m "Apply changes from update-version.ts script"
+      #     git push origin main
 
       - name: Read tag name from file
         id: read_tag_name
