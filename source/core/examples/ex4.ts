@@ -1,3 +1,4 @@
+// deno-lint-ignore-file require-await
 import { ContextPot } from "../pots/ContextPot.ts";
 import { CoreStartPot } from "../pots/CoreStartPot.ts";
 import core from "../mod.ts";
