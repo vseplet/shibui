@@ -31,7 +31,7 @@ jobs:
 
       # - name: Commit and push changes
       #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     GITHUB_TOKEN: ${{ secrets.SHIBUI_GITHUB_TOKEN }}
       #   run: |
       #     git config --global user.name "github-actions[bot]"
       #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -47,7 +47,7 @@ jobs:
 
       - name: Push tag to repository
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.SHIBUI_GITHUB_TOKEN }}
         run: |
           echo "Pushing tag: ${{ env.TAG_NAME }}"  # Вывод тега в консоль
           git tag ${{ env.TAG_NAME }}
