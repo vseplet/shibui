@@ -98,9 +98,9 @@ const workflow = core.workflow(UpdateVersionContext)
       .do(async ({ log, next }) => {
         console.log(await sh("git add -A"));
         console.log(
-          (await sh(
+          await sh(
             `git commit -m "Apply changes from update-version.ts script"`,
-          )).stderr,
+          ),
         );
         console.log(await sh("git push origin main"));
         return next(t5);
