@@ -14,20 +14,20 @@ import versions from "../../versions.ts";
 
 // https://patorjk.com/software/taag/#p=display&h=0&f=ANSI%20Shadow&t=shibui%0ACORE
 export const INTRO_TEXT = `
-███████╗██╗  ██╗██╗██████╗ ██╗   ██╗██╗                                       
-██╔════╝██║  ██║██║██╔══██╗██║   ██║██║                                       
-███████╗███████║██║██████╔╝██║   ██║██║                                       
-╚════██║██╔══██║██║██╔══██╗██║   ██║██║                                       
-███████║██║  ██║██║██████╔╝╚██████╔╝██║                                       
-╚══════╝╚═╝  ╚═╝╚═╝╚═════╝  ╚═════╝ ╚═╝                                       
-                                                                              
+███████╗██╗  ██╗██╗██████╗ ██╗   ██╗██╗
+██╔════╝██║  ██║██║██╔══██╗██║   ██║██║
+███████╗███████║██║██████╔╝██║   ██║██║
+╚════██║██╔══██║██║██╔══██╗██║   ██║██║
+███████║██║  ██║██║██████╔╝╚██████╔╝██║
+╚══════╝╚═╝  ╚═╝╚═╝╚═════╝  ╚═════╝ ╚═╝
+
 ███████╗██████╗  █████╗ ███╗   ███╗███████╗██╗    ██╗ ██████╗ ██████╗ ██╗  ██╗
 ██╔════╝██╔══██╗██╔══██╗████╗ ████║██╔════╝██║    ██║██╔═══██╗██╔══██╗██║ ██╔╝
-█████╗  ██████╔╝███████║██╔████╔██║█████╗  ██║ █╗ ██║██║   ██║██████╔╝█████╔╝ 
-██╔══╝  ██╔══██╗██╔══██║██║╚██╔╝██║██╔══╝  ██║███╗██║██║   ██║██╔══██╗██╔═██╗ 
+█████╗  ██████╔╝███████║██╔████╔██║█████╗  ██║ █╗ ██║██║   ██║██████╔╝█████╔╝
+██╔══╝  ██╔══██╗██╔══██║██║╚██╔╝██║██╔══╝  ██║███╗██║██║   ██║██╔══██╗██╔═██╗
 ██║     ██║  ██║██║  ██║██║ ╚═╝ ██║███████╗╚███╔███╔╝╚██████╔╝██║  ██║██║  ██╗
 ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝ ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝
-                                                                              
+
 version: ${versions[0]}
 `;
 
@@ -85,8 +85,8 @@ export const DENO_JSON = `
   "imports": {
     "$shibui_framework/": "${baseImportPath}/framework/",
     "$shibui_framework": "${baseImportPath}/framework/mod.ts",
-    "$shibui_pots/": "${baseImportPath}/pots/",
-    "$shibui_events/": "${baseImportPath}/events/",
+    "$shibui_pots/": "${baseImportPath}/core/pots/",
+    "$shibui_events/": "${baseImportPath}/core/events/",
     "$shibui_plugins/": "${baseImportPath}/framework/plugins/",
     "$std/": "https://deno.land/std@0.198.0/"
   }
@@ -136,12 +136,12 @@ class SimpleWorkflowContext extends ContextPot<{ message: string }> {
 const workflow = shibui.workflow(SimpleWorkflowContext)
   .name("Simple Workflow")
   .on(CoreStartPot)
-  .init(({ task }) => {
-    const t1 = task()
+  .sq(({ task1 }) => {
+    const t1 = task1()
       .name("First Task")
       // deno-lint-ignore require-await
-      .do(async ({ ctx, finish, log }) => {
-        log.inf(ctx.data.message);
+      .do(async ({ pots, finish, log }) => {
+        log.inf(pots[0].data.message);
         return finish();
       });
 
