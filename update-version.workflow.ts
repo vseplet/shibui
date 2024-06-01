@@ -3,7 +3,8 @@ import core from "https://deno.land/x/shibui@v0.3.0.4-alpha/core/mod.ts";
 import { CoreStartPot } from "https://deno.land/x/shibui@v0.3.0.4-alpha/core/pots/CoreStartPot.ts";
 import { ContextPot } from "https://deno.land/x/shibui@v0.3.0.4-alpha/core/pots/ContextPot.ts";
 import { SourceType } from "https://deno.land/x/shibui@v0.3.0.4-alpha/core/types.ts";
-import { walk } from "https://deno.land/std/fs/mod.ts";
+import { walk } from "https://deno.land/std@0.224.0/fs/mod.ts";
+import { shelly } from "https://deno.land/x/shelly@v0.1.1/mod.ts";
 
 const versionsFilePath = "./source/versions.ts";
 const mdUrlPattern = /https:\/\/deno\.land\/x\/shibui@[^/]+\//;
@@ -22,7 +23,6 @@ const workflow = core.workflow(UpdateVersionContext)
       .name("Update versions.ts")
       .do(async ({ pots, log, next }) => {
         const [ctx] = pots;
-
         const data = await Deno.readTextFile(versionsFilePath);
         const regex = /export default \[\s*([\s\S]*?)\s*\];/;
         const match = data.match(regex);
@@ -86,10 +86,32 @@ const workflow = core.workflow(UpdateVersionContext)
 
     const t3 = task1()
       .name("Create TAG-NAME.txt")
-      .do(async ({ pots, log }) => {
+      .do(async ({ pots, log, next }) => {
         const [ctx] = pots;
         await Deno.writeTextFile("TAG-NAME.txt", ctx.data.version);
         log.inf(`generated tag in TAG-NAME.txt: ${ctx.data.version}`);
+        return next(t4);
+      });
+
+    const t4 = task1()
+      .name("Commit and push changes")
+      .do(async ({ log, next }) => {
+        await shelly("git add -A");
+        await shelly(
+          "git commit -m 'Apply changes from update-version.ts script'",
+        );
+        await shelly("git push origin main");
+
+        return next(t5);
+      });
+
+    const t5 = task1()
+      .name("Push tag to repository")
+      .do(async ({ pots, log }) => {
+        const [ctx] = pots;
+
+        await shelly(`git tag ${ctx.data.version}`);
+        await shelly("git push origin main");
         Deno.exit(0);
       });
 
