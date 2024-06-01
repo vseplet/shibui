@@ -96,13 +96,13 @@ const workflow = core.workflow(UpdateVersionContext)
     const t4 = task1()
       .name("Commit and push changes")
       .do(async ({ log, next }) => {
-        console.log(await sh("git add -A"));
+        console.log((await sh("git add -A")).stderr);
         console.log(
-          await sh(
+          (await sh(
             `git commit -m "Apply changes from update-version.ts script"`,
-          ),
+          )).stderr,
         );
-        console.log(await sh("git push origin main"));
+        console.log((await sh("git push origin main")).stderr);
         return next(t5);
       });
 
@@ -110,8 +110,8 @@ const workflow = core.workflow(UpdateVersionContext)
       .name("Push tag to repository")
       .do(async ({ pots, log }) => {
         const [ctx] = pots;
-        console.log(await sh(`git tag ${ctx.data.version}`));
-        console.log(await sh("git push origin main"));
+        console.log((await sh(`git tag ${ctx.data.version}`)).stderr);
+        console.log((await sh("git push origin main")).stderr);
         Deno.exit(0);
       });
 
