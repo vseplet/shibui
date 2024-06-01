@@ -111,7 +111,7 @@ await prod(manifest, [logger]);
 export const SIMPLE_TASK_TS = `import shibui from "$shibui_framework";
 import { CronJobPot } from "../pots/CronJobPot.ts";
 
-const task = shibui.task<CronJobPot>()
+const task = shibui.task(CronJobPot)
   .name("Simple Task")
   .on(CronJobPot)
   // deno-lint-ignore require-await
