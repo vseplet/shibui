@@ -86,7 +86,7 @@ const logger = new luminous.Logger(
     .build(),
 );
 
-self.onload = () => {
+const main = () => {
   framework.emitters.logEventEmitter.addListener((event) => {
     switch (event.level) {
       case Level.TRACE:
@@ -113,3 +113,5 @@ self.onload = () => {
     }
   });
 };
+
+main();
