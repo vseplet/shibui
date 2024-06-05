@@ -38,8 +38,6 @@ export default class Distributor {
   });
   #kv: Deno.Kv = undefined as unknown as Deno.Kv;
   #filler = new SlotFiller();
-  #defaultRunner = new Runner();
-
   #workflows: { [name: string]: IWorkflow } = {};
   #workflowTriggers: {
     [name: string]: Array<WorkflowTrigger>;
@@ -49,9 +47,11 @@ export default class Distributor {
     [name: string]: Array<TaskTrigger>;
   } = {};
   #api: ShibuiApi;
+  #defaultRunner: Runner;
 
   constructor(api: ShibuiApi) {
     this.#api = api;
+    this.#defaultRunner = new Runner(api);
     this.#filler.onRowFill((
       name: string,
       pots: Array<Pot<any>>,

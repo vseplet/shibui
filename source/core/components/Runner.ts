@@ -12,7 +12,6 @@
 
 import { Pot } from "../entities/Pot.ts";
 import { EventDrivenLogger } from "../components/EventDrivenLogger.ts";
-import core from "../mod.ts";
 import {
   DoHandlerOp,
   DoHandlerResult,
@@ -21,15 +20,18 @@ import {
   ITaskBuilder,
   SourceType,
 } from "../types.ts";
+import { ShibuiApi } from "./ShibuiApi.ts";
 
 export default class Runner {
+  #api: ShibuiApi;
   #logger = new EventDrivenLogger({
     sourceType: SourceType.CORE,
     sourceName: "Runner",
   });
   #tasks: { [name: string]: ITask } = {};
 
-  constructor() {
+  constructor(api: ShibuiApi) {
+    this.#api = api;
   }
 
   #processDoHandlerResult(
@@ -53,7 +55,7 @@ export default class Runner {
           // console.log(pots[0]);
           // console.log(copyOfContextPot);
 
-          core.api.send(copyOfContextPot);
+          this.#api.send(copyOfContextPot);
           // core.api.send(new core.pots.task.TaskCallingNext());
         });
       } else if (result.op === DoHandlerOp.REPEAT) {
@@ -92,7 +94,7 @@ export default class Runner {
         );
 
         const doResult = await task.do({
-          api: core.api,
+          api: this.#api,
           log: new EventDrivenLogger({
             sourceType: SourceType.TASK,
             sourceName: `DO: ${taskName}`,
