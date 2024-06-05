@@ -13,17 +13,11 @@
 import { workflow } from "../entities/WorkflowBuilder.ts";
 import { task } from "../entities/TaskBuilder.ts";
 import { ShibuiApi } from "./ShibuiApi.ts";
-import { EventEmitter } from "./EventEmitter.ts";
-import { CoreEvent } from "../events/CoreEvent.ts";
-import { LogEvent } from "../events/LogEvents.ts";
+import { emitters } from "../emitters.ts";
 
 export class ShibuiCore {
-  public workflow = workflow;
-  public task = task;
-  public api = new ShibuiApi();
-  static emitters = {
-    logEventEmitter: new EventEmitter<LogEvent<unknown>>("log"),
-    coreEventEmitter: new EventEmitter<CoreEvent>("core"),
-  };
-  public emitters = ShibuiCore.emitters;
+  workflow = workflow;
+  task = task;
+  api = new ShibuiApi();
+  emitters = emitters;
 }

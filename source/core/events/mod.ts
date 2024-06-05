@@ -1,2 +1,4 @@
-export { CoreEvent } from "./CoreEvent.ts";
-export { LogEvent } from "./LogEvents.ts";
+import { CoreEvent } from "./CoreEvent.ts";
+import { LogEvent } from "./LogEvents.ts";
+
+export { CoreEvent, LogEvent };

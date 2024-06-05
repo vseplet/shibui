@@ -22,7 +22,7 @@ import {
   WarnLogEvent,
 } from "../events/LogEvents.ts";
 import { ILoggerOptions, Level, SourceType } from "../types.ts";
-import { ShibuiCore } from "./ShibuiCore.ts";
+import { emitters } from "../emitters.ts";
 
 const colorizeByLevel = {
   [Level.UNKNOWN]: colors.dim,
@@ -82,7 +82,7 @@ export class EventDrivenLogger {
 
   dbg(msg: string) {
     this.log(Level.DEBUG, msg, {});
-    ShibuiCore.emitters.logEventEmitter.emit(
+    emitters.logEventEmitter.emit(
       new DebugLogEvent(
         {
           sourceType: this.#options.sourceType,
@@ -95,7 +95,7 @@ export class EventDrivenLogger {
 
   trc(msg: string) {
     this.log(Level.TRACE, msg, {});
-    ShibuiCore.emitters.logEventEmitter.emit(
+    emitters.logEventEmitter.emit(
       new TraceLogEvent(
         {
           sourceType: this.#options.sourceType,
@@ -108,7 +108,7 @@ export class EventDrivenLogger {
 
   vrb(msg: string) {
     this.log(Level.VERBOSE, msg, {});
-    ShibuiCore.emitters.logEventEmitter.emit(
+    emitters.logEventEmitter.emit(
       new VerboseLogEvent(
         {
           sourceType: this.#options.sourceType,
@@ -121,7 +121,7 @@ export class EventDrivenLogger {
 
   inf(msg: string) {
     this.log(Level.INFO, msg, {});
-    ShibuiCore.emitters.logEventEmitter.emit(
+    emitters.logEventEmitter.emit(
       new InfoLogEvent(
         {
           sourceType: this.#options.sourceType,
@@ -134,7 +134,7 @@ export class EventDrivenLogger {
 
   err(msg: string) {
     this.log(Level.ERROR, msg, {});
-    ShibuiCore.emitters.logEventEmitter.emit(
+    emitters.logEventEmitter.emit(
       new ErrorLogEvent(
         {
           sourceType: this.#options.sourceType,
@@ -147,7 +147,7 @@ export class EventDrivenLogger {
 
   wrn(msg: string) {
     this.log(Level.WARN, msg, {});
-    ShibuiCore.emitters.logEventEmitter.emit(
+    emitters.logEventEmitter.emit(
       new WarnLogEvent(
         {
           sourceType: this.#options.sourceType,
@@ -160,7 +160,7 @@ export class EventDrivenLogger {
 
   flt(msg: string) {
     this.log(Level.FATAL, msg, {});
-    ShibuiCore.emitters.logEventEmitter.emit(
+    emitters.logEventEmitter.emit(
       new FatalLogEvent(
         {
           sourceType: this.#options.sourceType,
