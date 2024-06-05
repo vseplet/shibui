@@ -10,23 +10,14 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import core from "../../core/mod.ts";
-import { SourceType } from "../../core/types.ts";
 import { join, relative, resolve } from "../../deps.ts";
 import { readDirRecursive } from "../../helpers/_readDirRecursive.ts";
 
-const log = core.api.createLogger({
-  sourceName: "manifest generator",
-  sourceType: SourceType.FRAMEWORK,
-});
-
 export const generateManifest = async (dir: string) => {
-  log.inf("generate manifest");
-
   const moduleExports: { [subDir: string]: { [path: string]: string } } = {
     // middlewares: {},
-    pots: {},
-    // plugins: {},
+    // pots: {},
+    plugins: {},
     tasks: {},
     workflows: {},
   };

@@ -10,20 +10,22 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import core from "../../core/mod.ts";
+import { ShibuiCore } from "../../core/components/ShibuiCore.ts";
 import { SourceType } from "../../core/types.ts";
 import { IManifest } from "../entities/Manifest.ts";
 import { IPlugin } from "../entities/Plugin.ts";
-
-const log = core.api.createLogger({
-  sourceName: "init",
-  sourceType: SourceType.FRAMEWORK,
-});
 
 export const initCore = async (
   manifest: IManifest,
   plugins: Array<IPlugin> = [],
 ) => {
+  const core = new ShibuiCore();
+
+  const log = core.api.createLogger({
+    sourceName: "init",
+    sourceType: SourceType.FRAMEWORK,
+  });
+
   core.api.settings.DEFAULT_LOGGING_ENABLED = false;
   log.inf(`init plugins...`);
 
