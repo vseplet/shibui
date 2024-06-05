@@ -24,7 +24,9 @@ export const initCore = async (
   manifest: IManifest,
   plugins: Array<IPlugin> = [],
 ) => {
+  core.api.settings.DEFAULT_LOGGING_ENABLED = false;
   log.inf(`init plugins...`);
+
   for (const path in manifest.plugins) {
     const plugin = manifest.plugins[path];
 

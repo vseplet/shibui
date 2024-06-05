@@ -16,13 +16,11 @@ import { IManifest } from "../entities/Manifest.ts";
 import { INTRO_TEXT } from "../scripts/_strings.ts";
 import { generateManifest } from "./generateManifest.ts";
 import { initCore } from "./initCore.ts";
-import core from "../../core/mod.ts";
 import { IPlugin } from "../entities/Plugin.ts";
 
 const dev = async (path: string, plugins: Array<IPlugin> = []) => {
   console.log(colors.yellow(INTRO_TEXT));
   const dir = dirname(fromFileUrl(path));
-  core.api.settings.DEFAULT_LOGGING_ENABLED = false;
   await generateManifest(dir);
   const manifest =
     (await import(`file:///${resolve(dir, "shibui.manifest.ts")}`))

@@ -24,8 +24,9 @@ export const generateManifest = async (dir: string) => {
   log.inf("generate manifest");
 
   const moduleExports: { [subDir: string]: { [path: string]: string } } = {
-    // middleware: {},
-    plugins: {},
+    // middlewares: {},
+    pots: {},
+    // plugins: {},
     tasks: {},
     workflows: {},
   };
@@ -44,7 +45,6 @@ export const generateManifest = async (dir: string) => {
       if (relativeImportPath.includes("_")) continue; // TODO: еще один сомнительный способ
       counter++;
       const moduleName = `$${counter}`;
-      moduleExports.tasks[relativeImportPath] = moduleName;
       IMPORT_STRINGS += `import ${moduleName} from "${relativeImportPath}";\n`;
       EXPORT_STRINGS += `    "${relativeImportPath}": ${moduleName},\n`;
     }
