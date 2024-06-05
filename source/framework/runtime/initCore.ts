@@ -10,23 +10,21 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { ShibuiCore } from "../../core/components/ShibuiCore.ts";
 import { SourceType } from "../../core/types.ts";
 import { IManifest } from "../entities/Manifest.ts";
 import { IPlugin } from "../entities/Plugin.ts";
+import framework from "../mod.ts";
 
 export const initCore = async (
   manifest: IManifest,
   plugins: Array<IPlugin> = [],
 ) => {
-  const core = new ShibuiCore();
-
-  const log = core.api.createLogger({
+  const log = framework.core.api.createLogger({
     sourceName: "init",
     sourceType: SourceType.FRAMEWORK,
   });
 
-  core.api.settings.DEFAULT_LOGGING_ENABLED = false;
+  framework.core.api.settings.DEFAULT_LOGGING_ENABLED = false;
   log.inf(`init plugins...`);
 
   for (const path in manifest.plugins) {
@@ -34,8 +32,8 @@ export const initCore = async (
 
     log.inf(`init ${plugin.name}`);
     plugin.init({
-      api: core.api,
-      log: core.api.createLogger({
+      api: framework.core.api,
+      log: framework.core.api.createLogger({
         sourceName: plugin.name,
         sourceType: SourceType.PLUGIN,
       }),
@@ -46,8 +44,8 @@ export const initCore = async (
     log.inf(`init ${plugin.name}`);
 
     plugin.init({
-      api: core.api,
-      log: core.api.createLogger({
+      api: framework.core.api,
+      log: framework.core.api.createLogger({
         sourceName: plugin.name,
         sourceType: SourceType.PLUGIN,
       }),
@@ -56,13 +54,13 @@ export const initCore = async (
 
   log.inf(`register tasks...`);
   for (const path in manifest.tasks) {
-    core.api.register(manifest.tasks[path]);
+    framework.core.api.register(manifest.tasks[path]);
   }
 
   log.inf(`register workflows...`);
   for (const path in manifest.workflows) {
-    core.api.register(manifest.workflows[path]);
+    framework.core.api.register(manifest.workflows[path]);
   }
 
-  await core.api.start();
+  await framework.core.api.start();
 };
