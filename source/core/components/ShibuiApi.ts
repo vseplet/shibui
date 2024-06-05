@@ -23,7 +23,7 @@ import {
 
 // deno-lint-ignore-file
 export class ShibuiApi {
-  globalPotDistributor = new Distributor();
+  globalPotDistributor = new Distributor(this);
 
   settings = {
     DEFAULT_LOGGING_ENABLED: true,
@@ -42,7 +42,7 @@ export class ShibuiApi {
     builder: ITaskBuilder | IWorkflowBuilder,
     pots?: Array<IPot>,
   ): Promise<IPot> {
-    const distributor = new Distributor();
+    const distributor = new Distributor(this);
     distributor.register(builder);
 
     if (pots) {

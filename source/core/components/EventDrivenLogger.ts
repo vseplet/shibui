@@ -11,7 +11,7 @@
  */
 
 import * as colors from "https://deno.land/std@0.196.0/fmt/colors.ts";
-import core from "../mod.ts";
+// import core from "../mod.ts";
 import {
   DebugLogEvent,
   ErrorLogEvent,
@@ -58,16 +58,17 @@ export class EventDrivenLogger {
   }
 
   private log(level: Level, msg: string, metadata: any) {
-    if (
-      !core.api.settings.ALLOWED_LOGGING_SOURCE_TYPES.includes(
-        this.#options.sourceType,
-      )
-    ) return;
+    // if (
+    //   !core.api.settings.ALLOWED_LOGGING_SOURCE_TYPES.includes(
+    //     this.#options.sourceType,
+    //   )
+    // ) return;
 
-    if (
-      !core.api.settings.DEFAULT_LOGGING_ENABLED ||
-      level < core.api.settings.DEFAULT_LOGGING_LEVEL
-    ) return;
+    // if (
+    //   !core.api.settings.DEFAULT_LOGGING_ENABLED ||
+    //   level < core.api.settings.DEFAULT_LOGGING_LEVEL
+    // ) return;
+    return;
 
     const date = new Date();
     const time =

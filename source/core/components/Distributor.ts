@@ -12,7 +12,6 @@
 
 import { EventDrivenLogger } from "./EventDrivenLogger.ts";
 import Runner from "./Runner.ts";
-import core from "../mod.ts";
 import SlotFiller from "../components/SlotFiller.ts";
 import { CoreStartPot } from "../pots/CoreStartPot.ts";
 import { Pot } from "../entities/Pot.ts";
@@ -30,6 +29,7 @@ import {
   TriggerHandlerOp,
   WorkflowTrigger,
 } from "../types.ts";
+import { ShibuiApi } from "./ShibuiApi.ts";
 
 export default class Distributor {
   #logger = new EventDrivenLogger({
@@ -48,8 +48,10 @@ export default class Distributor {
   #taskTriggers: {
     [name: string]: Array<TaskTrigger>;
   } = {};
+  #api: ShibuiApi;
 
-  constructor() {
+  constructor(api: ShibuiApi) {
+    this.#api = api;
     this.#filler.onRowFill((
       name: string,
       pots: Array<Pot<any>>,
@@ -122,7 +124,7 @@ export default class Distributor {
       );
 
       const contextPot = trigger.test({
-        api: core.api,
+        api: this.#api,
         log: new EventDrivenLogger({
           sourceType: SourceType.WORKFLOW,
           sourceName: `ON (${[pot.name]}): ${trigger.workflowName}`,
@@ -146,7 +148,7 @@ export default class Distributor {
       contextPot.to.workflow = trigger.workflowName;
       contextPot.from.workflow = trigger.workflowName;
 
-      core.api.send(contextPot);
+      this.#api.send(contextPot);
 
       return true;
     } catch (err) {
@@ -162,7 +164,7 @@ export default class Distributor {
       );
 
       const result = trigger.handler({
-        api: core.api,
+        api: this.#api,
         allow: (index?: number) => ({
           op: TriggerHandlerOp.ALLOW,
           potIndex: index ? index : trigger.slot,
@@ -215,7 +217,7 @@ export default class Distributor {
         );
 
         const result = trigger.handler({
-          api: core.api,
+          api: this.#api,
           allow: (index?: number) => ({
             op: TriggerHandlerOp.ALLOW,
             potIndex: index ? index : trigger.slot,
@@ -259,7 +261,7 @@ export default class Distributor {
         );
 
         const result = trigger.handler({
-          api: core.api,
+          api: this.#api,
           allow: (index?: number) => ({
             op: TriggerHandlerOp.ALLOW,
             potIndex: index ? index : trigger.slot,
@@ -375,13 +377,13 @@ export default class Distributor {
             `failure in pot processing cycle with error: ${err.message} ${err.stack}`,
           );
 
-          // core.api.send(new core.pots.core.CoreLoopCrushedPot());
+          // this.#api.send(new core.pots.core.CoreLoopCrushedPot());
         }
       }
     });
 
     this.#logger.inf(`starting update cycle...`);
-    core.api.send(new CoreStartPot());
+    this.#api.send(new CoreStartPot());
     // oldUpdate();
   }
 
