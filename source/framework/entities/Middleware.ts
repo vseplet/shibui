@@ -11,3 +11,11 @@
  */
 
 export interface IMiddleware {}
+
+export const middleware = (
+  name: string,
+  init: () => {},
+): IMiddleware => ({
+  name,
+  init,
+});

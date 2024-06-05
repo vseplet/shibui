@@ -287,8 +287,8 @@ framework.emitters.logEventEmitter.addListener((event) => {
 });
 `;
 
-export const EDITOR_CONFIG = `root = true
-
+export const EDITOR_CONFIG = `
+root = true
 [**.{ts,json,js}]
 end_of_line = lf
 charset = utf-8

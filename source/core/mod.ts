@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Vsevolod Plentev
+ * Copyright 2024 Vsevolod Plentev
  *
  * This program is licensed under the Creative Commons Attribution-NonCommercial 3.0 Unported License (CC BY-NC 3.0).
  * You may obtain a copy of the license at https://creativecommons.org/licenses/by-nc/3.0/legalcode.
@@ -10,16 +10,8 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { workflow } from "./entities/WorkflowBuilder.ts";
-import { task } from "./entities/TaskBuilder.ts";
-import api from "./api.ts";
-import emitters from "./emitters.ts";
+import { ShibuiCore } from "./components/ShibuiCore.ts";
 
-const core = {
-  emitters,
-  api,
-  task,
-  workflow,
-};
+const core = new ShibuiCore();
 
 export default core;

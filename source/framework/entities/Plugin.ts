@@ -11,12 +11,12 @@
  */
 
 import { EventDrivenLogger } from "../../core/components/EventDrivenLogger.ts";
-import core from "../../core/mod.ts";
+import { ShibuiApi } from "../../core/components/ShibuiApi.ts";
 
-export type TPlugin = (api: typeof core.api) => void;
+export type TPlugin = (api: ShibuiApi) => void;
 
 export type TPluginInit = (
-  args: { api: typeof core.api; log: EventDrivenLogger },
+  args: { api: ShibuiApi; log: EventDrivenLogger },
 ) => void;
 
 export interface IPlugin {

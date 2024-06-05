@@ -12,8 +12,8 @@
 
 import { Constructor } from "../helpers/types.ts";
 import { EventDrivenLogger } from "./components/EventDrivenLogger.ts";
+import { ShibuiApi } from "./components/ShibuiApi.ts";
 import { TaskBuilder } from "./entities/TaskBuilder.ts";
-import core from "./mod.ts";
 
 export enum PotType {
   UNKNOWN = "UNKNOWN",
@@ -83,49 +83,38 @@ export enum TriggerHandlerOp {
   DENY,
 }
 
-export type TriggerHandlerArgs<
+export type Context<
   P1 extends IPot,
   P2 extends IPot | undefined = undefined,
   P3 extends IPot | undefined = undefined,
   P4 extends IPot | undefined = undefined,
   P5 extends IPot | undefined = undefined,
 > = {
-  api: typeof core.api;
+  api: ShibuiApi;
   pots: [P1, P2, P3, P4, P5];
   log: EventDrivenLogger;
+};
+
+export type TriggerHandlerContext<
+  P1 extends IPot,
+  P2 extends IPot | undefined = undefined,
+  P3 extends IPot | undefined = undefined,
+  P4 extends IPot | undefined = undefined,
+  P5 extends IPot | undefined = undefined,
+> = Context<P1, P2, P3, P4, P5> & {
   allow: (
     potIndex?: number,
   ) => { op: TriggerHandlerOp.ALLOW; potIndex: number };
   deny: () => { op: TriggerHandlerOp.DENY };
 };
 
-export type TriggerHandlerResult =
-  | {
-    op: TriggerHandlerOp.ALLOW;
-    potIndex: number;
-  }
-  | {
-    op: TriggerHandlerOp.DENY;
-  };
-
-export enum DoHandlerOp {
-  NEXT,
-  FAIL,
-  FINISH,
-  REPEAT,
-}
-
-export type DoHandlerArgs<
+export type DoHandlerContext<
   P1 extends IPot,
   P2 extends IPot | undefined = undefined,
   P3 extends IPot | undefined = undefined,
   P4 extends IPot | undefined = undefined,
   P5 extends IPot | undefined = undefined,
-> = {
-  api: typeof core.api;
-  log: EventDrivenLogger;
-  pots: [P1, P2, P3, P4, P5];
-
+> = Context<P1, P2, P3, P4, P5> & {
   next: (
     taskBuilders: ITaskBuilder | Array<ITaskBuilder>,
     data?: Partial<P1["data"]>,
@@ -151,6 +140,22 @@ export type DoHandlerArgs<
     data?: Partial<P1["data"]>;
   };
 };
+
+export type TriggerHandlerResult =
+  | {
+    op: TriggerHandlerOp.ALLOW;
+    potIndex: number;
+  }
+  | {
+    op: TriggerHandlerOp.DENY;
+  };
+
+export enum DoHandlerOp {
+  NEXT,
+  FAIL,
+  FINISH,
+  REPEAT,
+}
 
 export type DoHandlerResult =
   | {

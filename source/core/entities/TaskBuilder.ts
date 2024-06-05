@@ -14,13 +14,13 @@
 import { Constructor } from "../../helpers/types.ts";
 import { TaskNameMissingError } from "../errors/TaskNameMissingError.ts";
 import {
-  DoHandlerArgs,
+  DoHandlerContext,
   DoHandlerResult,
   IPot,
   ITask,
   ITaskBuilder,
   IWorkflowBuilder,
-  TriggerHandlerArgs,
+  TriggerHandlerContext,
   TriggerHandlerResult,
 } from "../types.ts";
 
@@ -36,7 +36,7 @@ export class TaskBuilder<
     attempts: 1,
     timeout: 0,
     slotsCount: 0,
-    do: async ({ fail }: DoHandlerArgs<P1>) => {
+    do: async ({ fail }: DoHandlerContext<P1>) => {
       return fail("not implemented");
     },
     triggers: {},
@@ -106,7 +106,7 @@ export class TaskBuilder<
         taskName: this.task.name,
         potConstructor: constructor,
         slot: Object.keys(this.task.triggers).length - 1,
-        handler: ({ allow }: TriggerHandlerArgs<IPot>) => {
+        handler: ({ allow }: TriggerHandlerContext<IPot>) => {
           return allow();
         },
         belongsToWorkflow: this.task.belongsToWorkflow,
@@ -119,7 +119,7 @@ export class TaskBuilder<
   on<TP extends Exclude<P1 | P2 | P3 | P4 | P5, undefined>>(
     potConstructor: Constructor<TP>,
     handler?: (
-      args: TriggerHandlerArgs<P1, P2, P3, P4, P5>,
+      args: TriggerHandlerContext<P1, P2, P3, P4, P5>,
     ) => TriggerHandlerResult,
     slot?: number,
   ): this {
@@ -144,7 +144,7 @@ export class TaskBuilder<
         taskName: this.task.name,
         potConstructor,
         slot: slot || Object.keys(this.task.triggers).length - 1,
-        handler: ({ allow }: TriggerHandlerArgs<TP>) => {
+        handler: ({ allow }: TriggerHandlerContext<TP>) => {
           return allow();
         },
         belongsToWorkflow: this.task.belongsToWorkflow,
@@ -170,22 +170,22 @@ export class TaskBuilder<
     }
 
     if (rule === "ForThisTask") {
-      test = ({ allow, deny, pots }: TriggerHandlerArgs<TP>) => {
+      test = ({ allow, deny, pots }: TriggerHandlerContext<TP>) => {
         return pots[0].to.task === this.task.name ? allow() : deny();
       };
     } else if (rule == "ForAnyTask") {
-      test = ({ allow, deny, pots }: TriggerHandlerArgs<TP>) => {
+      test = ({ allow, deny, pots }: TriggerHandlerContext<TP>) => {
         return pots[0].to.task !== this.task.name &&
             pots[0].to.task !== "unknown"
           ? allow()
           : deny();
       };
     } else if (rule == "ForUnknown") {
-      test = ({ allow, deny, pots }: TriggerHandlerArgs<TP>) => {
+      test = ({ allow, deny, pots }: TriggerHandlerContext<TP>) => {
         return pots[0].to.task === "unknown" ? allow() : deny();
       };
     } else {
-      test = ({ deny }: TriggerHandlerArgs<TP>) => {
+      test = ({ deny }: TriggerHandlerContext<TP>) => {
         return deny();
       };
     }
@@ -203,7 +203,7 @@ export class TaskBuilder<
 
   do(
     handler: (
-      args: DoHandlerArgs<P1, P2, P3, P4, P5>,
+      args: DoHandlerContext<P1, P2, P3, P4, P5>,
     ) => Promise<DoHandlerResult>,
   ) {
     this.task.do = handler;

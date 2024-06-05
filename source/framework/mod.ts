@@ -10,12 +10,8 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import core from "../core/mod.ts";
-import { plugin } from "./entities/Plugin.ts";
+import { ShibuiFramework } from "./components/ShibuiFramework.ts";
 
-const framework = {
-  plugin,
-  ...core,
-};
+const framework = new ShibuiFramework();
 
 export default framework;
