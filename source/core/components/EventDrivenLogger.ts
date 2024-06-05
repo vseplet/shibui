@@ -23,6 +23,7 @@ import {
 } from "../events/LogEvents.ts";
 import { ILoggerOptions, Level, SourceType } from "../types.ts";
 import { emitters } from "../emitters.ts";
+import { ShibuiApi } from "./ShibuiApi.ts";
 
 const colorizeByLevel = {
   [Level.UNKNOWN]: colors.dim,
@@ -52,23 +53,25 @@ export class EventDrivenLogger {
     sourceName: "unknown",
   };
 
-  constructor(args?: ILoggerOptions) {
+  #settings;
+
+  constructor(settings: any, args?: ILoggerOptions) {
+    this.#settings = settings;
     if (args?.sourceName) this.#options.sourceName = args.sourceName;
     if (args?.sourceType) this.#options.sourceType = args.sourceType;
   }
 
   private log(level: Level, msg: string, metadata: any) {
-    // if (
-    //   !core.api.settings.ALLOWED_LOGGING_SOURCE_TYPES.includes(
-    //     this.#options.sourceType,
-    //   )
-    // ) return;
+    if (
+      !this.#settings.ALLOWED_LOGGING_SOURCE_TYPES.includes(
+        this.#options.sourceType,
+      )
+    ) return;
 
-    // if (
-    //   !core.api.settings.DEFAULT_LOGGING_ENABLED ||
-    //   level < core.api.settings.DEFAULT_LOGGING_LEVEL
-    // ) return;
-    return;
+    if (
+      !this.#settings.DEFAULT_LOGGING_ENABLED ||
+      level < this.#settings.DEFAULT_LOGGING_LEVEL
+    ) return;
 
     const date = new Date();
     const time =

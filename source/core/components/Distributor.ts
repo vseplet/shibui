@@ -32,10 +32,6 @@ import {
 import { ShibuiApi } from "./ShibuiApi.ts";
 
 export default class Distributor {
-  #logger = new EventDrivenLogger({
-    sourceType: SourceType.CORE,
-    sourceName: "Distributor",
-  });
   #kv: Deno.Kv = undefined as unknown as Deno.Kv;
   #filler = new SlotFiller();
   #workflows: { [name: string]: IWorkflow } = {};
@@ -47,10 +43,15 @@ export default class Distributor {
     [name: string]: Array<TaskTrigger>;
   } = {};
   #api: ShibuiApi;
+  #logger: EventDrivenLogger;
   #defaultRunner: Runner;
 
   constructor(api: ShibuiApi) {
     this.#api = api;
+    this.#logger = api.createLogger({
+      sourceType: SourceType.CORE,
+      sourceName: "Distributor",
+    });
     this.#defaultRunner = new Runner(api);
     this.#filler.onRowFill((
       name: string,
@@ -125,7 +126,7 @@ export default class Distributor {
 
       const contextPot = trigger.test({
         api: this.#api,
-        log: new EventDrivenLogger({
+        log: this.#api.createLogger({
           sourceType: SourceType.WORKFLOW,
           sourceName: `ON (${[pot.name]}): ${trigger.workflowName}`,
         }),
@@ -170,7 +171,7 @@ export default class Distributor {
           potIndex: index ? index : trigger.slot,
         }),
         deny: () => ({ op: TriggerHandlerOp.DENY }),
-        log: new EventDrivenLogger({
+        log: this.#api.createLogger({
           sourceType: SourceType.TASK,
           sourceName: `ON (${[pot.name]}): ${trigger.taskName}`,
         }),
@@ -223,7 +224,7 @@ export default class Distributor {
             potIndex: index ? index : trigger.slot,
           }),
           deny: () => ({ op: TriggerHandlerOp.DENY }),
-          log: new EventDrivenLogger({
+          log: this.#api.createLogger({
             sourceType: SourceType.TASK,
             sourceName: `ON (${[pot.name]}): ${trigger.taskName}`,
           }),
@@ -267,7 +268,7 @@ export default class Distributor {
             potIndex: index ? index : trigger.slot,
           }),
           deny: () => ({ op: TriggerHandlerOp.DENY }),
-          log: new EventDrivenLogger({
+          log: this.#api.createLogger({
             sourceType: SourceType.TASK,
             sourceName: `ON (${[pot.name]}): ${trigger.taskName}`,
           }),

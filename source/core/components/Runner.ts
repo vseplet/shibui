@@ -24,14 +24,15 @@ import { ShibuiApi } from "./ShibuiApi.ts";
 
 export default class Runner {
   #api: ShibuiApi;
-  #logger = new EventDrivenLogger({
-    sourceType: SourceType.CORE,
-    sourceName: "Runner",
-  });
+  #logger: EventDrivenLogger;
   #tasks: { [name: string]: ITask } = {};
 
   constructor(api: ShibuiApi) {
     this.#api = api;
+    this.#logger = api.createLogger({
+      sourceType: SourceType.CORE,
+      sourceName: "Runner",
+    });
   }
 
   #processDoHandlerResult(
@@ -95,7 +96,7 @@ export default class Runner {
 
         const doResult = await task.do({
           api: this.#api,
-          log: new EventDrivenLogger({
+          log: this.#api.createLogger({
             sourceType: SourceType.TASK,
             sourceName: `DO: ${taskName}`,
           }),

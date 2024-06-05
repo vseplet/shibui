@@ -14,10 +14,10 @@ import { EventDrivenLogger } from "../components/EventDrivenLogger.ts";
 import { IPot, ITask, SourceType } from "../types.ts";
 
 export default class SlotFiller {
-  #logger = new EventDrivenLogger({
-    sourceType: SourceType.CORE,
-    sourceName: "SlotFiller",
-  });
+  // #logger = new EventDrivenLogger({
+  //   sourceType: SourceType.CORE,
+  //   sourceName: "SlotFiller",
+  // });
 
   #slots: {
     [taskName: string]: {
@@ -35,9 +35,9 @@ export default class SlotFiller {
     row?: number,
   ): boolean {
     try {
-      this.#logger.trc(
-        `try to fill slots for '${taskName}' by pot '${pot.name} ${pot.uuid}' to slot ${slot}...'`,
-      );
+      // this.#logger.trc(
+      //   `try to fill slots for '${taskName}' by pot '${pot.name} ${pot.uuid}' to slot ${slot}...'`,
+      // );
 
       if (row !== undefined) {
         this.#slots[taskName].slots[slot][row] = pot;
@@ -49,9 +49,9 @@ export default class SlotFiller {
       );
 
       if (rowIsFilled) {
-        this.#logger.trc(
-          `row for'${taskName}' has been filled'`,
-        );
+        // this.#logger.trc(
+        //   `row for'${taskName}' has been filled'`,
+        // );
 
         const row = this.#slots[taskName].slots.map((arr) => arr[rowIndex]);
         // remove row before run do handler
@@ -62,9 +62,9 @@ export default class SlotFiller {
       return true;
     } catch (err) {
       if (err instanceof Error) {
-        this.#logger.err(
-          `trying to fill slots for '${taskName}' by pot '${pot.name}' to slot ${slot} failed with error: '${err.message}'`,
-        );
+        // this.#logger.err(
+        //   `trying to fill slots for '${taskName}' by pot '${pot.name}' to slot ${slot} failed with error: '${err.message}'`,
+        // );
       }
       return false;
     }

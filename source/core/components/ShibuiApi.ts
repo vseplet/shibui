@@ -23,8 +23,7 @@ import {
 
 // deno-lint-ignore-file
 export class ShibuiApi {
-  globalPotDistributor = new Distributor(this);
-
+  globalPotDistributor: Distributor;
   settings = {
     DEFAULT_LOGGING_ENABLED: true,
     DEFAULT_LOGGING_LEVEL: 0,
@@ -36,6 +35,14 @@ export class ShibuiApi {
       SourceType.UNKNOWN,
       SourceType.PLUGIN,
     ],
+  };
+
+  constructor() {
+    this.globalPotDistributor = new Distributor(this);
+  }
+
+  createLogger = (options: ILoggerOptions) => {
+    return new EventDrivenLogger(this.settings, options);
   };
 
   async execute(
@@ -86,9 +93,5 @@ export class ShibuiApi {
   send = (pot: IPot, builder?: ITaskBuilder) => {
     if (builder) pot.to.task = builder.task.name;
     this.globalPotDistributor.send(pot);
-  };
-
-  createLogger = (options: ILoggerOptions) => {
-    return new EventDrivenLogger(options);
   };
 }
