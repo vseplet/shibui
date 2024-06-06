@@ -1,7 +1,7 @@
 {
   "name": "@vseplet/shibui",
   "lock": false,
-  "version": "v17",
+  "version": "v18",
   "exports": {
     "./cli": "./source/cli/mod.ts",
     "./core": "./source/core/mod.ts",
@@ -26,6 +26,8 @@
     "ex8": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./source/core/examples/ex8.ts"
   },
   "fmt": {
-    "exclude": ["./source/versions.ts"]
+    "exclude": [
+      "./source/versions.ts"
+    ]
   }
 }
