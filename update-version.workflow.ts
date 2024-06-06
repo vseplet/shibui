@@ -1,13 +1,17 @@
 // deno-lint-ignore-file
-import core from "https://deno.land/x/shibui@v0.3.0.4-alpha/core/mod.ts";
-import { CoreStartPot } from "https://deno.land/x/shibui@v0.3.0.4-alpha/core/pots/CoreStartPot.ts";
-import { ContextPot } from "https://deno.land/x/shibui@v0.3.0.4-alpha/core/pots/ContextPot.ts";
-import { SourceType } from "https://deno.land/x/shibui@v0.3.0.4-alpha/core/types.ts";
+import core from "https://deno.land/x/shibui@v15/core/mod.ts";
+import {
+  ContextPot,
+  CoreStartPot,
+} from "https://deno.land/x/shibui@v15/core/pots/mod.ts";
+import { SourceType } from "https://deno.land/x/shibui@v15/core/types.ts";
 import { walk } from "https://deno.land/std@0.224.0/fs/mod.ts";
 import { sh } from "https://deno.land/x/shelly@v0.1.1/mod.ts";
 
 const versionsFilePath = "./source/versions.ts";
+const versionsExportPattern = /export default \[\s*([\s\S]*?)\s*\];/;
 const mdUrlPattern = /https:\/\/deno\.land\/x\/shibui@[^/]+\//;
+const mdUrlReplacePattern = /@[^/]+\//;
 
 class UpdateVersionContext extends ContextPot<{}> {
   data = {
@@ -23,9 +27,9 @@ const workflow = core.workflow(UpdateVersionContext)
       .name("Update versions.ts")
       .do(async ({ pots, log, next }) => {
         const [ctx] = pots;
-        const data = await Deno.readTextFile(versionsFilePath);
-        const regex = /export default \[\s*([\s\S]*?)\s*\];/;
-        const match = data.match(regex);
+        const oldVersionsTS = await Deno.readTextFile(versionsFilePath);
+        let newVersionsTS = "";
+        const match = oldVersionsTS.match(versionsExportPattern);
 
         if (match && match[1]) {
           const versions = match[1]
@@ -33,25 +37,21 @@ const workflow = core.workflow(UpdateVersionContext)
             .map((version) => version.trim().replace(/"/g, ""))
             .filter((version) => version !== "");
 
-          const latestVersion = versions[0];
           const currentVersionNumber = parseInt(
-            latestVersion.substring(1),
+            versions[0].substring(1),
             10,
           );
           ctx.data.version = `v${currentVersionNumber + 1}`;
 
-          const newContent = `export default [ ${
+          newVersionsTS = `export default [ ${
             [ctx.data.version, ...versions].map((version) => `"${version}"`)
-              .join(
-                ", ",
-              )
+              .join(", ")
           } ];\n`;
-
-          await Deno.writeTextFile(versionsFilePath, newContent);
         } else {
-          const newContent = `export default ["${ctx.data.version}"];`;
-          await Deno.writeTextFile(versionsFilePath, newContent);
+          newVersionsTS = `export default ["${ctx.data.version}"];`;
         }
+
+        await Deno.writeTextFile(versionsFilePath, newVersionsTS);
 
         log.inf(ctx.data.version);
         return next(t2, {
@@ -64,13 +64,21 @@ const workflow = core.workflow(UpdateVersionContext)
       .do(async ({ pots, log, next }) => {
         const [ctx] = pots;
 
-        for await (const entry of walk(".", { exts: ["md"] })) {
+        for await (
+          const entry of walk(".", {
+            exts: ["md"],
+            skip: [/node_modules/, /build/, /.docusaurus/],
+          })
+        ) {
           if (entry.isFile) {
             const fileContent = await Deno.readTextFile(entry.path);
             const updatedContent = fileContent.replace(
               mdUrlPattern,
               (match) => {
-                return match.replace(/@[^/]+\//, `@${ctx.data.version}/`);
+                return match.replace(
+                  mdUrlReplacePattern,
+                  `@${ctx.data.version}/`,
+                );
               },
             );
 
