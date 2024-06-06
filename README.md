@@ -1,7 +1,7 @@
 # SHIBUI - universal workflow automation
 
 ```bash
-deno run --allow-all https://deno.land/x/shibui@v15/framework/scripts/init.ts
+deno run --allow-all https://deno.land/x/shibui@v16/framework/scripts/init.ts
 
 cd shibui-project
 deno task dev
