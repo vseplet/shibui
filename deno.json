@@ -1,5 +1,19 @@
 {
+  "name": "@vseplet/shibui",
   "lock": false,
+  "version": "v17",
+  "exports": {
+    "./cli": "./source/cli/mod.ts",
+    "./core": "./source/core/mod.ts",
+    "./framework": "./source/framework/mod.ts"
+  },
+  "publish": {
+    "include": [
+      "LICENSE",
+      "README.md",
+      "source/**/*.ts"
+    ]
+  },
   "tasks": {
     "serve": "deno run --allow-all --unstable-broadcast-channel ./source/moduleServe.ts",
     "ex1": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./source/core/examples/ex1.ts",

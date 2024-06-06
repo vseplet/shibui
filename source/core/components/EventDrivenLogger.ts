@@ -10,8 +10,6 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import * as colors from "https://deno.land/std@0.196.0/fmt/colors.ts";
-// import core from "../mod.ts";
 import {
   DebugLogEvent,
   ErrorLogEvent,
@@ -21,9 +19,9 @@ import {
   VerboseLogEvent,
   WarnLogEvent,
 } from "../events/LogEvents.ts";
-import { ILoggerOptions, Level, SourceType } from "../types.ts";
+import { type ILoggerOptions, Level, SourceType } from "../types.ts";
 import { emitters } from "../emitters.ts";
-import { ShibuiApi } from "./ShibuiApi.ts";
+import { colors } from "../../deps.ts";
 
 const colorizeByLevel = {
   [Level.UNKNOWN]: colors.dim,

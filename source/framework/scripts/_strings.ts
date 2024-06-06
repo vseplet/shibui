@@ -78,8 +78,8 @@ export const DENO_JSON = `
   "lock": false,
 
   "tasks": {
-    "dev": "deno run --allow-all --unstable ./dev.ts",
-    "prod": "deno run --allow-all --unstable ./prod.ts"
+    "dev": "deno run --unstable-broadcast-channel --unstable-kv ./dev.ts",
+    "prod": "deno run --unstable-broadcast-channel --unstable-kv ./prod.ts"
   },
 
   "imports": {
@@ -88,7 +88,7 @@ export const DENO_JSON = `
     "$shibui_pots/": "${baseImportPath}/core/pots/",
     "$shibui_events/": "${baseImportPath}/core/events/",
     "$shibui_plugins/": "${baseImportPath}/framework/plugins/",
-    "$std/": "https://deno.land/std@0.198.0/"
+    "$std/": "https://deno.land/std@0.224.0/"
   }
 }
 `;

@@ -8,6 +8,7 @@ import {
 import { SourceType } from "https://deno.land/x/shibui@v15/core/types.ts";
 import { sh } from "https://deno.land/x/shelly@v0.1.1/mod.ts";
 
+const denoJsonFilePath = "./deno.json";
 const versionsFilePath = "./source/versions.ts";
 const versionsExportPattern = /export default \[\s*([\s\S]*?)\s*\];/;
 const mdUrlPattern = /https:\/\/deno\.land\/x\/shibui@[^/]+\//;
@@ -60,6 +61,24 @@ const workflow = core.workflow(UpdateVersionContext)
       });
 
     const t2 = task1()
+      .name("Update deno.json")
+      .do(async ({ pots, log, next }) => {
+        const [ctx] = pots;
+
+        const denoJsonRaw = await Deno.readTextFile(denoJsonFilePath);
+        const json = JSON.parse(denoJsonRaw);
+
+        if (json.version) {
+          json.version = ctx.data.version;
+          const newContent = JSON.stringify(json, null, 2);
+          await Deno.writeTextFile(denoJsonFilePath, newContent);
+        }
+
+        log.inf(ctx.data.version);
+        return next(t3);
+      });
+
+    const t3 = task1()
       .name("Update imports in .md files")
       .do(async ({ pots, log, next }) => {
         const [ctx] = pots;
@@ -90,10 +109,10 @@ const workflow = core.workflow(UpdateVersionContext)
         }
 
         log.inf(ctx.data.version);
-        return next(t3);
+        return next(t4);
       });
 
-    const t3 = task1()
+    const t4 = task1()
       .name("Commit and push changes")
       .do(async ({ pots, log, next }) => {
         const [ctx] = pots;
@@ -106,10 +125,10 @@ const workflow = core.workflow(UpdateVersionContext)
         console.log((await sh("git push origin main")).stderr);
 
         log.inf(ctx.data.version);
-        return next(t4);
+        return next(t5);
       });
 
-    const t4 = task1()
+    const t5 = task1()
       .name("Create and push tag")
       .do(async ({ pots, log }) => {
         const [ctx] = pots;
