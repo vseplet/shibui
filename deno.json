@@ -5,7 +5,9 @@
   "exports": {
     "./cli": "./source/cli/mod.ts",
     "./core": "./source/core/mod.ts",
-    "./framework": "./source/framework/mod.ts"
+    "./core-types": "./source/core/types.ts",
+    "./framework": "./source/framework/mod.ts",
+    "./script-init": "./source/framework/scripts/init.ts"
   },
   "publish": {
     "include": [
