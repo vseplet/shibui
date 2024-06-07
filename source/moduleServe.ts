@@ -1,6 +1,8 @@
 Deno.serve(async (req: Request) => {
   const url = new URL(req.url);
+
   console.log(url);
+
   const filepath = "/" +
     decodeURIComponent(url.pathname).split("/").slice(2).join(
       "/",
