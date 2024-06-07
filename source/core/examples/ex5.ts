@@ -4,7 +4,6 @@ import { CoreStartPot } from "../pots/CoreStartPot.ts";
 import core from "../mod.ts";
 import { sh } from "https://deno.land/x/shelly@v0.1.1/mod.ts";
 import type { TaskBuilder } from "../entities/TaskBuilder.ts";
-import type { IPot } from "../types.ts";
 
 export const checkUpdateTypeByCommitMessage = <
   CTX extends ContextPot<{
