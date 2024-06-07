@@ -13,7 +13,7 @@ import { incrementSemver } from "https://deno.land/x/automation_scripts@0.0.5/ci
 // SHARED TASKS
 import { checkUpdateTypeByCommitMessage } from "https://deno.land/x/automation_scripts@0.0.5/ci-cd/tasks/mod.ts";
 
-import * as mod from "jsr:@vseplet/shibui@0.3.2/core";
+// import * as mod from "jsr:@vseplet/shibui@0.3.2/core";
 
 class UpdateVersionContext extends ContextPot<{
   updateType: string;

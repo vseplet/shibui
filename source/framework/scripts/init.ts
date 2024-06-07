@@ -11,7 +11,6 @@
  */
 
 // https://github.com/denoland/fresh/blob/main/init.ts
-import * as colors from "https://deno.land/std@0.198.0/fmt/colors.ts";
 import {
   CONFIRM_EMPTY_MESSAGE,
   CRON_JOB_POT_TS,
@@ -28,7 +27,7 @@ import {
   SIMPLE_TASK_TS,
   SIMPLE_WORKFLOW_TS,
 } from "./_strings.ts";
-import { join, parse, resolve } from "../../deps.ts";
+import { colors, join, parse, resolve } from "../../deps.ts";
 import { error } from "../errors/mod.ts";
 
 const flags = parse(Deno.args, {
