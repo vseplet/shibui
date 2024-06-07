@@ -21,7 +21,7 @@ class UpdateVersionContext extends ContextPot<{}> {
 }
 
 const workflow = core.workflow(UpdateVersionContext)
-  .name("Update Version")
+  .name("Update Version and Deploy to JSR")
   .on(CoreStartPot)
   .sq(({ task1 }) => {
     const t1 = task1()

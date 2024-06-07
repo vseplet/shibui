@@ -20,6 +20,7 @@ import {
   WorkflowTriggerHandler,
 } from "../types.ts";
 import { task1 } from "./TaskBuilder.ts";
+import { TaskBuilder } from "./mod.ts";
 
 export class WorkflowBuilder<ContextPot extends IPot>
   implements IWorkflowBuilder {
@@ -91,8 +92,21 @@ export class WorkflowBuilder<ContextPot extends IPot>
     return this;
   }
 
-  #task() {
-    const builder = task1(this.contextPotConstructor);
+  // #task() {
+  //   const builder = task1(this.contextPotConstructor);
+  //   builder.belongsToWorkflow(this);
+
+  //   builder.on(
+  //     this.contextPotConstructor as Constructor<Exclude<ContextPot, undefined>>,
+  //     ({ pots, allow, deny }) =>
+  //       pots[0].to.task === builder.task.name ? allow() : deny(),
+  //   );
+
+  //   this.taskBuilders.push(builder);
+  //   return builder;
+  // }
+
+  #task1(builder: TaskBuilder<ContextPot>) {
     builder.belongsToWorkflow(this);
 
     builder.on(
@@ -111,7 +125,11 @@ export class WorkflowBuilder<ContextPot extends IPot>
     ) => ITaskBuilder,
   ) {
     const initArgs = {
-      task1: () => this.#task(),
+      task1: () => {
+        const builder = task1(this.contextPotConstructor);
+        return this.#task1(builder);
+      },
+      shared1: (builder: TaskBuilder<ContextPot>) => this.#task1(builder),
       // task2: <TriggerPot extends IPot>() => this.#task2<TriggerPot>(),
       // task3: <
       //   TriggerPot2 extends IPot,

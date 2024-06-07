@@ -1,4 +1,5 @@
-import luminous from "https://deno.land/x/luminous@0.1.5/mod.ts";
+import luminous from "jsr:@vseplet/luminous@0.2.0";
+
 export { luminous };
 
 export {

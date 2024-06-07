@@ -32,4 +32,4 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          deno run --allow-all --unstable-broadcast-channel --unstable-kv ./update-version.workflow.ts
+          deno run --allow-all --unstable-broadcast-channel --unstable-kv ./update-semver-deploy-jsr.workflow.ts

@@ -192,6 +192,14 @@ export interface IWorkflowBuilderSetupArgs<ContextPot extends IPot> {
   task1: () => TaskBuilder<
     ContextPot
   >;
+
+  shared1: (
+    builder: TaskBuilder<
+      ContextPot
+    >,
+  ) => TaskBuilder<
+    ContextPot
+  >;
 }
 
 export type WorkflowTrigger = {
