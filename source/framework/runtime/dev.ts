@@ -10,8 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import * as colors from "https://deno.land/std@0.198.0/fmt/colors.ts";
-import { dirname, fromFileUrl, resolve } from "../../deps.ts";
+import { colors, dirname, fromFileUrl, resolve } from "../../deps.ts";
 import { IManifest } from "../entities/Manifest.ts";
 import { INTRO_TEXT } from "../scripts/_strings.ts";
 import { generateManifest } from "./generateManifest.ts";

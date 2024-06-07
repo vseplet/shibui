@@ -11,11 +11,11 @@
  */
 
 // deno-lint-ignore-file require-await
-import * as colors from "https://deno.land/std@0.198.0/fmt/colors.ts";
 import { IManifest } from "../entities/Manifest.ts";
 import { INTRO_TEXT } from "../scripts/_strings.ts";
 import { initCore } from "./initCore.ts";
 import { IPlugin } from "../entities/Plugin.ts";
+import { colors } from "../../deps.ts";
 
 const prod = async (manifest: IManifest, plugins: Array<IPlugin> = []) => {
   console.log(colors.magenta(INTRO_TEXT));
