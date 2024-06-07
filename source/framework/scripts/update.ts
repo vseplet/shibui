@@ -11,7 +11,7 @@
  */
 
 // linke https://github.com/denoland/fresh/blob/main/update.ts
-import * as colors from "https://deno.land/std@0.198.0/fmt/colors.ts";
+import { colors } from "../../deps.ts";
 import { INTRO_TEXT } from "./_strings.ts";
 
 console.log(colors.brightYellow(INTRO_TEXT));
