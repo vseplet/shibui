@@ -195,7 +195,11 @@ export interface IWorkflowBuilderSetupArgs<ContextPot extends IPot> {
 
   shared1: (
     builder: TaskBuilder<
-      ContextPot
+      ContextPot,
+      IPot,
+      IPot,
+      IPot,
+      IPot
     >,
   ) => TaskBuilder<
     ContextPot
