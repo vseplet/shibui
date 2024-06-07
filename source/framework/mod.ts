@@ -13,5 +13,4 @@
 import { ShibuiFramework } from "./components/ShibuiFramework.ts";
 
 const framework = new ShibuiFramework();
-
 export default framework;
