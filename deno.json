@@ -1,7 +1,7 @@
 {
   "name": "@vseplet/shibui",
   "lock": false,
-  "version": "0.3.1",
+  "version": "0.3.2",
   "exports": {
     "./cli": "./source/cli/mod.ts",
     "./core": "./source/core/mod.ts",
