@@ -38,11 +38,6 @@ const task3 = core.task(SimplePot)
     return finish();
   });
 
-core.settings.DEFAULT_LOGGING_LEVEL = 0;
-core.settings.ALLOWED_LOGGING_SOURCE_TYPES = [
-  SourceType.TASK,
-];
-
 core.register(task1);
 core.register(task2);
 core.register(task3);

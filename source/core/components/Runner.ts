@@ -19,130 +19,142 @@ import {
   type IShibuiCore,
   type ITask,
   type ITaskBuilder,
+  IWorkflow,
   SourceType,
 } from "../types.ts";
 
 export default class Runner {
   #core: IShibuiCore;
-  #logger: IEventDrivenLogger;
+  #kv: Deno.Kv;
+  #log: IEventDrivenLogger;
   #tasks: { [name: string]: ITask } = {};
 
-  constructor(core: IShibuiCore) {
+  constructor(core: IShibuiCore, kv: Deno.Kv) {
     this.#core = core;
-    this.#logger = core.createLogger({
+    this.#kv = kv;
+    this.#log = core.createLogger({
       sourceType: SourceType.CORE,
       sourceName: "Runner",
     });
   }
 
+  registerTask(task: ITask) {
+    this.#tasks[task.name] = task;
+    this.#log.inf(`registered task '${task.name}'`);
+  }
+
+  registerWorkflow(workflow: IWorkflow) {
+    // this.#log.inf(`registered w '${workflow.name}'`);
+  }
+
+  async run(taskName: string, pots: Array<Pot>) {
+    const task = this.#tasks[taskName];
+
+    this.#log.trc(
+      `trying to exec do handler from task '${taskName}' by pot '${
+        pots[0].name
+      }'...`,
+    );
+
+    try {
+      const doResult = await task.do({
+        core: this.#core,
+        log: this.#core.createLogger({
+          sourceType: SourceType.TASK,
+          sourceName: `DO: ${taskName}`,
+        }),
+        pots,
+        next: (
+          taskBuilders: ITaskBuilder | Array<ITaskBuilder>,
+          data?: Partial<IPot["data"]>,
+        ) => ({
+          op: DoHandlerOp.NEXT,
+          taskBuilders: taskBuilders instanceof Array
+            ? taskBuilders
+            : [taskBuilders],
+          data,
+        }),
+        fail: (reason?: string) => ({
+          op: DoHandlerOp.FAIL,
+          reason: reason || "",
+        }),
+        finish: () => ({ op: DoHandlerOp.FINISH }),
+        repeat: (_data?: Partial<IPot["data"]>) => ({
+          op: DoHandlerOp.REPEAT,
+        }),
+      });
+
+      this.#processDoHandlerResult(pots, task, doResult);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        this.#log.err(
+          `trying to exec do handler from task '${taskName}' by pot '${
+            pots[0].name
+          }' failed with error: '${err.stack}'`,
+        );
+      } else {
+        this.#log.flt(
+          `trying to exec do handler from task '${taskName}' by pot '${
+            pots[0].name
+          }' failed with unknown error!`,
+        );
+      }
+    }
+  }
+
+  #onFail() {}
+
+  #onNext(
+    pots: Array<Pot>,
+    task: ITask,
+    nextTasks: Array<ITaskBuilder>,
+    data?: Partial<unknown> | undefined,
+  ) {
+    if (task.belongsToWorkflow) {
+      // это task из workflow скрипта
+    } else {
+      // это одиночный task
+    }
+    nextTasks.forEach((builder) => {
+      const newContextPot = pots[0].copy(data || pots[0].data);
+      newContextPot.from.task = task.name;
+      newContextPot.from.workflow = task.belongsToWorkflow;
+      newContextPot.to.task = builder.task.name;
+      newContextPot.to.workflow = builder.task.belongsToWorkflow;
+      this.#core.send(newContextPot);
+    });
+  }
+
+  #onFinish() {}
+
+  #onRepeat() {}
+
+  #onError(pots: Array<Pot>, task: ITask, err: Error) {
+    this.#log.err(
+      `trying to process do handler result from task '${task.name}' by pot(?context) '${
+        pots[0].name
+      }' failed with error: '${err.message}'`,
+    );
+  }
+
   #processDoHandlerResult(
-    pots: Array<Pot<any>>,
+    pots: Array<Pot>,
     task: ITask,
     result: DoHandlerResult,
-  ): boolean {
+  ) {
     try {
       if (result.op === DoHandlerOp.FINISH) {
-        // core.core.send(new core.pots.task.TaskFinishedPot());
+        this.#onFinish();
       } else if (result.op == DoHandlerOp.NEXT) {
-        //TODO: пофиксить преобразование данных в next
-
-        result.taskBuilders.forEach((builder) => {
-          const copyOfContextPot = pots[0].copy(result.data || pots[0].data);
-          copyOfContextPot.from.task = task.name;
-          copyOfContextPot.from.workflow = task.belongsToWorkflow;
-          copyOfContextPot.to.task = builder.task.name;
-          copyOfContextPot.to.workflow = builder.task.belongsToWorkflow;
-
-          // console.log(pots[0]);
-          // console.log(copyOfContextPot);
-
-          this.#core.send(copyOfContextPot);
-          // core.core.send(new core.pots.task.TaskCallingNext());
-        });
+        this.#onNext(pots, task, result.taskBuilders, result.data);
       } else if (result.op === DoHandlerOp.REPEAT) {
-        // core.core.send(new core.pots.task.TaskRepeatedPot());
-        return true;
+        this.#onRepeat();
       } else if (result.op === DoHandlerOp.FAIL) {
-        // core.core.send(new core.pots.task.TaskFailedPot());
+        this.#onFail();
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
-        this.#logger.err(
-          `trying to process do handler result from task '${task.name}' by pot(?context) '${
-            pots[0].name
-          }' failed with error: '${err.message}'`,
-        );
-      }
-      return true;
-    }
-    return false;
-  }
-
-  registerTask(task: ITask) {
-    this.#tasks[task.name] = task;
-    this.#logger.inf(`registered task '${task.name}'`);
-  }
-
-  async runDoHandler(taskName: string, pots: Array<Pot<any>>) {
-    const task = this.#tasks[taskName];
-
-    for (let attempt = 0; attempt < task.attempts; attempt++) {
-      try {
-        this.#logger.trc(
-          `trying to exec do handler from task '${taskName}' by pot '${
-            pots[0].name
-          }'...`,
-        );
-
-        const doResult = await task.do({
-          core: this.#core,
-          log: this.#core.createLogger({
-            sourceType: SourceType.TASK,
-            sourceName: `DO: ${taskName}`,
-          }),
-          pots,
-          next: (
-            taskBuilders: ITaskBuilder | Array<ITaskBuilder>,
-            data?: Partial<IPot["data"]>,
-          ) => ({
-            op: DoHandlerOp.NEXT,
-            taskBuilders: taskBuilders instanceof Array
-              ? taskBuilders
-              : [taskBuilders],
-            data,
-          }),
-          fail: (reason?: string) => ({
-            op: DoHandlerOp.FAIL,
-            reason: reason || "",
-          }),
-          finish: () => ({ op: DoHandlerOp.FINISH }),
-          repeat: (_data?: Partial<IPot["data"]>) => ({
-            op: DoHandlerOp.REPEAT,
-          }),
-        });
-
-        if (!this.#processDoHandlerResult(pots, task, doResult)) {
-          break;
-        }
-        this.#logger.err(
-          `repeat exec do handler from task '${taskName}' by pot '${
-            pots[0].name
-          }`,
-        );
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          this.#logger.err(
-            `trying to exec do handler from task '${taskName}' by pot '${
-              pots[0].name
-            }' failed with error: '${err.stack}'`,
-          );
-        } else {
-          this.#logger.flt(
-            `trying to exec do handler from task '${taskName}' by pot '${
-              pots[0].name
-            }' failed with unknown error!`,
-          );
-        }
+        this.#onError(pots, task, err);
       }
     }
   }

@@ -13,7 +13,7 @@
 import type { IPot, ITask } from "../types.ts";
 
 export default class SlotFiller {
-  // #logger = new EventDrivenLogger({
+  // #log = new EventDrivenLogger({
   //   sourceType: SourceType.CORE,
   //   sourceName: "SlotFiller",
   // });
@@ -34,7 +34,7 @@ export default class SlotFiller {
     row?: number,
   ): boolean {
     try {
-      // this.#logger.trc(
+      // this.#log.trc(
       //   `try to fill slots for '${taskName}' by pot '${pot.name} ${pot.uuid}' to slot ${slot}...'`,
       // );
 
@@ -48,7 +48,7 @@ export default class SlotFiller {
       );
 
       if (rowIsFilled) {
-        // this.#logger.trc(
+        // this.#log.trc(
         //   `row for'${taskName}' has been filled'`,
         // );
 
@@ -61,7 +61,7 @@ export default class SlotFiller {
       return true;
     } catch (err) {
       if (err instanceof Error) {
-        // this.#logger.err(
+        // this.#log.err(
         //   `trying to fill slots for '${taskName}' by pot '${pot.name}' to slot ${slot} failed with error: '${err.message}'`,
         // );
       }

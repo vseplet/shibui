@@ -10,10 +10,10 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { IPot, PotType } from "../types.ts";
+import { type IPot, PotType } from "../types.ts";
 
 export class Pot<
-  D extends { [key: string]: unknown },
+  D extends { [key: string]: unknown } = { [key: string]: unknown },
 > implements IPot {
   toc = new Date().getTime();
   uuid = crypto.randomUUID();

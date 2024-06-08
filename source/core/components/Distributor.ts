@@ -30,11 +30,18 @@ import {
   TriggerHandlerOp,
   type WorkflowTrigger,
 } from "../types.ts";
-import type { ShibuiCore } from "./ShibuiCore.ts";
+import { Tester } from "./Tester.ts";
 
 export default class Distributor {
   #kv: Deno.Kv = undefined as unknown as Deno.Kv;
+  #core: IShibuiCore;
+  #log: IEventDrivenLogger;
+
+  #defaultRunner: Runner;
+  #defaultTester: Tester;
+
   #filler = new SlotFiller();
+
   #workflows: { [name: string]: IWorkflow } = {};
   #workflowTriggers: {
     [name: string]: Array<WorkflowTrigger>;
@@ -43,85 +50,25 @@ export default class Distributor {
   #taskTriggers: {
     [name: string]: Array<TaskTrigger>;
   } = {};
-  #core: IShibuiCore;
-  #logger: IEventDrivenLogger;
-  #defaultRunner: Runner;
 
   constructor(core: IShibuiCore) {
     this.#core = core;
-    this.#logger = core.createLogger({
+    this.#log = core.createLogger({
       sourceType: SourceType.CORE,
       sourceName: "Distributor",
     });
-    this.#defaultRunner = new Runner(core);
+    this.#defaultRunner = new Runner(core, this.#kv);
+    this.#defaultTester = new Tester(core, this.#kv);
+
     this.#filler.onRowFill((
       name: string,
       pots: Array<Pot<any>>,
-    ) => (this.#defaultRunner.runDoHandler(name, pots)));
-  }
-
-  #registerTask(builder: ITaskBuilder) {
-    const task = builder.build();
-    this.#tasks[builder.task.name] = task;
-
-    for (const potName in task.triggers) {
-      if (!this.#taskTriggers[potName]) this.#taskTriggers[potName] = [];
-
-      task.triggers[potName].forEach((trigger) =>
-        this.#taskTriggers[potName].push(trigger)
-      );
-    }
-
-    this.#filler.allocateSlots(task);
-
-    if (task.belongsToWorkflow) {
-      this.#logger.inf(
-        `registered task '${task.name}' of workflow '${task.belongsToWorkflow}'`,
-      );
-    } else {
-      this.#logger.inf(`registered task '${task.name}'`);
-    }
-
-    this.#defaultRunner.registerTask(task);
-  }
-
-  #registerWorkflow(builder: IWorkflowBuilder) {
-    const workflow = builder.build();
-    this.#workflows[workflow.name] = workflow;
-
-    for (const potName in workflow.triggers) {
-      if (!this.#workflowTriggers[potName]) {
-        this.#workflowTriggers[potName] = [];
-      }
-      const trigger = workflow.triggers[potName];
-
-      this.#workflowTriggers[potName].push(trigger);
-    }
-
-    builder.taskBuilders.forEach((builder) => {
-      this.#registerTask(builder);
-    });
-
-    this.#logger.inf(`registered workflow '${workflow.name}'`);
-  }
-
-  #resend(pot: IPot) {
-    if (pot.ttl > 0) {
-      this.#logger.trc(
-        `return pot '${pot.name}' with ttl:{${pot.ttl}} back to the queue`,
-      );
-      pot.ttl--;
-      this.#kv.enqueue(pot);
-    } else {
-      this.#logger.wrn(
-        `pot '${pot.name}' ran out of ttl =(`,
-      );
-    }
+    ) => (this.#defaultRunner.run(name, pots)));
   }
 
   #runWorkflowTriggerHandler(pot: IPot, trigger: WorkflowTrigger): boolean {
     try {
-      this.#logger.trc(
+      this.#log.trc(
         `trying to exec trigger handler from workflow '${trigger.workflowName}' by pot '${pot.name}'...`,
       );
 
@@ -135,13 +82,13 @@ export default class Distributor {
       });
 
       if (!contextPot) {
-        this.#logger.trc(
+        this.#log.trc(
           `deny run workflow '${trigger.workflowName}' by pot '${pot.name}'`,
         );
         return false;
       }
 
-      this.#logger.vrb(
+      this.#log.vrb(
         `allow run workflow '${trigger.workflowName}' by pot '${pot.name}'`,
       );
 
@@ -154,14 +101,14 @@ export default class Distributor {
 
       return true;
     } catch (err) {
-      this.#logger.err(err);
+      this.#log.err(err);
       return false;
     }
   }
 
   #runSingleTaskTriggerHandler(pot: IPot, trigger: TaskTrigger): boolean {
     try {
-      this.#logger.trc(
+      this.#log.trc(
         `trying to exec trigger handler from task '${trigger.taskName}' by pot '${pot.name}'...`,
       );
 
@@ -180,20 +127,20 @@ export default class Distributor {
       });
 
       if (result.op == TriggerHandlerOp.ALLOW) {
-        this.#logger.vrb(
+        this.#log.vrb(
           `allow run '${trigger.taskName}' by pot '${pot.name}'`,
         );
         this.#filler.fill(trigger.taskName, pot, result.potIndex);
         return true;
       } else if (result.op == TriggerHandlerOp.DENY) {
-        this.#logger.trc(`deny run '${trigger.taskName}' by pot '${pot.name}'`);
+        this.#log.trc(`deny run '${trigger.taskName}' by pot '${pot.name}'`);
         return false;
       }
 
       return false;
     } catch (err: unknown) {
       if (err instanceof Error) {
-        this.#logger.err(
+        this.#log.err(
           `trying to exec trigger handler from task '${trigger.taskName}' by pot '${pot.name}' failed with error: '${err.message}'`,
         );
       }
@@ -214,7 +161,7 @@ export default class Distributor {
           return false;
         }
 
-        this.#logger.trc(
+        this.#log.trc(
           `trying to exec trigger handler from '${trigger.taskName}' by context pot '${pot.name}'...`,
         );
 
@@ -233,7 +180,7 @@ export default class Distributor {
         });
 
         if (result.op == TriggerHandlerOp.ALLOW) {
-          this.#logger.vrb(
+          this.#log.vrb(
             `allow run '${trigger.taskName}' by pot '${pot.name}'`,
           );
           if (
@@ -246,7 +193,7 @@ export default class Distributor {
             return true;
           }
         } else if (result.op == TriggerHandlerOp.DENY) {
-          this.#logger.trc(
+          this.#log.trc(
             `deny run '${trigger.taskName}' by pot '${pot.name}'`,
           );
           return false;
@@ -258,7 +205,7 @@ export default class Distributor {
       let dec = 0;
       let res = false;
       for (const [rowIndex, ctx] of contextPots) {
-        this.#logger.trc(
+        this.#log.trc(
           `trying to exec trigger handler from '${trigger.taskName}' by context pot ${ctx.name} and pot '${pot.name}'...`,
         );
 
@@ -277,7 +224,7 @@ export default class Distributor {
         });
 
         if (result.op == TriggerHandlerOp.ALLOW) {
-          this.#logger.vrb(
+          this.#log.vrb(
             `allow run '${trigger.taskName}' by pot '${pot.name}'`,
           );
           if (
@@ -290,7 +237,7 @@ export default class Distributor {
           ) dec++;
           res = true;
         } else if (result.op == TriggerHandlerOp.DENY) {
-          this.#logger.trc(
+          this.#log.trc(
             `deny run '${trigger.taskName}' by pot '${pot.name}'`,
           );
         }
@@ -298,7 +245,7 @@ export default class Distributor {
 
       return res;
     } catch (err) {
-      this.#logger.err(`${err}, ${err.stack}`);
+      this.#log.err(`${err}, ${err.stack}`);
       return false;
     }
   }
@@ -306,13 +253,13 @@ export default class Distributor {
   #testWorkflowTriggers(pot: IPot): boolean {
     const triggers = this.#workflowTriggers[pot.name];
     if (!triggers) {
-      this.#logger.trc(
+      this.#log.trc(
         `not found workflow triggers for pot '${pot.name}'`,
       );
       return false;
     }
 
-    this.#logger.trc(
+    this.#log.trc(
       `found ${triggers.length} workflow triggers for pot '${pot.name}'`,
     );
 
@@ -324,13 +271,13 @@ export default class Distributor {
   #testTaskTriggers(pot: IPot): boolean {
     const triggers = this.#taskTriggers[pot.name];
     if (!triggers) {
-      this.#logger.trc(
+      this.#log.trc(
         `not found task triggers for pot '${pot.name}'`,
       );
       return false;
     }
 
-    this.#logger.trc(
+    this.#log.trc(
       `found ${triggers.length} task triggers for pot '${pot.name}'`,
     );
 
@@ -348,52 +295,103 @@ export default class Distributor {
     return a || b;
   }
 
-  async init() {
-    this.#kv = await Deno.openKv();
-    this.#logger.inf(
-      `init deno kv`,
-    );
+  #registerTask(builder: ITaskBuilder) {
+    const task = builder.build();
+    this.#tasks[builder.task.name] = task;
+    this.#defaultRunner.registerTask(task);
+
+    for (const potName in task.triggers) {
+      if (!this.#taskTriggers[potName]) this.#taskTriggers[potName] = [];
+
+      task.triggers[potName].forEach((trigger) =>
+        this.#taskTriggers[potName].push(trigger)
+      );
+    }
+
+    this.#filler.allocateSlots(task);
+
+    if (task.belongsToWorkflow) {
+      this.#log.inf(
+        `registered task '${task.name}' of workflow '${task.belongsToWorkflow}'`,
+      );
+    } else {
+      this.#log.inf(`registered task '${task.name}'`);
+    }
+  }
+
+  #registerWorkflow(builder: IWorkflowBuilder) {
+    const workflow = builder.build();
+
+    this.#workflows[workflow.name] = workflow;
+
+    for (const potName in workflow.triggers) {
+      if (!this.#workflowTriggers[potName]) {
+        this.#workflowTriggers[potName] = [];
+      }
+      const trigger = workflow.triggers[potName];
+
+      this.#workflowTriggers[potName].push(trigger);
+    }
+
+    builder.taskBuilders.forEach((builder) => {
+      this.#registerTask(builder);
+    });
+
+    this.#log.inf(`registered workflow '${workflow.name}'`);
+  }
+
+  #processPot(pot: Pot) {
+    const { forward, name, pots } = this.#defaultTester.test(pot);
+    if (!forward) return false;
+    this.#defaultRunner.run(name, pots);
+    return true;
   }
 
   async start() {
-    await this.init();
+    this.#log.inf(`init deno kv...`);
+    this.#kv = await Deno.openKv();
 
-    this.#kv.listenQueue((jsonPotObj: IPot) => {
+    this.#log.inf(`starting update cycle...`);
+    this.#core.send(new CoreStartPot());
+
+    this.#kv.listenQueue((rawPotObj: IPot) => {
       try {
-        const pot = new Pot().deserialize(jsonPotObj);
+        const pot = new Pot().deserialize(rawPotObj);
 
         if (pot) {
-          this.#logger.vrb(`received a pot '${pot.name}, ttl:{${pot.ttl}}'`);
+          this.#log.vrb(`received a pot '${pot.name}, ttl:{${pot.ttl}}'`);
 
           if (!this.#test(pot) && pot.ttl > 0) {
-            this.#resend(pot);
+            this.resend(pot);
           } else {
-            this.#logger.vrb(`drop the pot '${pot.name} from queue`);
+            this.#log.vrb(`drop the pot '${pot.name} from queue`);
           }
         } else {
           return;
         }
       } catch (err: unknown) {
         if (err instanceof Error) {
-          this.#logger.flt(
+          this.#log.flt(
             `failure in pot processing cycle with error: ${err.message} ${err.stack}`,
           );
-
-          // this.#core.send(new core.pots.core.CoreLoopCrushedPot());
         }
       }
     });
-
-    this.#logger.inf(`starting update cycle...`);
-    this.#core.send(new CoreStartPot());
-    // oldUpdate();
   }
 
   register(builder: IWorkflowBuilder | ITaskBuilder) {
     if (builder instanceof WorkflowBuilder) {
       this.#registerWorkflow(builder);
+
+      // const workflow = builder.build();
+      // this.#defaultTester.registerWorkflow(workflow);
+      // this.#defaultRunner.registerWorkflow(workflow);
     } else if (builder instanceof TaskBuilder) {
       this.#registerTask(builder);
+
+      // const task = builder.build();
+      // this.#defaultTester.registerTask(task);
+      // this.#defaultRunner.registerTask(task);
     }
   }
 
@@ -409,8 +407,22 @@ export default class Distributor {
     }
   }
 
+  resend(pot: IPot) {
+    if (pot.ttl > 0) {
+      this.#log.trc(
+        `return pot '${pot.name}' with ttl:{${pot.ttl}} back to the queue`,
+      );
+      pot.ttl--;
+      this.#kv.enqueue(pot);
+    } else {
+      this.#log.wrn(
+        `pot '${pot.name}' ran out of ttl =(`,
+      );
+    }
+  }
+
   send(pot: IPot) {
-    this.#logger.trc(`sending pot '${pot.name} to queue'`);
+    this.#log.trc(`sending pot '${pot.name} to queue'`);
     this.#kv.enqueue(pot);
   }
 }
