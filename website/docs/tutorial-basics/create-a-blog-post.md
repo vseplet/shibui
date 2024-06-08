@@ -1,36 +1,37 @@
----
-sidebar_position: 3
----
-
-# Create a Blog Post
-
-Docusaurus creates a **page for each blog post**, but also a **blog index
-page**, a **tag system**, an **RSS** feed...
-
-## Create your first Post
-
-Create a file at `blog/2021-02-28-greetings.md`:
-
-```md title="blog/2021-02-28-greetings.md"
----
-slug: greetings
-title: Greetings!
-authors:
-  - name: Joel Marcey
-    title: Co-creator of Docusaurus 1
-    url: https://github.com/JoelMarcey
-    image_url: https://github.com/JoelMarcey.png
-  - name: Sébastien Lorber
-    title: Docusaurus maintainer
-    url: https://sebastienlorber.com
-    image_url: https://github.com/slorber.png
-tags: [greetings]
----
-
-Congratulations, you have made your first post!
-
-Feel free to play around and edit this post as much as you like.
-```
-
-A new blog post is now available at
-[http://localhost:3000/blog/greetings](http://localhost:3000/blog/greetings).
+shibui@0.3.8-shibui@0.3.8-shibui@0.3.8-shibui@0.3.8
+shibui@0.3.8sshibui@0.3.8ishibui@0.3.8dshibui@0.3.8eshibui@0.3.8bshibui@0.3.8ashibui@0.3.8rshibui@0.3.8_shibui@0.3.8pshibui@0.3.8oshibui@0.3.8sshibui@0.3.8ishibui@0.3.8tshibui@0.3.8ishibui@0.3.8oshibui@0.3.8nshibui@0.3.8:shibui@0.3.8 shibui@0.3.83shibui@0.3.8
+shibui@0.3.8-shibui@0.3.8-shibui@0.3.8-shibui@0.3.8
+shibui@0.3.8
+shibui@0.3.8#shibui@0.3.8 shibui@0.3.8Cshibui@0.3.8rshibui@0.3.8eshibui@0.3.8ashibui@0.3.8tshibui@0.3.8eshibui@0.3.8 shibui@0.3.8ashibui@0.3.8 shibui@0.3.8Bshibui@0.3.8lshibui@0.3.8oshibui@0.3.8gshibui@0.3.8 shibui@0.3.8Pshibui@0.3.8oshibui@0.3.8sshibui@0.3.8tshibui@0.3.8
+shibui@0.3.8
+shibui@0.3.8Dshibui@0.3.8oshibui@0.3.8cshibui@0.3.8ushibui@0.3.8sshibui@0.3.8ashibui@0.3.8ushibui@0.3.8rshibui@0.3.8ushibui@0.3.8sshibui@0.3.8 shibui@0.3.8cshibui@0.3.8rshibui@0.3.8eshibui@0.3.8ashibui@0.3.8tshibui@0.3.8eshibui@0.3.8sshibui@0.3.8 shibui@0.3.8ashibui@0.3.8 shibui@0.3.8*shibui@0.3.8*shibui@0.3.8pshibui@0.3.8ashibui@0.3.8gshibui@0.3.8eshibui@0.3.8 shibui@0.3.8fshibui@0.3.8oshibui@0.3.8rshibui@0.3.8 shibui@0.3.8eshibui@0.3.8ashibui@0.3.8cshibui@0.3.8hshibui@0.3.8 shibui@0.3.8bshibui@0.3.8lshibui@0.3.8oshibui@0.3.8gshibui@0.3.8 shibui@0.3.8pshibui@0.3.8oshibui@0.3.8sshibui@0.3.8tshibui@0.3.8*shibui@0.3.8*shibui@0.3.8,shibui@0.3.8 shibui@0.3.8bshibui@0.3.8ushibui@0.3.8tshibui@0.3.8 shibui@0.3.8ashibui@0.3.8lshibui@0.3.8sshibui@0.3.8oshibui@0.3.8 shibui@0.3.8ashibui@0.3.8 shibui@0.3.8*shibui@0.3.8*shibui@0.3.8bshibui@0.3.8lshibui@0.3.8oshibui@0.3.8gshibui@0.3.8 shibui@0.3.8ishibui@0.3.8nshibui@0.3.8dshibui@0.3.8eshibui@0.3.8xshibui@0.3.8
+shibui@0.3.8pshibui@0.3.8ashibui@0.3.8gshibui@0.3.8eshibui@0.3.8*shibui@0.3.8*shibui@0.3.8,shibui@0.3.8 shibui@0.3.8ashibui@0.3.8 shibui@0.3.8*shibui@0.3.8*shibui@0.3.8tshibui@0.3.8ashibui@0.3.8gshibui@0.3.8 shibui@0.3.8sshibui@0.3.8yshibui@0.3.8sshibui@0.3.8tshibui@0.3.8eshibui@0.3.8mshibui@0.3.8*shibui@0.3.8*shibui@0.3.8,shibui@0.3.8 shibui@0.3.8ashibui@0.3.8nshibui@0.3.8 shibui@0.3.8*shibui@0.3.8*shibui@0.3.8Rshibui@0.3.8Sshibui@0.3.8Sshibui@0.3.8*shibui@0.3.8*shibui@0.3.8 shibui@0.3.8fshibui@0.3.8eshibui@0.3.8eshibui@0.3.8dshibui@0.3.8.shibui@0.3.8.shibui@0.3.8.shibui@0.3.8
+shibui@0.3.8
+shibui@0.3.8#shibui@0.3.8#shibui@0.3.8 shibui@0.3.8Cshibui@0.3.8rshibui@0.3.8eshibui@0.3.8ashibui@0.3.8tshibui@0.3.8eshibui@0.3.8 shibui@0.3.8yshibui@0.3.8oshibui@0.3.8ushibui@0.3.8rshibui@0.3.8 shibui@0.3.8fshibui@0.3.8ishibui@0.3.8rshibui@0.3.8sshibui@0.3.8tshibui@0.3.8 shibui@0.3.8Pshibui@0.3.8oshibui@0.3.8sshibui@0.3.8tshibui@0.3.8
+shibui@0.3.8
+shibui@0.3.8Cshibui@0.3.8rshibui@0.3.8eshibui@0.3.8ashibui@0.3.8tshibui@0.3.8eshibui@0.3.8 shibui@0.3.8ashibui@0.3.8 shibui@0.3.8fshibui@0.3.8ishibui@0.3.8lshibui@0.3.8eshibui@0.3.8 shibui@0.3.8ashibui@0.3.8tshibui@0.3.8 shibui@0.3.8`shibui@0.3.8bshibui@0.3.8lshibui@0.3.8oshibui@0.3.8gshibui@0.3.8/shibui@0.3.82shibui@0.3.80shibui@0.3.82shibui@0.3.81shibui@0.3.8-shibui@0.3.80shibui@0.3.82shibui@0.3.8-shibui@0.3.82shibui@0.3.88shibui@0.3.8-shibui@0.3.8gshibui@0.3.8rshibui@0.3.8eshibui@0.3.8eshibui@0.3.8tshibui@0.3.8ishibui@0.3.8nshibui@0.3.8gshibui@0.3.8sshibui@0.3.8.shibui@0.3.8mshibui@0.3.8dshibui@0.3.8`shibui@0.3.8:shibui@0.3.8
+shibui@0.3.8
+shibui@0.3.8`shibui@0.3.8`shibui@0.3.8`shibui@0.3.8mshibui@0.3.8dshibui@0.3.8 shibui@0.3.8tshibui@0.3.8ishibui@0.3.8tshibui@0.3.8lshibui@0.3.8eshibui@0.3.8=shibui@0.3.8"shibui@0.3.8bshibui@0.3.8lshibui@0.3.8oshibui@0.3.8gshibui@0.3.8/shibui@0.3.82shibui@0.3.80shibui@0.3.82shibui@0.3.81shibui@0.3.8-shibui@0.3.80shibui@0.3.82shibui@0.3.8-shibui@0.3.82shibui@0.3.88shibui@0.3.8-shibui@0.3.8gshibui@0.3.8rshibui@0.3.8eshibui@0.3.8eshibui@0.3.8tshibui@0.3.8ishibui@0.3.8nshibui@0.3.8gshibui@0.3.8sshibui@0.3.8.shibui@0.3.8mshibui@0.3.8dshibui@0.3.8"shibui@0.3.8
+shibui@0.3.8-shibui@0.3.8-shibui@0.3.8-shibui@0.3.8
+shibui@0.3.8sshibui@0.3.8lshibui@0.3.8ushibui@0.3.8gshibui@0.3.8:shibui@0.3.8 shibui@0.3.8gshibui@0.3.8rshibui@0.3.8eshibui@0.3.8eshibui@0.3.8tshibui@0.3.8ishibui@0.3.8nshibui@0.3.8gshibui@0.3.8sshibui@0.3.8
+shibui@0.3.8tshibui@0.3.8ishibui@0.3.8tshibui@0.3.8lshibui@0.3.8eshibui@0.3.8:shibui@0.3.8 shibui@0.3.8Gshibui@0.3.8rshibui@0.3.8eshibui@0.3.8eshibui@0.3.8tshibui@0.3.8ishibui@0.3.8nshibui@0.3.8gshibui@0.3.8sshibui@0.3.8!shibui@0.3.8
+shibui@0.3.8ashibui@0.3.8ushibui@0.3.8tshibui@0.3.8hshibui@0.3.8oshibui@0.3.8rshibui@0.3.8sshibui@0.3.8:shibui@0.3.8
+shibui@0.3.8 shibui@0.3.8 shibui@0.3.8-shibui@0.3.8 shibui@0.3.8nshibui@0.3.8ashibui@0.3.8mshibui@0.3.8eshibui@0.3.8:shibui@0.3.8 shibui@0.3.8Jshibui@0.3.8oshibui@0.3.8eshibui@0.3.8lshibui@0.3.8 shibui@0.3.8Mshibui@0.3.8ashibui@0.3.8rshibui@0.3.8cshibui@0.3.8eshibui@0.3.8yshibui@0.3.8
+shibui@0.3.8 shibui@0.3.8 shibui@0.3.8 shibui@0.3.8 shibui@0.3.8tshibui@0.3.8ishibui@0.3.8tshibui@0.3.8lshibui@0.3.8eshibui@0.3.8:shibui@0.3.8 shibui@0.3.8Cshibui@0.3.8oshibui@0.3.8-shibui@0.3.8cshibui@0.3.8rshibui@0.3.8eshibui@0.3.8ashibui@0.3.8tshibui@0.3.8oshibui@0.3.8rshibui@0.3.8 shibui@0.3.8oshibui@0.3.8fshibui@0.3.8 shibui@0.3.8Dshibui@0.3.8oshibui@0.3.8cshibui@0.3.8ushibui@0.3.8sshibui@0.3.8ashibui@0.3.8ushibui@0.3.8rshibui@0.3.8ushibui@0.3.8sshibui@0.3.8 shibui@0.3.81shibui@0.3.8
+shibui@0.3.8 shibui@0.3.8 shibui@0.3.8 shibui@0.3.8 shibui@0.3.8ushibui@0.3.8rshibui@0.3.8lshibui@0.3.8:shibui@0.3.8 shibui@0.3.8hshibui@0.3.8tshibui@0.3.8tshibui@0.3.8pshibui@0.3.8sshibui@0.3.8:shibui@0.3.8/shibui@0.3.8/shibui@0.3.8gshibui@0.3.8ishibui@0.3.8tshibui@0.3.8hshibui@0.3.8ushibui@0.3.8bshibui@0.3.8.shibui@0.3.8cshibui@0.3.8oshibui@0.3.8mshibui@0.3.8/shibui@0.3.8Jshibui@0.3.8oshibui@0.3.8eshibui@0.3.8lshibui@0.3.8Mshibui@0.3.8ashibui@0.3.8rshibui@0.3.8cshibui@0.3.8eshibui@0.3.8yshibui@0.3.8
+shibui@0.3.8 shibui@0.3.8 shibui@0.3.8 shibui@0.3.8 shibui@0.3.8ishibui@0.3.8mshibui@0.3.8ashibui@0.3.8gshibui@0.3.8eshibui@0.3.8_shibui@0.3.8ushibui@0.3.8rshibui@0.3.8lshibui@0.3.8:shibui@0.3.8 shibui@0.3.8hshibui@0.3.8tshibui@0.3.8tshibui@0.3.8pshibui@0.3.8sshibui@0.3.8:shibui@0.3.8/shibui@0.3.8/shibui@0.3.8gshibui@0.3.8ishibui@0.3.8tshibui@0.3.8hshibui@0.3.8ushibui@0.3.8bshibui@0.3.8.shibui@0.3.8cshibui@0.3.8oshibui@0.3.8mshibui@0.3.8/shibui@0.3.8Jshibui@0.3.8oshibui@0.3.8eshibui@0.3.8lshibui@0.3.8Mshibui@0.3.8ashibui@0.3.8rshibui@0.3.8cshibui@0.3.8eshibui@0.3.8yshibui@0.3.8.shibui@0.3.8pshibui@0.3.8nshibui@0.3.8gshibui@0.3.8
+shibui@0.3.8 shibui@0.3.8 shibui@0.3.8-shibui@0.3.8 shibui@0.3.8nshibui@0.3.8ashibui@0.3.8mshibui@0.3.8eshibui@0.3.8:shibui@0.3.8 shibui@0.3.8Sshibui@0.3.8éshibui@0.3.8bshibui@0.3.8ashibui@0.3.8sshibui@0.3.8tshibui@0.3.8ishibui@0.3.8eshibui@0.3.8nshibui@0.3.8 shibui@0.3.8Lshibui@0.3.8oshibui@0.3.8rshibui@0.3.8bshibui@0.3.8eshibui@0.3.8rshibui@0.3.8
+shibui@0.3.8 shibui@0.3.8 shibui@0.3.8 shibui@0.3.8 shibui@0.3.8tshibui@0.3.8ishibui@0.3.8tshibui@0.3.8lshibui@0.3.8eshibui@0.3.8:shibui@0.3.8 shibui@0.3.8Dshibui@0.3.8oshibui@0.3.8cshibui@0.3.8ushibui@0.3.8sshibui@0.3.8ashibui@0.3.8ushibui@0.3.8rshibui@0.3.8ushibui@0.3.8sshibui@0.3.8 shibui@0.3.8mshibui@0.3.8ashibui@0.3.8ishibui@0.3.8nshibui@0.3.8tshibui@0.3.8ashibui@0.3.8ishibui@0.3.8nshibui@0.3.8eshibui@0.3.8rshibui@0.3.8
+shibui@0.3.8 shibui@0.3.8 shibui@0.3.8 shibui@0.3.8 shibui@0.3.8ushibui@0.3.8rshibui@0.3.8lshibui@0.3.8:shibui@0.3.8 shibui@0.3.8hshibui@0.3.8tshibui@0.3.8tshibui@0.3.8pshibui@0.3.8sshibui@0.3.8:shibui@0.3.8/shibui@0.3.8/shibui@0.3.8sshibui@0.3.8eshibui@0.3.8bshibui@0.3.8ashibui@0.3.8sshibui@0.3.8tshibui@0.3.8ishibui@0.3.8eshibui@0.3.8nshibui@0.3.8lshibui@0.3.8oshibui@0.3.8rshibui@0.3.8bshibui@0.3.8eshibui@0.3.8rshibui@0.3.8.shibui@0.3.8cshibui@0.3.8oshibui@0.3.8mshibui@0.3.8
+shibui@0.3.8 shibui@0.3.8 shibui@0.3.8 shibui@0.3.8 shibui@0.3.8ishibui@0.3.8mshibui@0.3.8ashibui@0.3.8gshibui@0.3.8eshibui@0.3.8_shibui@0.3.8ushibui@0.3.8rshibui@0.3.8lshibui@0.3.8:shibui@0.3.8 shibui@0.3.8hshibui@0.3.8tshibui@0.3.8tshibui@0.3.8pshibui@0.3.8sshibui@0.3.8:shibui@0.3.8/shibui@0.3.8/shibui@0.3.8gshibui@0.3.8ishibui@0.3.8tshibui@0.3.8hshibui@0.3.8ushibui@0.3.8bshibui@0.3.8.shibui@0.3.8cshibui@0.3.8oshibui@0.3.8mshibui@0.3.8/shibui@0.3.8sshibui@0.3.8lshibui@0.3.8oshibui@0.3.8rshibui@0.3.8bshibui@0.3.8eshibui@0.3.8rshibui@0.3.8.shibui@0.3.8pshibui@0.3.8nshibui@0.3.8gshibui@0.3.8
+shibui@0.3.8tshibui@0.3.8ashibui@0.3.8gshibui@0.3.8sshibui@0.3.8:shibui@0.3.8 shibui@0.3.8[shibui@0.3.8gshibui@0.3.8rshibui@0.3.8eshibui@0.3.8eshibui@0.3.8tshibui@0.3.8ishibui@0.3.8nshibui@0.3.8gshibui@0.3.8sshibui@0.3.8]shibui@0.3.8
+shibui@0.3.8-shibui@0.3.8-shibui@0.3.8-shibui@0.3.8
+shibui@0.3.8
+shibui@0.3.8Cshibui@0.3.8oshibui@0.3.8nshibui@0.3.8gshibui@0.3.8rshibui@0.3.8ashibui@0.3.8tshibui@0.3.8ushibui@0.3.8lshibui@0.3.8ashibui@0.3.8tshibui@0.3.8ishibui@0.3.8oshibui@0.3.8nshibui@0.3.8sshibui@0.3.8,shibui@0.3.8 shibui@0.3.8yshibui@0.3.8oshibui@0.3.8ushibui@0.3.8 shibui@0.3.8hshibui@0.3.8ashibui@0.3.8vshibui@0.3.8eshibui@0.3.8 shibui@0.3.8mshibui@0.3.8ashibui@0.3.8dshibui@0.3.8eshibui@0.3.8 shibui@0.3.8yshibui@0.3.8oshibui@0.3.8ushibui@0.3.8rshibui@0.3.8 shibui@0.3.8fshibui@0.3.8ishibui@0.3.8rshibui@0.3.8sshibui@0.3.8tshibui@0.3.8 shibui@0.3.8pshibui@0.3.8oshibui@0.3.8sshibui@0.3.8tshibui@0.3.8!shibui@0.3.8
+shibui@0.3.8
+shibui@0.3.8Fshibui@0.3.8eshibui@0.3.8eshibui@0.3.8lshibui@0.3.8 shibui@0.3.8fshibui@0.3.8rshibui@0.3.8eshibui@0.3.8eshibui@0.3.8 shibui@0.3.8tshibui@0.3.8oshibui@0.3.8 shibui@0.3.8pshibui@0.3.8lshibui@0.3.8ashibui@0.3.8yshibui@0.3.8 shibui@0.3.8ashibui@0.3.8rshibui@0.3.8oshibui@0.3.8ushibui@0.3.8nshibui@0.3.8dshibui@0.3.8 shibui@0.3.8ashibui@0.3.8nshibui@0.3.8dshibui@0.3.8 shibui@0.3.8eshibui@0.3.8dshibui@0.3.8ishibui@0.3.8tshibui@0.3.8 shibui@0.3.8tshibui@0.3.8hshibui@0.3.8ishibui@0.3.8sshibui@0.3.8 shibui@0.3.8pshibui@0.3.8oshibui@0.3.8sshibui@0.3.8tshibui@0.3.8 shibui@0.3.8ashibui@0.3.8sshibui@0.3.8 shibui@0.3.8mshibui@0.3.8ushibui@0.3.8cshibui@0.3.8hshibui@0.3.8 shibui@0.3.8ashibui@0.3.8sshibui@0.3.8 shibui@0.3.8yshibui@0.3.8oshibui@0.3.8ushibui@0.3.8 shibui@0.3.8lshibui@0.3.8ishibui@0.3.8kshibui@0.3.8eshibui@0.3.8.shibui@0.3.8
+shibui@0.3.8`shibui@0.3.8`shibui@0.3.8`shibui@0.3.8
+shibui@0.3.8
+shibui@0.3.8Ashibui@0.3.8 shibui@0.3.8nshibui@0.3.8eshibui@0.3.8wshibui@0.3.8 shibui@0.3.8bshibui@0.3.8lshibui@0.3.8oshibui@0.3.8gshibui@0.3.8 shibui@0.3.8pshibui@0.3.8oshibui@0.3.8sshibui@0.3.8tshibui@0.3.8 shibui@0.3.8ishibui@0.3.8sshibui@0.3.8 shibui@0.3.8nshibui@0.3.8oshibui@0.3.8wshibui@0.3.8 shibui@0.3.8ashibui@0.3.8vshibui@0.3.8ashibui@0.3.8ishibui@0.3.8lshibui@0.3.8ashibui@0.3.8bshibui@0.3.8lshibui@0.3.8eshibui@0.3.8 shibui@0.3.8ashibui@0.3.8tshibui@0.3.8
+shibui@0.3.8[shibui@0.3.8hshibui@0.3.8tshibui@0.3.8tshibui@0.3.8pshibui@0.3.8:shibui@0.3.8/shibui@0.3.8/shibui@0.3.8lshibui@0.3.8oshibui@0.3.8cshibui@0.3.8ashibui@0.3.8lshibui@0.3.8hshibui@0.3.8oshibui@0.3.8sshibui@0.3.8tshibui@0.3.8:shibui@0.3.83shibui@0.3.80shibui@0.3.80shibui@0.3.80shibui@0.3.8/shibui@0.3.8bshibui@0.3.8lshibui@0.3.8oshibui@0.3.8gshibui@0.3.8/shibui@0.3.8gshibui@0.3.8rshibui@0.3.8eshibui@0.3.8eshibui@0.3.8tshibui@0.3.8ishibui@0.3.8nshibui@0.3.8gshibui@0.3.8sshibui@0.3.8]shibui@0.3.8(shibui@0.3.8hshibui@0.3.8tshibui@0.3.8tshibui@0.3.8pshibui@0.3.8:shibui@0.3.8/shibui@0.3.8/shibui@0.3.8lshibui@0.3.8oshibui@0.3.8cshibui@0.3.8ashibui@0.3.8lshibui@0.3.8hshibui@0.3.8oshibui@0.3.8sshibui@0.3.8tshibui@0.3.8:shibui@0.3.83shibui@0.3.80shibui@0.3.80shibui@0.3.80shibui@0.3.8/shibui@0.3.8bshibui@0.3.8lshibui@0.3.8oshibui@0.3.8gshibui@0.3.8/shibui@0.3.8gshibui@0.3.8rshibui@0.3.8eshibui@0.3.8eshibui@0.3.8tshibui@0.3.8ishibui@0.3.8nshibui@0.3.8gshibui@0.3.8sshibui@0.3.8)shibui@0.3.8.shibui@0.3.8
+shibui@0.3.8
