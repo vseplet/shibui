@@ -90,17 +90,6 @@ core.api.register(
         .do(async ({ pots, log, next }) => {
           const ctx = pots[0].data;
 
-          // const mdUrlPattern = new RegExp(
-          //   String
-          //     .raw`import\s+[^;]+from\s+'jsr:@${ctx.scope}\/${ctx.packageName}@[^']+';`,
-          //   "g",
-          // );
-
-          // const mdUrlReplacePattern = new RegExp(
-          //   String
-          //     .raw`(@${ctx.scope}\/${ctx.packageName}@)[^']+`,
-          // );
-
           for await (
             const entry of walk(".", {
               exts: ["md"],
@@ -113,16 +102,6 @@ core.api.register(
                 `${ctx.packageName}@${ctx.oldVersion}`,
                 `${ctx.packageName}@${ctx.version}`,
               );
-
-              // const updatedContent = fileContent.replace(
-              //   mdUrlPattern,
-              //   (match) => {
-              //     return match.replace(
-              //       mdUrlReplacePattern,
-              //       `$1${ctx.version}`,
-              //     );
-              //   },
-              // );
 
               if (fileContent !== updatedContent) {
                 await Deno.writeTextFile(entry.path, updatedContent);
