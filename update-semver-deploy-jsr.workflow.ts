@@ -24,6 +24,7 @@ class UpdateVersionContext extends ContextPot<{
     scope: Deno.args[0],
     packageName: Deno.args[1],
     updateType: "patch",
+    oldVersion: "0.0.0",
     version: "0.0.0",
   };
 
@@ -108,15 +109,20 @@ core.api.register(
           ) {
             if (entry.isFile) {
               const fileContent = await Deno.readTextFile(entry.path);
-              const updatedContent = fileContent.replace(
-                mdUrlPattern,
-                (match) => {
-                  return match.replace(
-                    mdUrlReplacePattern,
-                    `$1${ctx.version}`,
-                  );
-                },
+              const updatedContent = fileContent.replaceAll(
+                "",
+                `${ctx.packageName}@${ctx.version}`,
               );
+
+              // const updatedContent = fileContent.replace(
+              //   mdUrlPattern,
+              //   (match) => {
+              //     return match.replace(
+              //       mdUrlReplacePattern,
+              //       `$1${ctx.version}`,
+              //     );
+              //   },
+              // );
 
               if (fileContent !== updatedContent) {
                 await Deno.writeTextFile(entry.path, updatedContent);
@@ -175,6 +181,8 @@ core.api.register(
               ctx.updateType,
             );
 
+            ctx.oldVersion = versions[0];
+
             newVersionsTS = `export default [ ${
               [ctx.version, ...versions].map((version) => `"${version}"`).join(
                 ", ",
@@ -190,6 +198,7 @@ core.api.register(
           );
           return next(t2, {
             version: ctx.version,
+            oldVersion: ctx.oldVersion,
           });
         });
 
