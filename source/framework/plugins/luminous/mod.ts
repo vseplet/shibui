@@ -12,7 +12,7 @@
 
 import framework from "../../mod.ts";
 
-export default framework.plugin("luminous", ({ api, log }) => {
+export default framework.plugin("luminous", ({ log }) => {
   log.inf("start worker...");
   new Worker(new URL("./_worker.ts", import.meta.url).href, { type: "module" });
 });
