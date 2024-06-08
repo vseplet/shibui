@@ -90,16 +90,16 @@ core.api.register(
         .do(async ({ pots, log, next }) => {
           const ctx = pots[0].data;
 
-          const mdUrlPattern = new RegExp(
-            String
-              .raw`import\s+[^;]+from\s+'jsr:@${ctx.scope}\/${ctx.packageName}@[^']+';`,
-            "g",
-          );
+          // const mdUrlPattern = new RegExp(
+          //   String
+          //     .raw`import\s+[^;]+from\s+'jsr:@${ctx.scope}\/${ctx.packageName}@[^']+';`,
+          //   "g",
+          // );
 
-          const mdUrlReplacePattern = new RegExp(
-            String
-              .raw`(@${ctx.scope}\/${ctx.packageName}@)[^']+`,
-          );
+          // const mdUrlReplacePattern = new RegExp(
+          //   String
+          //     .raw`(@${ctx.scope}\/${ctx.packageName}@)[^']+`,
+          // );
 
           for await (
             const entry of walk(".", {
