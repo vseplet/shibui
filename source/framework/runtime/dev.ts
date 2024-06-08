@@ -11,11 +11,11 @@
  */
 
 import { colors, dirname, fromFileUrl, resolve } from "../../deps.ts";
-import { IManifest } from "../entities/Manifest.ts";
+import type { IManifest } from "../entities/Manifest.ts";
 import { INTRO_TEXT } from "../scripts/_strings.ts";
 import { generateManifest } from "./generateManifest.ts";
 import { initCore } from "./initCore.ts";
-import { IPlugin } from "../entities/Plugin.ts";
+import type { IPlugin } from "../entities/Plugin.ts";
 
 const dev = async (path: string, plugins: Array<IPlugin> = []) => {
   console.log(colors.yellow(INTRO_TEXT));

@@ -19,7 +19,12 @@ import {
   VerboseLogEvent,
   WarnLogEvent,
 } from "../events/LogEvents.ts";
-import { type ILoggerOptions, Level, SourceType } from "../types.ts";
+import {
+  type IEventDrivenLogger,
+  type ILoggerOptions,
+  Level,
+  SourceType,
+} from "../types.ts";
 import { emitters } from "../emitters.ts";
 import { colors } from "../../deps.ts";
 
@@ -45,7 +50,7 @@ const levelName = [
   "FTL",
 ];
 
-export class EventDrivenLogger {
+export class EventDrivenLogger implements IEventDrivenLogger {
   #options = {
     sourceType: SourceType.UNKNOWN,
     sourceName: "unknown",

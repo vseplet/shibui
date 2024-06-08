@@ -10,7 +10,6 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { EventDrivenLogger } from "./EventDrivenLogger.ts";
 import Runner from "./Runner.ts";
 import SlotFiller from "../components/SlotFiller.ts";
 import { CoreStartPot } from "../pots/CoreStartPot.ts";
@@ -18,18 +17,20 @@ import { Pot } from "../entities/Pot.ts";
 import { TaskBuilder } from "../entities/TaskBuilder.ts";
 import { WorkflowBuilder } from "../entities/WorkflowBuilder.ts";
 import {
-  IPot,
-  ITask,
-  ITaskBuilder,
-  IWorkflow,
-  IWorkflowBuilder,
+  type IEventDrivenLogger,
+  type IPot,
+  type IShibuiCore,
+  type ITask,
+  type ITaskBuilder,
+  type IWorkflow,
+  type IWorkflowBuilder,
   PotType,
   SourceType,
-  TaskTrigger,
+  type TaskTrigger,
   TriggerHandlerOp,
-  WorkflowTrigger,
+  type WorkflowTrigger,
 } from "../types.ts";
-import { ShibuiApi } from "./ShibuiApi.ts";
+import type { ShibuiCore } from "./ShibuiCore.ts";
 
 export default class Distributor {
   #kv: Deno.Kv = undefined as unknown as Deno.Kv;
@@ -42,17 +43,17 @@ export default class Distributor {
   #taskTriggers: {
     [name: string]: Array<TaskTrigger>;
   } = {};
-  #api: ShibuiApi;
-  #logger: EventDrivenLogger;
+  #core: IShibuiCore;
+  #logger: IEventDrivenLogger;
   #defaultRunner: Runner;
 
-  constructor(api: ShibuiApi) {
-    this.#api = api;
-    this.#logger = api.createLogger({
+  constructor(core: IShibuiCore) {
+    this.#core = core;
+    this.#logger = core.createLogger({
       sourceType: SourceType.CORE,
       sourceName: "Distributor",
     });
-    this.#defaultRunner = new Runner(api);
+    this.#defaultRunner = new Runner(core);
     this.#filler.onRowFill((
       name: string,
       pots: Array<Pot<any>>,
@@ -125,8 +126,8 @@ export default class Distributor {
       );
 
       const contextPot = trigger.test({
-        api: this.#api,
-        log: this.#api.createLogger({
+        core: this.#core,
+        log: this.#core.createLogger({
           sourceType: SourceType.WORKFLOW,
           sourceName: `ON (${[pot.name]}): ${trigger.workflowName}`,
         }),
@@ -149,7 +150,7 @@ export default class Distributor {
       contextPot.to.workflow = trigger.workflowName;
       contextPot.from.workflow = trigger.workflowName;
 
-      this.#api.send(contextPot);
+      this.#core.send(contextPot);
 
       return true;
     } catch (err) {
@@ -165,13 +166,13 @@ export default class Distributor {
       );
 
       const result = trigger.handler({
-        api: this.#api,
+        core: this.#core,
         allow: (index?: number) => ({
           op: TriggerHandlerOp.ALLOW,
           potIndex: index ? index : trigger.slot,
         }),
         deny: () => ({ op: TriggerHandlerOp.DENY }),
-        log: this.#api.createLogger({
+        log: this.#core.createLogger({
           sourceType: SourceType.TASK,
           sourceName: `ON (${[pot.name]}): ${trigger.taskName}`,
         }),
@@ -218,13 +219,13 @@ export default class Distributor {
         );
 
         const result = trigger.handler({
-          api: this.#api,
+          core: this.#core,
           allow: (index?: number) => ({
             op: TriggerHandlerOp.ALLOW,
             potIndex: index ? index : trigger.slot,
           }),
           deny: () => ({ op: TriggerHandlerOp.DENY }),
-          log: this.#api.createLogger({
+          log: this.#core.createLogger({
             sourceType: SourceType.TASK,
             sourceName: `ON (${[pot.name]}): ${trigger.taskName}`,
           }),
@@ -262,13 +263,13 @@ export default class Distributor {
         );
 
         const result = trigger.handler({
-          api: this.#api,
+          core: this.#core,
           allow: (index?: number) => ({
             op: TriggerHandlerOp.ALLOW,
             potIndex: index ? index : trigger.slot,
           }),
           deny: () => ({ op: TriggerHandlerOp.DENY }),
-          log: this.#api.createLogger({
+          log: this.#core.createLogger({
             sourceType: SourceType.TASK,
             sourceName: `ON (${[pot.name]}): ${trigger.taskName}`,
           }),
@@ -378,13 +379,13 @@ export default class Distributor {
             `failure in pot processing cycle with error: ${err.message} ${err.stack}`,
           );
 
-          // this.#api.send(new core.pots.core.CoreLoopCrushedPot());
+          // this.#core.send(new core.pots.core.CoreLoopCrushedPot());
         }
       }
     });
 
     this.#logger.inf(`starting update cycle...`);
-    this.#api.send(new CoreStartPot());
+    this.#core.send(new CoreStartPot());
     // oldUpdate();
   }
 

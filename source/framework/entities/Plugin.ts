@@ -10,13 +10,12 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { EventDrivenLogger } from "../../core/components/EventDrivenLogger.ts";
-import { ShibuiApi } from "../../core/components/ShibuiApi.ts";
+import type { IEventDrivenLogger, IShibuiCore } from "../../core/types.ts";
 
-export type TPlugin = (api: ShibuiApi) => void;
+export type TPlugin = (core: IShibuiCore) => void;
 
 export type TPluginInit = (
-  args: { api: ShibuiApi; log: EventDrivenLogger },
+  args: { core: IShibuiCore; log: IEventDrivenLogger },
 ) => void;
 
 export interface IPlugin {

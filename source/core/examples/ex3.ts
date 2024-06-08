@@ -16,5 +16,5 @@ const w1 = core.workflow(class CTX extends ContextPot<{}> {})
       })
   );
 
-core.api.register(w1);
-await core.api.start();
+core.register(w1);
+await core.start();

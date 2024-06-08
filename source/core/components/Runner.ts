@@ -10,26 +10,26 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { Pot } from "../entities/Pot.ts";
-import { EventDrivenLogger } from "../components/EventDrivenLogger.ts";
+import type { Pot } from "../entities/Pot.ts";
 import {
   DoHandlerOp,
-  DoHandlerResult,
-  IPot,
-  ITask,
-  ITaskBuilder,
+  type DoHandlerResult,
+  type IEventDrivenLogger,
+  type IPot,
+  type IShibuiCore,
+  type ITask,
+  type ITaskBuilder,
   SourceType,
 } from "../types.ts";
-import { ShibuiApi } from "./ShibuiApi.ts";
 
 export default class Runner {
-  #api: ShibuiApi;
-  #logger: EventDrivenLogger;
+  #core: IShibuiCore;
+  #logger: IEventDrivenLogger;
   #tasks: { [name: string]: ITask } = {};
 
-  constructor(api: ShibuiApi) {
-    this.#api = api;
-    this.#logger = api.createLogger({
+  constructor(core: IShibuiCore) {
+    this.#core = core;
+    this.#logger = core.createLogger({
       sourceType: SourceType.CORE,
       sourceName: "Runner",
     });
@@ -42,7 +42,7 @@ export default class Runner {
   ): boolean {
     try {
       if (result.op === DoHandlerOp.FINISH) {
-        // core.api.send(new core.pots.task.TaskFinishedPot());
+        // core.core.send(new core.pots.task.TaskFinishedPot());
       } else if (result.op == DoHandlerOp.NEXT) {
         //TODO: пофиксить преобразование данных в next
 
@@ -56,14 +56,14 @@ export default class Runner {
           // console.log(pots[0]);
           // console.log(copyOfContextPot);
 
-          this.#api.send(copyOfContextPot);
-          // core.api.send(new core.pots.task.TaskCallingNext());
+          this.#core.send(copyOfContextPot);
+          // core.core.send(new core.pots.task.TaskCallingNext());
         });
       } else if (result.op === DoHandlerOp.REPEAT) {
-        // core.api.send(new core.pots.task.TaskRepeatedPot());
+        // core.core.send(new core.pots.task.TaskRepeatedPot());
         return true;
       } else if (result.op === DoHandlerOp.FAIL) {
-        // core.api.send(new core.pots.task.TaskFailedPot());
+        // core.core.send(new core.pots.task.TaskFailedPot());
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -95,8 +95,8 @@ export default class Runner {
         );
 
         const doResult = await task.do({
-          api: this.#api,
-          log: this.#api.createLogger({
+          core: this.#core,
+          log: this.#core.createLogger({
             sourceType: SourceType.TASK,
             sourceName: `DO: ${taskName}`,
           }),

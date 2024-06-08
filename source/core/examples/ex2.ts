@@ -38,14 +38,14 @@ const task3 = core.task(SimplePot)
     return finish();
   });
 
-core.api.settings.DEFAULT_LOGGING_LEVEL = 0;
-core.api.settings.ALLOWED_LOGGING_SOURCE_TYPES = [
+core.settings.DEFAULT_LOGGING_LEVEL = 0;
+core.settings.ALLOWED_LOGGING_SOURCE_TYPES = [
   SourceType.TASK,
 ];
 
-core.api.register(task1);
-core.api.register(task2);
-core.api.register(task3);
+core.register(task1);
+core.register(task2);
+core.register(task3);
 
-await core.api.start();
-core.api.send(new SimplePot(), task1);
+await core.start();
+core.send(new SimplePot(), task1);

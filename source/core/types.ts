@@ -10,10 +10,12 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { Constructor } from "../helpers/types.ts";
-import { EventDrivenLogger } from "./components/EventDrivenLogger.ts";
-import { ShibuiApi } from "./components/ShibuiApi.ts";
-import { TaskBuilder } from "./entities/TaskBuilder.ts";
+import type { Constructor } from "../helpers/types.ts";
+import type { EventDrivenLogger } from "./components/EventDrivenLogger.ts";
+import type { ShibuiCore } from "./components/ShibuiCore.ts";
+import { emitters } from "./emitters.ts";
+import type { task, TaskBuilder } from "./entities/TaskBuilder.ts";
+import { workflow } from "./entities/WorkflowBuilder.ts";
 
 export enum PotType {
   UNKNOWN = "UNKNOWN",
@@ -90,9 +92,9 @@ export type Context<
   P4 extends IPot | undefined = undefined,
   P5 extends IPot | undefined = undefined,
 > = {
-  api: ShibuiApi;
+  core: IShibuiCore;
   pots: [P1, P2, P3, P4, P5];
-  log: EventDrivenLogger;
+  log: IEventDrivenLogger;
 };
 
 export type TriggerHandlerContext<
@@ -186,7 +188,7 @@ export type TaskTrigger = {
 export type WorkflowTriggerHandler<
   ContextPot extends IPot,
   TriggerPot extends IPot,
-> = (args: { pot: TriggerPot; log: EventDrivenLogger }) => ContextPot | null;
+> = (args: { pot: TriggerPot; log: IEventDrivenLogger }) => ContextPot | null;
 
 export interface IWorkflowBuilderSetupArgs<ContextPot extends IPot> {
   task1: () => TaskBuilder<
@@ -261,4 +263,43 @@ export interface ILogEventArgs {
 export interface ILoggerOptions {
   sourceType?: SourceType;
   sourceName?: string;
+}
+
+interface IShibuiCoreSettings {
+  DEFAULT_LOGGING_ENABLED: boolean;
+  DEFAULT_LOGGING_LEVEL: number;
+  ALLOWED_LOGGING_SOURCE_TYPES: SourceType[];
+}
+
+export interface IShibuiCore {
+  workflow: typeof workflow;
+  task: typeof task;
+  emitters: typeof emitters;
+  settings: IShibuiCoreSettings;
+
+  createLogger(options: ILoggerOptions): IEventDrivenLogger;
+  execute(
+    builder: ITaskBuilder | IWorkflowBuilder,
+    pots?: Array<IPot>,
+  ): Promise<IPot>;
+  executeSync(
+    builder: ITaskBuilder | IWorkflowBuilder,
+    pots?: Array<IPot>,
+  ): IPot;
+  init(): Promise<void>;
+  start(): Promise<void>;
+  register(builder: ITaskBuilder | IWorkflowBuilder): void;
+  disable(builder: ITaskBuilder | IWorkflowBuilder): void;
+  enable(builder: ITaskBuilder | IWorkflowBuilder): void;
+  send(pot: IPot, builder?: ITaskBuilder): void;
+}
+
+export interface IEventDrivenLogger {
+  dbg(msg: string): void;
+  trc(msg: string): void;
+  vrb(msg: string): void;
+  inf(msg: string): void;
+  err(msg: string): void;
+  wrn(msg: string): void;
+  flt(msg: string): void;
 }

@@ -10,8 +10,8 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { Constructor } from "../../helpers/types.ts";
-import { ShibuiEvent } from "../entities/ShibuiEvent.ts";
+import type { Constructor } from "../../helpers/types.ts";
+import type { ShibuiEvent } from "../entities/ShibuiEvent.ts";
 
 export class EventEmitter<
   T extends ShibuiEvent,

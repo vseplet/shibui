@@ -11,10 +11,10 @@
  */
 
 // deno-lint-ignore-file require-await
-import { IManifest } from "../entities/Manifest.ts";
+import type { IManifest } from "../entities/Manifest.ts";
 import { INTRO_TEXT } from "../scripts/_strings.ts";
 import { initCore } from "./initCore.ts";
-import { IPlugin } from "../entities/Plugin.ts";
+import type { IPlugin } from "../entities/Plugin.ts";
 import { colors } from "../../deps.ts";
 
 const prod = async (manifest: IManifest, plugins: Array<IPlugin> = []) => {

@@ -68,5 +68,5 @@ const w1 = core.workflow(CTX)
     return t0;
   });
 
-core.api.register(w1);
-await core.api.start();
+core.register(w1);
+await core.start();

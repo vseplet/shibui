@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-// linke https://github.com/denoland/fresh/blob/main/update.ts
+// like https://github.com/denoland/fresh/blob/main/update.ts
 import { colors } from "../../deps.ts";
 import { INTRO_TEXT } from "./_strings.ts";
 
