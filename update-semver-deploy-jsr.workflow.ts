@@ -1,18 +1,14 @@
 // deno-lint-ignore-file
-import core from "https://deno.land/x/shibui@v20/core/mod.ts";
-// import core from "jsr:@vseplet/shibui@0.3.9/core";
-// TYPES
-import {
-  ContextPot,
-  CoreStartPot,
-} from "https://deno.land/x/shibui@v20/core/pots/mod.ts";
+// import core from "https://deno.land/x/shibui@v20/core/mod.ts";
+import core from "jsr:@vseplet/shibui@0.3.10/core";
+import { ContextPot, CoreStartPot } from "jsr:@vseplet/shibui@0.3.10/core/pots";
 // UTILS
 import { sh } from "https://deno.land/x/shelly@v0.1.1/mod.ts";
 import { walk } from "jsr:@std/fs@0.224.0";
 // HELPERS
-import { incrementSemver } from "https://deno.land/x/automation_scripts@0.0.5/ci-cd/helpers/mod.ts";
+import { incrementSemver } from "https://deno.land/x/automation_scripts@0.0.6/ci-cd/helpers/mod.ts";
 // SHARED TASKS
-import { checkUpdateTypeByCommitMessage } from "https://deno.land/x/automation_scripts@0.0.5/ci-cd/tasks/mod.ts";
+import { checkUpdateTypeByCommitMessage } from "https://deno.land/x/automation_scripts@0.0.6/ci-cd/tasks/mod.ts";
 
 class UpdateVersionContext extends ContextPot<{
   updateType: string;
