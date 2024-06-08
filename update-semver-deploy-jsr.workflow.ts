@@ -110,7 +110,7 @@ core.api.register(
             if (entry.isFile) {
               const fileContent = await Deno.readTextFile(entry.path);
               const updatedContent = fileContent.replaceAll(
-                "",
+                `${ctx.packageName}@${ctx.oldVersion}`,
                 `${ctx.packageName}@${ctx.version}`,
               );
 

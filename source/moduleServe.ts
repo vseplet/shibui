@@ -8,7 +8,6 @@ Deno.serve(async (req: Request) => {
     );
   console.log(decodeURIComponent(url.pathname));
   console.log(filepath);
-
   let file;
   try {
     file = await Deno.open("." + filepath, { read: true });
