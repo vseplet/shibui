@@ -85,6 +85,14 @@ export enum TriggerHandlerOp {
   DENY,
 }
 
+export type AnyWorkflowTaskBuilder<CTX extends IPot> = TaskBuilder<
+  CTX,
+  IPot,
+  IPot,
+  IPot,
+  IPot
+>;
+
 export type Context<
   P1 extends IPot,
   P2 extends IPot | undefined = undefined,
@@ -192,7 +200,11 @@ export type WorkflowTriggerHandler<
 
 export interface IWorkflowBuilderSetupArgs<ContextPot extends IPot> {
   task1: () => TaskBuilder<
-    ContextPot
+    ContextPot,
+    IPot,
+    IPot,
+    IPot,
+    IPot
   >;
 
   shared1: (
@@ -204,7 +216,11 @@ export interface IWorkflowBuilderSetupArgs<ContextPot extends IPot> {
       IPot
     >,
   ) => TaskBuilder<
-    ContextPot
+    ContextPot,
+    IPot,
+    IPot,
+    IPot,
+    IPot
   >;
 }
 

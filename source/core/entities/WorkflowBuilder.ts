@@ -106,7 +106,7 @@ export class WorkflowBuilder<ContextPot extends IPot>
   //   return builder;
   // }
 
-  #task1(builder: TaskBuilder<ContextPot>) {
+  #task1(builder: TaskBuilder<ContextPot, IPot, IPot, IPot, IPot>) {
     builder.belongsToWorkflow(this);
 
     builder.on(
@@ -137,7 +137,7 @@ export class WorkflowBuilder<ContextPot extends IPot>
           IPot,
           IPot
         >,
-      ) => this.#task1(builder as unknown as TaskBuilder<ContextPot>), // TODO: сделать тип task'и универсальным
+      ) => this.#task1(builder), // TODO: сделать тип task'и универсальным
       // task2: <TriggerPot extends IPot>() => this.#task2<TriggerPot>(),
       // task3: <
       //   TriggerPot2 extends IPot,

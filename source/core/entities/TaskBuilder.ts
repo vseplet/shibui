@@ -256,4 +256,4 @@ export const task1 = <
   P1 extends IPot,
 >(
   p1: Constructor<P1>,
-) => new TaskBuilder<P1>(p1);
+) => new TaskBuilder<P1, IPot, IPot, IPot, IPot>(p1);
