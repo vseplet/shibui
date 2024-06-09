@@ -78,7 +78,7 @@ export class ShibuiCore implements IShibuiCore {
   }
 
   async init() {
-    await this.#globalPotDistributor.init();
+    // await this.#globalPotDistributor.init();
   }
 
   async start() {

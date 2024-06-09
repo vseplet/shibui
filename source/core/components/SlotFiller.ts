@@ -12,7 +12,7 @@
 
 import type { IPot, ITask } from "../types.ts";
 
-export default class SlotFiller {
+export default class SlotFillerOld {
   // #log = new EventDrivenLogger({
   //   sourceType: SourceType.CORE,
   //   sourceName: "SlotFiller",

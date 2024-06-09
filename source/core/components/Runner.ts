@@ -19,7 +19,7 @@ import {
   type IShibuiCore,
   type ITask,
   type ITaskBuilder,
-  IWorkflow,
+  type IWorkflow,
   SourceType,
 } from "../types.ts";
 
@@ -44,7 +44,7 @@ export default class Runner {
   }
 
   registerWorkflow(workflow: IWorkflow) {
-    // this.#log.inf(`registered w '${workflow.name}'`);
+    this.#log.inf(`registered workflow '${workflow.name}'`);
   }
 
   async run(taskName: string, pots: Array<Pot>) {
@@ -83,8 +83,7 @@ export default class Runner {
           op: DoHandlerOp.REPEAT,
         }),
       });
-
-      this.#processDoHandlerResult(pots, task, doResult);
+      this.#processResult(pots, task, doResult);
     } catch (err: unknown) {
       if (err instanceof Error) {
         this.#log.err(
@@ -137,7 +136,7 @@ export default class Runner {
     );
   }
 
-  #processDoHandlerResult(
+  #processResult(
     pots: Array<Pot>,
     task: ITask,
     result: DoHandlerResult,

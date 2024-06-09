@@ -63,7 +63,15 @@ export interface IShibuiEvent {
   timestamp: number;
 }
 
+export enum TaskType {
+  single,
+  depended,
+  singleWorkflow,
+  dependedWorkflow,
+}
+
 export interface ITask {
+  type?: TaskType;
   name: string;
   attempts: number;
   timeout: number;
@@ -246,6 +254,18 @@ export interface IWorkflowBuilder {
   >;
   build(): IWorkflow;
 }
+
+export type WorkflowTriggersStorage = {
+  [potName: string]: Array<WorkflowTrigger>;
+};
+
+export type TaskTriggerStorage = {
+  [potName: string]: Array<TaskTrigger>;
+};
+
+export type WorkflowsStorage = { [workflowName: string]: IWorkflow };
+
+export type TasksStorage = { [taskName: string]: ITask };
 
 export enum Level {
   UNKNOWN = 0,
