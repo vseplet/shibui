@@ -45,7 +45,7 @@ USAGE:
     init [DIRECTORY]
 
 OPTIONS:
-    --force   Overwrite existing files
+    --force  Overwrite existing files
     --fly
 `;
 
@@ -67,43 +67,37 @@ _shibui/
 
 const baseImportPath = `jsr:@vseplet/shibui@${versions[0]}`;
 
-// const baseImportPath = `https://raw.githubusercontent.com/vseplet/shibui/${
-//   versions[0]
-// }`;
-
-// const baseImportPath = `http://localhost:8000/${versions[0]}`;
-
 export const DENO_JSON = `
 {
   "lock": false,
-
   "tasks": {
-    "dev": "deno run --unstable-broadcast-channel --unstable-kv ./dev.ts",
-    "prod": "deno run --unstable-broadcast-channel --unstable-kv ./prod.ts"
+    "dev": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./dev.ts",
+    "prod": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./prod.ts"
   },
 
   "imports": {
-    "$shibui_framework/": "${baseImportPath}/framework/",
-    "$shibui_framework": "${baseImportPath}/framework/mod.ts",
-    "$shibui_pots/": "${baseImportPath}/core/pots/",
-    "$shibui_events/": "${baseImportPath}/core/events/",
-    "$shibui_plugins/": "${baseImportPath}/framework/plugins/",
-    "$std/": "https://deno.land/std@0.224.0/"
+    "$std/": "https://deno.land/std@0.224.0/",
+    "$framework": "${baseImportPath}/framework",
+    "$core_types": "${baseImportPath}/core/types",
+    "$core_pots": "${baseImportPath}/core/pots",
+    "$core_events": "${baseImportPath}/core/events",
+    "$core_errors": "${baseImportPath}/core/errors",
+    "$core_entities": "${baseImportPath}/core/entities",
   }
 }
 `;
 
 export const DEV_TS = `// dev file ...
-import dev from "$shibui_framework/runtime/dev.ts";
+import dev from "${baseImportPath}/framework/runtime/dev";
 import logger from "$shibui_plugins/luminous/mod.ts";
 
 await dev(import.meta.url, [logger]);
 `;
 
 export const PROD_TS = `// prod file ...
-import prod from "$shibui_framework/runtime/prod.ts";
+import prod from "${baseImportPath}/framework/runtime/prod";
 import manifest from "./shibui.manifest.ts";
-import logger from "$shibui_plugins/luminous/mod.ts";
+import logger "${baseImportPath}/framework/plugins/luminous";
 
 await prod(manifest, [logger]);
 `;
@@ -124,8 +118,7 @@ export default task;
 `;
 
 export const SIMPLE_WORKFLOW_TS = `import shibui from "$shibui_framework";
-import { ContextPot } from "$shibui_pots/ContextPot.ts";
-import { CoreStartPot } from "$shibui_pots/CoreStartPot.ts";
+import { CoreStartPot, ContextPot } from "$shibui_pots";
 
 class SimpleWorkflowContext extends ContextPot<{ message: string }> {
   data = {
