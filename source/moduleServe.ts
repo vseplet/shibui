@@ -16,6 +16,7 @@ Deno.serve(async (req: Request) => {
     });
     return notFoundResponse;
   }
+
   const readableStream = file.readable;
   return new Response(readableStream);
 });
