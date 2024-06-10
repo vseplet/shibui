@@ -50,7 +50,7 @@ export default class Distributor {
     this.#tester.test(pot);
     // this.#filler.fill(pot);
     // this.#runner.run("", []);
-    return true;
+    return false;
   }
 
   async start() {
