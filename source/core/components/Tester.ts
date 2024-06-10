@@ -1,27 +1,29 @@
 // deno-lint-ignore-file no-unused-vars
+import { TRIGGER_OP_ALLOW, TRIGGER_OP_DENY } from "../constants.ts";
 import type { Pot } from "../entities/mod.ts";
 import STRS from "../strings.ts";
 import {
   type IEventDrivenLogger,
-  IPot,
+  type IPot,
   type IShibuiCore,
   type ITask,
   type IWorkflow,
+  PotType,
   SourceType,
   type TasksStorage,
   type TaskTriggerStorage,
-  TriggerHandlerContext,
-  TriggerHandlerOp,
   type WorkflowsStorage,
   type WorkflowTriggersStorage,
 } from "../types.ts";
 import { Filler } from "./Filler.ts";
+import Runner from "./Runner.ts";
 
 export class Tester {
   #core: IShibuiCore;
-  #filler: Filler;
   #kv: Deno.Kv;
   #log: IEventDrivenLogger;
+  #filler: Filler;
+  #runner: Runner;
 
   #tasks: TasksStorage = {};
   #workflows: WorkflowsStorage = {};
@@ -40,10 +42,13 @@ export class Tester {
       sourceName: "Tester",
     });
     this.#filler = new Filler(core, kv);
+    this.#runner = new Runner(core, kv);
   }
 
   registerTask(task: ITask) {
     this.#filler.registerTask(task);
+    this.#runner.registerTask(task);
+
     this.#tasks[task.name] = task;
     const triggersCount = Object.keys(task.triggers).length;
     const storage = task.belongsToWorkflow
@@ -78,11 +83,14 @@ export class Tester {
   }
 
   test(pot: Pot): boolean {
-    return this.#testTaskTriggers(pot) ||
-      this.#testDependedTaskTriggers(pot) ||
-      this.#testWorkflowTriggers(pot) ||
-      this.#testWorkflowTaskTriggers(pot) ||
-      this.#testWorkflowDependedTaskTriggers(pot);
+    if (pot.type == PotType.CONTEXT) {
+      return this.#testWorkflowTaskTriggers(pot) ||
+        this.#testWorkflowDependedTaskTriggers(pot);
+    } else {
+      return this.#testTaskTriggers(pot) ||
+        this.#testDependedTaskTriggers(pot) ||
+        this.#testWorkflowTriggers(pot);
+    }
   }
 
   #createTriggerHandlerContext(
@@ -100,10 +108,10 @@ export class Tester {
     return {
       core: this.#core,
       allow: (index?: number) => ({
-        op: "ALLOW" as TriggerHandlerOp,
+        op: TRIGGER_OP_ALLOW,
         potIndex: index !== undefined ? index : slot,
       }),
-      deny: () => ({ op: "DENY" as TriggerHandlerOp }),
+      deny: () => ({ op: TRIGGER_OP_DENY }),
       log: this.#core.createLogger({
         sourceType: SourceType.TASK,
         sourceName: `ON (${[potName]}): ${taskName}`,
@@ -136,13 +144,13 @@ export class Tester {
 
       const result = trigger.handler(triggerContext);
 
-      if (result.op == "ALLOW") {
+      if (result.op === TRIGGER_OP_ALLOW) {
         this.#log.inf(
           `allow run task '${trigger.taskName}' by pot '${pot.name}'`,
         );
-        this.#filler.fill(trigger.taskName, pot, result.potIndex || 0);
+        this.#runner.run(trigger.taskName, [pot]);
         return true;
-      } else if (result.op == "DENY") {
+      } else if (result.op === TRIGGER_OP_DENY) {
         this.#log.inf(
           `deny run task '${trigger.taskName}' by pot '${pot.name}'`,
         );

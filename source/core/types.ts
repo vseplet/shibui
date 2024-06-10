@@ -11,11 +11,9 @@
  */
 
 import type { Constructor } from "../helpers/types.ts";
-import type { EventDrivenLogger } from "./components/EventDrivenLogger.ts";
-import type { ShibuiCore } from "./components/ShibuiCore.ts";
-import { emitters } from "./emitters.ts";
+import type { emitters } from "./emitters.ts";
 import type { task, TaskBuilder } from "./entities/TaskBuilder.ts";
-import { workflow } from "./entities/WorkflowBuilder.ts";
+import type { workflow } from "./entities/WorkflowBuilder.ts";
 
 export enum PotType {
   UNKNOWN = "UNKNOWN",

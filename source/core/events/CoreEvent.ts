@@ -20,3 +20,11 @@ export class CoreEvent extends ShibuiEvent {
     super();
   }
 }
+
+export class TaskFailedEvent extends CoreEvent {}
+
+export class WorkflowStartedEvent extends CoreEvent {}
+
+export class WorkflowFailedEvent extends CoreEvent {}
+
+export class WorkflowFinishedEvent extends CoreEvent {}
