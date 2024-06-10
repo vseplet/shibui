@@ -143,3 +143,5 @@ await Deno.writeTextFile(
   join(resolvedDirectory, "prod.ts"),
   PROD_TS,
 );
+
+export default {};

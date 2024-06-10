@@ -15,3 +15,5 @@ import { colors } from "../../deps.ts";
 import { INTRO_TEXT } from "./_strings.ts";
 
 console.log(colors.brightYellow(INTRO_TEXT));
+
+export default {};

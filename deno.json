@@ -1,7 +1,7 @@
 {
   "name": "@vseplet/shibui",
   "lock": false,
-  "version": "0.3.19",
+  "version": "0.3.18",
   "exports": {
     "./cli": "./source/cli/mod.ts",
     "./core": "./source/core/mod.ts",
@@ -13,6 +13,7 @@
     "./framework": "./source/framework/mod.ts",
     "./framework/runtime/dev": "./source/framework/runtime/dev.ts",
     "./framework/runtime/prod": "./source/framework/runtime/prod.ts",
+    "./framework/plugins/luminous": "./source/framework/plugins/luminous/mod.ts",
     "./framework/scripts/init": "./source/framework/scripts/init.ts",
     "./framework/scripts/update": "./source/framework/scripts/update.ts"
   },
