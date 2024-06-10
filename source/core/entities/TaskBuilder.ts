@@ -106,7 +106,9 @@ export class TaskBuilder<
         taskName: this.task.name,
         potConstructor: constructor,
         slot: Object.keys(this.task.triggers).length - 1,
-        handler: ({ allow }: TriggerHandlerContext<IPot>) => {
+        handler: (
+          { allow }: TriggerHandlerContext<P1, IPot, IPot, IPot, IPot>,
+        ) => {
           return allow();
         },
         belongsToWorkflow: this.task.belongsToWorkflow,
@@ -119,7 +121,7 @@ export class TaskBuilder<
   on<TP extends Exclude<P1 | P2 | P3 | P4 | P5, undefined>>(
     potConstructor: Constructor<TP>,
     handler?: (
-      args: TriggerHandlerContext<P1, P2, P3, P4, P5>,
+      args: TriggerHandlerContext<P1>,
     ) => TriggerHandlerResult,
     slot?: number,
   ): this {
@@ -144,7 +146,9 @@ export class TaskBuilder<
         taskName: this.task.name,
         potConstructor,
         slot: slot || Object.keys(this.task.triggers).length - 1,
-        handler: ({ allow }: TriggerHandlerContext<TP>) => {
+        handler: (
+          { allow }: TriggerHandlerContext<TP>,
+        ) => {
           return allow();
         },
         belongsToWorkflow: this.task.belongsToWorkflow,
@@ -159,7 +163,7 @@ export class TaskBuilder<
     potConstructor: Constructor<TP>,
     slot?: number,
   ) {
-    let test;
+    let handler;
 
     if (
       !this.task
@@ -170,22 +174,40 @@ export class TaskBuilder<
     }
 
     if (rule === "ForThisTask") {
-      test = ({ allow, deny, pots }: TriggerHandlerContext<TP>) => {
+      handler = (
+        { allow, deny, pots }: TriggerHandlerContext<
+          TP
+        >,
+      ) => {
         return pots[0].to.task === this.task.name ? allow() : deny();
       };
     } else if (rule == "ForAnyTask") {
-      test = ({ allow, deny, pots }: TriggerHandlerContext<TP>) => {
+      handler = (
+        { allow, deny, pots }: TriggerHandlerContext<
+          TP
+        >,
+      ) => {
         return pots[0].to.task !== this.task.name &&
             pots[0].to.task !== "unknown"
           ? allow()
           : deny();
       };
     } else if (rule == "ForUnknown") {
-      test = ({ allow, deny, pots }: TriggerHandlerContext<TP>) => {
+      handler = (
+        { allow, deny, pots }: TriggerHandlerContext<
+          TP,
+          IPot,
+          IPot,
+          IPot,
+          IPot
+        >,
+      ) => {
         return pots[0].to.task === "unknown" ? allow() : deny();
       };
     } else {
-      test = ({ deny }: TriggerHandlerContext<TP>) => {
+      handler = (
+        { deny }: TriggerHandlerContext<TP>,
+      ) => {
         return deny();
       };
     }
@@ -194,7 +216,7 @@ export class TaskBuilder<
       taskName: this.task.name,
       potConstructor,
       slot: slot || this.task.triggers[potConstructor.name].length,
-      handler: test,
+      handler,
       belongsToWorkflow: this.task.belongsToWorkflow,
     });
 

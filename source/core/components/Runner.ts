@@ -43,10 +43,6 @@ export default class Runner {
     this.#log.inf(`registered task '${task.name}'`);
   }
 
-  registerWorkflow(workflow: IWorkflow) {
-    this.#log.inf(`registered workflow '${workflow.name}'`);
-  }
-
   async run(taskName: string, pots: Array<Pot>) {
     const task = this.#tasks[taskName];
 
@@ -101,6 +97,28 @@ export default class Runner {
     }
   }
 
+  #processResult(
+    pots: Array<Pot>,
+    task: ITask,
+    result: DoHandlerResult,
+  ) {
+    try {
+      if (result.op === DoHandlerOp.FINISH) {
+        this.#onFinish();
+      } else if (result.op == DoHandlerOp.NEXT) {
+        this.#onNext(pots, task, result.taskBuilders, result.data);
+      } else if (result.op === DoHandlerOp.REPEAT) {
+        this.#onRepeat();
+      } else if (result.op === DoHandlerOp.FAIL) {
+        this.#onFail();
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        this.#onError(pots, task, err);
+      }
+    }
+  }
+
   #onFail() {}
 
   #onNext(
@@ -134,27 +152,5 @@ export default class Runner {
         pots[0].name
       }' failed with error: '${err.message}'`,
     );
-  }
-
-  #processResult(
-    pots: Array<Pot>,
-    task: ITask,
-    result: DoHandlerResult,
-  ) {
-    try {
-      if (result.op === DoHandlerOp.FINISH) {
-        this.#onFinish();
-      } else if (result.op == DoHandlerOp.NEXT) {
-        this.#onNext(pots, task, result.taskBuilders, result.data);
-      } else if (result.op === DoHandlerOp.REPEAT) {
-        this.#onRepeat();
-      } else if (result.op === DoHandlerOp.FAIL) {
-        this.#onFail();
-      }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        this.#onError(pots, task, err);
-      }
-    }
   }
 }

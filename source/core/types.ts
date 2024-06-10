@@ -88,10 +88,7 @@ export interface ITaskBuilder {
   build(): ITask;
 }
 
-export enum TriggerHandlerOp {
-  ALLOW,
-  DENY,
-}
+export type TriggerHandlerOp = "ALLOW" | "DENY";
 
 export type AnyWorkflowTaskBuilder<CTX extends IPot> = TaskBuilder<
   CTX,
@@ -122,8 +119,8 @@ export type TriggerHandlerContext<
 > = Context<P1, P2, P3, P4, P5> & {
   allow: (
     potIndex?: number,
-  ) => { op: TriggerHandlerOp.ALLOW; potIndex: number };
-  deny: () => { op: TriggerHandlerOp.DENY };
+  ) => { op: TriggerHandlerOp; potIndex: number };
+  deny: () => { op: TriggerHandlerOp };
 };
 
 export type DoHandlerContext<
@@ -159,14 +156,10 @@ export type DoHandlerContext<
   };
 };
 
-export type TriggerHandlerResult =
-  | {
-    op: TriggerHandlerOp.ALLOW;
-    potIndex: number;
-  }
-  | {
-    op: TriggerHandlerOp.DENY;
-  };
+export type TriggerHandlerResult = {
+  op: TriggerHandlerOp;
+  potIndex?: number;
+};
 
 export enum DoHandlerOp {
   NEXT,
@@ -197,7 +190,15 @@ export type TaskTrigger = {
   taskName: string;
   potConstructor: Constructor<IPot>;
   slot: number;
-  handler({}): TriggerHandlerResult;
+  handler(
+    ctx: TriggerHandlerContext<
+      IPot,
+      IPot | undefined,
+      IPot | undefined,
+      IPot | undefined,
+      IPot | undefined
+    >,
+  ): TriggerHandlerResult;
   belongsToWorkflow: string | undefined;
 };
 
