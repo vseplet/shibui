@@ -10,7 +10,6 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-// deno-lint-ignore-file require-await
 import type { IManifest } from "../entities/Manifest.ts";
 import { INTRO_TEXT } from "../scripts/_strings.ts";
 import { initCore } from "./initCore.ts";

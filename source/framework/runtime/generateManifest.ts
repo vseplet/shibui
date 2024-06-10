@@ -31,9 +31,7 @@ export const generateManifest = async (dir: string) => {
     IMPORT_STRINGS += `// ${subDir}\n`;
     EXPORT_STRINGS += `  ${subDir}: {\n`;
 
-    for await (
-      const entry of readDirRecursive(/*resolve(dir, subDir)*/ subDir)
-    ) {
+    for await (const entry of readDirRecursive(resolve(dir, subDir))) {
       const relativeImportPath = "./" + relative(dir, entry);
       if (relativeImportPath.includes("_")) continue; // TODO: еще один сомнительный способ
       counter++;

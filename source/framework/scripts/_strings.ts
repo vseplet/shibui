@@ -65,8 +65,6 @@ export const GITIGNORE = `# dotenv environment variable files
 _shibui/
 `;
 
-const baseImportPath = `jsr:@vseplet/shibui@${versions[0]}`;
-
 export const DENO_JSON = `
 {
   "lock": false,
@@ -76,8 +74,7 @@ export const DENO_JSON = `
   },
 
   "imports": {
-    "$std/": "https://deno.land/std@0.224.0/",
-    "shibui": "jsr:@vseplet/shibui@0.4.3"
+    "shibui": "jsr:@vseplet/shibui@${versions[0]}"
   }
 }
 `;
