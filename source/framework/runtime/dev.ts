@@ -21,9 +21,12 @@ const dev = async (path: string, plugins: Array<IPlugin> = []) => {
   console.log(colors.yellow(INTRO_TEXT));
   const dir = dirname(fromFileUrl(path));
   await generateManifest(dir);
-  const manifest =
-    (await import(`file:///${resolve(dir, "shibui.manifest.ts")}`))
-      .default as IManifest;
+  // const manifest =
+  //   (await import(`file:///${resolve(dir, "shibui.manifest.ts")}`))
+  //     .default as IManifest;
+
+  const manifest = (await import("./shibui.manifest.ts"))
+    .default as IManifest;
 
   await initCore(manifest, plugins);
 };

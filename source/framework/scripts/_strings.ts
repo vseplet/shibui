@@ -77,32 +77,27 @@ export const DENO_JSON = `
 
   "imports": {
     "$std/": "https://deno.land/std@0.224.0/",
-    "$framework": "${baseImportPath}/framework",
-    "$core_types": "${baseImportPath}/core/types",
-    "$core_pots": "${baseImportPath}/core/pots",
-    "$core_events": "${baseImportPath}/core/events",
-    "$core_errors": "${baseImportPath}/core/errors",
-    "$core_entities": "${baseImportPath}/core/entities",
+    "shibui": "jsr:@vseplet/shibui@0.4.3"
   }
 }
 `;
 
 export const DEV_TS = `// dev file ...
-import dev from "${baseImportPath}/framework/runtime/dev";
-import logger from "${baseImportPath}/framework/plugins/luminous";
+import dev from "shibui/framework/runtime/dev";
+import logger from "shibui/framework/plugins/luminous";
 
 await dev(import.meta.url, [logger]);
 `;
 
 export const PROD_TS = `// prod file ...
-import prod from "${baseImportPath}/framework/runtime/prod";
+import prod from "shibui/framework/runtime/prod";
 import manifest from "./shibui.manifest.ts";
-import logger from "${baseImportPath}/framework/plugins/luminous";
+import logger from "shibui/framework/plugins/luminous";
 
 await prod(manifest, [logger]);
 `;
 
-export const SIMPLE_TASK_TS = `import shibui from "$shibui_framework";
+export const SIMPLE_TASK_TS = `import shibui from "shibui/framework";
 import { CronJobPot } from "../pots/CronJobPot.ts";
 
 const task = shibui.task(CronJobPot)
@@ -117,8 +112,8 @@ const task = shibui.task(CronJobPot)
 export default task;
 `;
 
-export const SIMPLE_WORKFLOW_TS = `import shibui from "$shibui_framework";
-import { CoreStartPot, ContextPot } from "$shibui_pots";
+export const SIMPLE_WORKFLOW_TS = `import shibui from "shibui/framework";
+import { CoreStartPot, ContextPot } from "shibui/core/pots";
 
 class SimpleWorkflowContext extends ContextPot<{ message: string }> {
   data = {
@@ -145,14 +140,13 @@ export default workflow;
 
 `;
 
-export const CRON_JOB_POT_TS =
-  `import { InternalPot } from "$shibui_pots/InternalPot.ts";
+export const CRON_JOB_POT_TS = `import { InternalPot } from "shibui/core/pots";
 
 export class CronJobPot extends InternalPot<{ pattern: string; target: string }> {
 }
 `;
 
-export const CRON_PLUGIN_TS = `import shibui from "$shibui_framework";
+export const CRON_PLUGIN_TS = `import shibui from "shibui/framework";
 import { Cron } from "https://deno.land/x/croner@6.0.3/dist/croner.js";
 import { CronJobPot } from "../pots/CronJobPot.ts";
 
@@ -166,117 +160,6 @@ export default shibui.plugin("cron", ({ core, log }) => {
       target: "SimpleTask",
     }));
   });
-});
-`;
-
-export const LOGGER_PLUGIN_TS = `import framework from "$shibui_framework";
-
-export default framework.plugin("log", () => {
-  new Worker(new URL("./_worker.ts", import.meta.url).href, {
-    type: "module",
-  });
-});
-`;
-
-export const LOGGER_PLUGIN_WORKER_TS =
-  `import framework from "$shibui_framework";
-import { Level, LogEvent } from "$shibui_events/LogEvents.ts";
-import luminous from "https://deno.land/x/luminous@0.1.5/mod.ts";
-import {
-  AbstractFormatter,
-  IDataForFormatting,
-} from "https://deno.land/x/luminous@0.1.5/src/Formatter.ts";
-import * as colors from "https://deno.land/std@0.196.0/fmt/colors.ts";
-
-interface IShibuiTextFormatterOptions {
-  showMetadata?: boolean;
-  colorize?: boolean;
-  showTimestamp?: boolean;
-  timestampPattern?: string;
-}
-
-class ShibuiTextFormatter extends AbstractFormatter<IShibuiTextFormatterOptions> {
-  #colorizeByLevel = {
-    [Level.UNKNOWN]: colors.dim,
-    [Level.DEBUG]: colors.blue,
-    [Level.TRACE]: colors.gray,
-    [Level.VERBOSE]: colors.cyan,
-    [Level.INFO]: colors.green,
-    [Level.WARN]: colors.yellow,
-    [Level.ERROR]: colors.red,
-    [Level.FATAL]: colors.bgBrightRed,
-  };
-
-  #levelName = [
-    "UKN",
-    "TRC",
-    "DBG",
-    "VRB",
-    "INF",
-    "WRN",
-    "ERR",
-    "FTL",
-  ];
-
-  constructor(options = {}) {
-    super(options, {
-      showMetadata: false,
-      colorize: true,
-      showTimestamp: true,
-      timestampPattern: "HH:mm:ss.SSS",
-    });
-  }
-
-  format(_data: IDataForFormatting): string {
-    const event = _data.metadata as LogEvent<unknown>;
-    if (event.sourceName === undefined) return event.msg;
-
-    const time = luminous.helpers.time.formatDate(
-      new Date(),
-      this.options.timestampPattern,
-    );
-
-    return this.#colorizeByLevel[event.level](
-      \`\${time} \${event.sourceName} [\${
-    this.#levelName[event.level]
-  }] \${_data.msg}\n\`,
-    );
-  }
-}
-
-const logger = new luminous.Logger(
-  new luminous.OptionsBuilder()
-    .addTransport(
-      new ShibuiTextFormatter(),
-      new luminous.transports.TerminalTransport(),
-    )
-    .build(),
-);
-
-framework.emitters.logEventEmitter.addListener((event) => {
-  switch (event.level) {
-    case Level.TRACE:
-      logger.trc(event.msg, event);
-      break;
-    case Level.DEBUG:
-      logger.dbg(event.msg, event);
-      break;
-    case Level.VERBOSE:
-      logger.vrb(event.msg, event);
-      break;
-    case Level.INFO:
-      logger.inf(event.msg, event);
-      break;
-    case Level.WARN:
-      logger.wrn(event.msg, event);
-      break;
-    case Level.ERROR:
-      logger.err(event.msg, event);
-      break;
-    case Level.FATAL:
-      logger.ftl(event.msg, event);
-      break;
-  }
 });
 `;
 
