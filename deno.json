@@ -13,7 +13,6 @@
     "./framework": "./source/framework/mod.ts",
     "./framework/runtime/dev": "./source/framework/runtime/dev.ts",
     "./framework/runtime/prod": "./source/framework/runtime/prod.ts",
-    "./framework/plugins/luminous": "./source/framework/plugins/luminous/mod.ts",
     "./framework/scripts/init": "./source/framework/scripts/init.ts",
     "./framework/scripts/update": "./source/framework/scripts/update.ts"
   },
