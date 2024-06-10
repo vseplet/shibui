@@ -89,7 +89,7 @@ export const DENO_JSON = `
 
 export const DEV_TS = `// dev file ...
 import dev from "${baseImportPath}/framework/runtime/dev";
-import logger from "$shibui_plugins/luminous/mod.ts";
+import logger "${baseImportPath}/framework/plugins/luminous";
 
 await dev(import.meta.url, [logger]);
 `;
