@@ -11,11 +11,9 @@
  */
 
 import type { Constructor } from "../helpers/types.ts";
-import type { EventDrivenLogger } from "./components/EventDrivenLogger.ts";
-import type { ShibuiCore } from "./components/ShibuiCore.ts";
-import { emitters } from "./emitters.ts";
+import type { emitters } from "./emitters.ts";
 import type { task, TaskBuilder } from "./entities/TaskBuilder.ts";
-import { workflow } from "./entities/WorkflowBuilder.ts";
+import type { workflow } from "./entities/WorkflowBuilder.ts";
 
 export enum PotType {
   UNKNOWN = "UNKNOWN",
@@ -63,7 +61,15 @@ export interface IShibuiEvent {
   timestamp: number;
 }
 
+export enum TaskType {
+  single,
+  depended,
+  singleWorkflow,
+  dependedWorkflow,
+}
+
 export interface ITask {
+  type?: TaskType;
   name: string;
   attempts: number;
   timeout: number;
@@ -80,10 +86,7 @@ export interface ITaskBuilder {
   build(): ITask;
 }
 
-export enum TriggerHandlerOp {
-  ALLOW,
-  DENY,
-}
+export type TriggerHandlerOp = "ALLOW" | "DENY";
 
 export type AnyWorkflowTaskBuilder<CTX extends IPot> = TaskBuilder<
   CTX,
@@ -114,8 +117,8 @@ export type TriggerHandlerContext<
 > = Context<P1, P2, P3, P4, P5> & {
   allow: (
     potIndex?: number,
-  ) => { op: TriggerHandlerOp.ALLOW; potIndex: number };
-  deny: () => { op: TriggerHandlerOp.DENY };
+  ) => { op: TriggerHandlerOp; potIndex: number };
+  deny: () => { op: TriggerHandlerOp };
 };
 
 export type DoHandlerContext<
@@ -151,14 +154,10 @@ export type DoHandlerContext<
   };
 };
 
-export type TriggerHandlerResult =
-  | {
-    op: TriggerHandlerOp.ALLOW;
-    potIndex: number;
-  }
-  | {
-    op: TriggerHandlerOp.DENY;
-  };
+export type TriggerHandlerResult = {
+  op: TriggerHandlerOp;
+  potIndex?: number;
+};
 
 export enum DoHandlerOp {
   NEXT,
@@ -189,7 +188,15 @@ export type TaskTrigger = {
   taskName: string;
   potConstructor: Constructor<IPot>;
   slot: number;
-  handler({}): TriggerHandlerResult;
+  handler(
+    ctx: TriggerHandlerContext<
+      IPot,
+      IPot | undefined,
+      IPot | undefined,
+      IPot | undefined,
+      IPot | undefined
+    >,
+  ): TriggerHandlerResult;
   belongsToWorkflow: string | undefined;
 };
 
@@ -227,7 +234,7 @@ export interface IWorkflowBuilderSetupArgs<ContextPot extends IPot> {
 export type WorkflowTrigger = {
   workflowName: string;
   potConstructor: Constructor<IPot>;
-  test({}): IPot | null;
+  handler({}): IPot | null;
 };
 
 export interface IWorkflow {
@@ -246,6 +253,18 @@ export interface IWorkflowBuilder {
   >;
   build(): IWorkflow;
 }
+
+export type WorkflowTriggersStorage = {
+  [potName: string]: Array<WorkflowTrigger>;
+};
+
+export type TaskTriggerStorage = {
+  [potName: string]: Array<TaskTrigger>;
+};
+
+export type WorkflowsStorage = { [workflowName: string]: IWorkflow };
+
+export type TasksStorage = { [taskName: string]: ITask };
 
 export enum Level {
   UNKNOWN = 0,

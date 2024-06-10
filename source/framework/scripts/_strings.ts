@@ -65,7 +65,7 @@ export const GITIGNORE = `# dotenv environment variable files
 _shibui/
 `;
 
-const baseImportPath = `https://deno.land/x/shibui@${versions[0]}`;
+const baseImportPath = `jsr:@vseplet/shibui@${versions[0]}`;
 
 // const baseImportPath = `https://raw.githubusercontent.com/vseplet/shibui/${
 //   versions[0]
@@ -163,12 +163,12 @@ export const CRON_PLUGIN_TS = `import shibui from "$shibui_framework";
 import { Cron } from "https://deno.land/x/croner@6.0.3/dist/croner.js";
 import { CronJobPot } from "../pots/CronJobPot.ts";
 
-export default shibui.plugin("cron", ({ api, log }) => {
+export default shibui.plugin("cron", ({ core, log }) => {
   log.inf("Hello, Cron!");
 
   const pattern = "* * * * *";
   const job = new Cron(pattern, { timezone: "Europe/Moscow" }, () => {
-    api.send(new CronJobPot().init({
+    core.send(new CronJobPot().init({
       pattern,
       target: "SimpleTask",
     }));

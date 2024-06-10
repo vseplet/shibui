@@ -19,7 +19,7 @@ import {
   type IShibuiCore,
   type ITask,
   type ITaskBuilder,
-  IWorkflow,
+  type IWorkflow,
   SourceType,
 } from "../types.ts";
 
@@ -41,10 +41,6 @@ export default class Runner {
   registerTask(task: ITask) {
     this.#tasks[task.name] = task;
     this.#log.inf(`registered task '${task.name}'`);
-  }
-
-  registerWorkflow(workflow: IWorkflow) {
-    // this.#log.inf(`registered w '${workflow.name}'`);
   }
 
   async run(taskName: string, pots: Array<Pot>) {
@@ -83,8 +79,7 @@ export default class Runner {
           op: DoHandlerOp.REPEAT,
         }),
       });
-
-      this.#processDoHandlerResult(pots, task, doResult);
+      this.#processResult(pots, task, doResult);
     } catch (err: unknown) {
       if (err instanceof Error) {
         this.#log.err(
@@ -98,6 +93,28 @@ export default class Runner {
             pots[0].name
           }' failed with unknown error!`,
         );
+      }
+    }
+  }
+
+  #processResult(
+    pots: Array<Pot>,
+    task: ITask,
+    result: DoHandlerResult,
+  ) {
+    try {
+      if (result.op === DoHandlerOp.FINISH) {
+        this.#onFinish();
+      } else if (result.op == DoHandlerOp.NEXT) {
+        this.#onNext(pots, task, result.taskBuilders, result.data);
+      } else if (result.op === DoHandlerOp.REPEAT) {
+        this.#onRepeat();
+      } else if (result.op === DoHandlerOp.FAIL) {
+        this.#onFail();
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        this.#onError(pots, task, err);
       }
     }
   }
@@ -135,27 +152,5 @@ export default class Runner {
         pots[0].name
       }' failed with error: '${err.message}'`,
     );
-  }
-
-  #processDoHandlerResult(
-    pots: Array<Pot>,
-    task: ITask,
-    result: DoHandlerResult,
-  ) {
-    try {
-      if (result.op === DoHandlerOp.FINISH) {
-        this.#onFinish();
-      } else if (result.op == DoHandlerOp.NEXT) {
-        this.#onNext(pots, task, result.taskBuilders, result.data);
-      } else if (result.op === DoHandlerOp.REPEAT) {
-        this.#onRepeat();
-      } else if (result.op === DoHandlerOp.FAIL) {
-        this.#onFail();
-      }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        this.#onError(pots, task, err);
-      }
-    }
   }
 }
