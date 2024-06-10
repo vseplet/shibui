@@ -36,7 +36,9 @@ export const generateManifest = async (dir: string) => {
       if (relativeImportPath.includes("_")) continue; // TODO: еще один сомнительный способ
       counter++;
       const moduleName = `$${counter}`;
-      IMPORT_STRINGS += `import ${moduleName} from "${relativeImportPath}";\n`;
+      IMPORT_STRINGS += `import ${moduleName} from "${
+        relativeImportPath.replaceAll("\\", "/")
+      }";\n`;
       EXPORT_STRINGS += `    "${relativeImportPath}": ${moduleName},\n`;
     }
 
