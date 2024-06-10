@@ -18,7 +18,6 @@ const task = core.task(SimplePot)
   .do(async ({ finish, pots, log }) => {
     log.dbg(`run do function...`);
     log.dbg(`value: ${pots[0].data.value}`);
-
     return finish();
   });
 

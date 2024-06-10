@@ -64,7 +64,7 @@ export class EventDrivenLogger implements IEventDrivenLogger {
     if (args?.sourceType) this.#options.sourceType = args.sourceType;
   }
 
-  private log(level: Level, msg: string, metadata: any) {
+  private log(level: Level, msg: string) {
     if (
       !this.#settings.ALLOWED_LOGGING_SOURCE_TYPES.includes(
         this.#options.sourceType,
@@ -88,7 +88,7 @@ export class EventDrivenLogger implements IEventDrivenLogger {
   }
 
   dbg(msg: string) {
-    this.log(Level.DEBUG, msg, {});
+    this.log(Level.DEBUG, msg);
     emitters.logEventEmitter.emit(
       new DebugLogEvent(
         {
@@ -100,8 +100,22 @@ export class EventDrivenLogger implements IEventDrivenLogger {
     );
   }
 
+  dbgm({ msg, meta }: { msg: string; meta: {} }) {
+    this.log(Level.DEBUG, msg);
+    emitters.logEventEmitter.emit(
+      new DebugLogEvent(
+        {
+          sourceType: this.#options.sourceType,
+          sourceName: this.#options.sourceName,
+        },
+        msg,
+        meta,
+      ),
+    );
+  }
+
   trc(msg: string) {
-    this.log(Level.TRACE, msg, {});
+    this.log(Level.TRACE, msg);
     emitters.logEventEmitter.emit(
       new TraceLogEvent(
         {
@@ -113,8 +127,22 @@ export class EventDrivenLogger implements IEventDrivenLogger {
     );
   }
 
+  trcm({ msg, meta }: { msg: string; meta: {} }) {
+    this.log(Level.TRACE, msg);
+    emitters.logEventEmitter.emit(
+      new TraceLogEvent(
+        {
+          sourceType: this.#options.sourceType,
+          sourceName: this.#options.sourceName,
+        },
+        msg,
+        meta,
+      ),
+    );
+  }
+
   vrb(msg: string) {
-    this.log(Level.VERBOSE, msg, {});
+    this.log(Level.VERBOSE, msg);
     emitters.logEventEmitter.emit(
       new VerboseLogEvent(
         {
@@ -126,8 +154,22 @@ export class EventDrivenLogger implements IEventDrivenLogger {
     );
   }
 
+  vrbm({ msg, meta }: { msg: string; meta: {} }) {
+    this.log(Level.VERBOSE, msg);
+    emitters.logEventEmitter.emit(
+      new VerboseLogEvent(
+        {
+          sourceType: this.#options.sourceType,
+          sourceName: this.#options.sourceName,
+        },
+        msg,
+        meta,
+      ),
+    );
+  }
+
   inf(msg: string) {
-    this.log(Level.INFO, msg, {});
+    this.log(Level.INFO, msg);
     emitters.logEventEmitter.emit(
       new InfoLogEvent(
         {
@@ -140,7 +182,7 @@ export class EventDrivenLogger implements IEventDrivenLogger {
   }
 
   err(msg: string) {
-    this.log(Level.ERROR, msg, {});
+    this.log(Level.ERROR, msg);
     emitters.logEventEmitter.emit(
       new ErrorLogEvent(
         {
@@ -153,7 +195,7 @@ export class EventDrivenLogger implements IEventDrivenLogger {
   }
 
   wrn(msg: string) {
-    this.log(Level.WARN, msg, {});
+    this.log(Level.WARN, msg);
     emitters.logEventEmitter.emit(
       new WarnLogEvent(
         {
@@ -166,7 +208,7 @@ export class EventDrivenLogger implements IEventDrivenLogger {
   }
 
   flt(msg: string) {
-    this.log(Level.FATAL, msg, {});
+    this.log(Level.FATAL, msg);
     emitters.logEventEmitter.emit(
       new FatalLogEvent(
         {
