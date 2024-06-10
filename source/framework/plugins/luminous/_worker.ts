@@ -17,7 +17,7 @@ import {
   AbstractFormatter,
   type IDataForFormatting,
 } from "@vseplet/luminous/Formatter";
-import * as colors from "https://deno.land/std@0.196.0/fmt/colors.ts";
+import * as colors from "@std/fmt/colors";
 import { Level } from "../../../core/types.ts";
 
 interface IShibuiTextFormatterOptions {

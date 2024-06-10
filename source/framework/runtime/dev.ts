@@ -25,7 +25,8 @@ const dev = async (path: string, plugins: Array<IPlugin> = []) => {
   //   (await import(`file:///${resolve(dir, "shibui.manifest.ts")}`))
   //     .default as IManifest;
 
-  const manifest = (await import("./shibui.manifest.ts"))
+  const pathToManifest = "./shibui.manifest.ts";
+  const manifest = (await import(pathToManifest))
     .default as IManifest;
 
   await initCore(manifest, plugins);
