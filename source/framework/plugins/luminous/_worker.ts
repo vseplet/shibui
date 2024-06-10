@@ -11,12 +11,12 @@
  */
 
 import framework from "../../mod.ts";
-import luminous from "https://deno.land/x/luminous@0.1.5/mod.ts";
-import { LogEvent } from "../../../core/events/LogEvents.ts";
+import luminous from "@vseplet/luminous";
+import type { LogEvent } from "../../../core/events/LogEvents.ts";
 import {
   AbstractFormatter,
-  IDataForFormatting,
-} from "https://deno.land/x/luminous@0.1.5/src/Formatter.ts";
+  type IDataForFormatting,
+} from "@vseplet/luminous/Formatter";
 import * as colors from "https://deno.land/std@0.196.0/fmt/colors.ts";
 import { Level } from "../../../core/types.ts";
 
