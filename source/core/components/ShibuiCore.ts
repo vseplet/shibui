@@ -77,10 +77,6 @@ export class ShibuiCore implements IShibuiCore {
     return syncPromiseWithTimeout<IPot>(() => this.execute(builder, pots));
   }
 
-  async init() {
-    // await this.#globalPotDistributor.init();
-  }
-
   async start() {
     await this.#globalPotDistributor.start();
   }

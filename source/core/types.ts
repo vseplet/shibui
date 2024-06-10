@@ -322,7 +322,6 @@ export interface IShibuiCore {
     builder: ITaskBuilder | IWorkflowBuilder,
     pots?: Array<IPot>,
   ): IPot;
-  init(): Promise<void>;
   start(): Promise<void>;
   register(builder: ITaskBuilder | IWorkflowBuilder): void;
   disable(builder: ITaskBuilder | IWorkflowBuilder): void;
