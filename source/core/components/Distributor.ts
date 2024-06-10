@@ -75,7 +75,7 @@ export default class Distributor {
       this.#tester.registerTask(task);
     }
 
-    // this.#tester.show();
+    this.#tester.show();
   }
 
   disable(builder: IWorkflowBuilder | ITaskBuilder) {

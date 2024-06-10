@@ -234,7 +234,7 @@ export interface IWorkflowBuilderSetupArgs<ContextPot extends IPot> {
 export type WorkflowTrigger = {
   workflowName: string;
   potConstructor: Constructor<IPot>;
-  test({}): IPot | null;
+  handler({}): IPot | null;
 };
 
 export interface IWorkflow {

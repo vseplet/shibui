@@ -60,7 +60,7 @@ export class WorkflowBuilder<ContextPot extends IPot>
       this.workflow.triggers[constructor.name] = {
         workflowName: this.workflow.name,
         potConstructor: constructor,
-        test: () => {
+        handler: () => {
           return new this.contextPotConstructor();
         },
       };
@@ -77,13 +77,13 @@ export class WorkflowBuilder<ContextPot extends IPot>
       this.workflow.triggers[potConstructor.name] = {
         workflowName: this.workflow.name,
         potConstructor,
-        test: handler,
+        handler,
       };
     } else {
       this.workflow.triggers[potConstructor.name] = {
         workflowName: this.workflow.name,
         potConstructor,
-        test: () => {
+        handler: () => {
           return new this.contextPotConstructor();
         },
       };
