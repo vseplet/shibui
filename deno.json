@@ -25,6 +25,7 @@
     ]
   },
   "tasks": {
+    "pub-dry": "deno publish --dry-run --allow-slow-types",
     "serve": "deno run --allow-all --unstable-broadcast-channel ./source/moduleServe.ts",
     "ex1": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./source/core/examples/ex1.ts",
     "ex2": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./source/core/examples/ex2.ts",
@@ -37,10 +38,11 @@
   },
   "fmt": {
     "exclude": [
-      "./source/versions.ts"
+      "./source/core/versions.ts"
     ]
   },
   "imports": {
+    "$core/types": "./source/core/types.ts",
     "@std/fmt": "jsr:@std/fmt@0.225.4",
     "@vseplet/luminous": "jsr:@vseplet/luminous@1.0.3"
   }

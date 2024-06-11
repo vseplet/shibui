@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import type { IPot, ITask } from "../types.ts";
+import type { IPot, ITask } from "$core/types";
 
 export default class SlotFillerOld {
   // #log = new EventDrivenLogger({

@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { type IPot, PotType } from "../types.ts";
+import { type IPot, PotType } from "$core/types";
 
 export class Pot<
   D extends { [key: string]: unknown } = { [key: string]: unknown },

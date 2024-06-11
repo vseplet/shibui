@@ -18,7 +18,7 @@ import {
   type IDataForFormatting,
 } from "@vseplet/luminous/Formatter";
 import * as colors from "@std/fmt/colors";
-import { Level } from "../../../core/types.ts";
+import { Level } from "$core/types";
 
 interface IShibuiTextFormatterOptions {
   showMetadata?: boolean;

@@ -21,7 +21,7 @@ import {
   type ITaskBuilder,
   type IWorkflowBuilder,
   SourceType,
-} from "../types.ts";
+} from "$core/types";
 import Distributor from "./Distributor.ts";
 import { EventDrivenLogger } from "./EventDrivenLogger.ts";
 

@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { ShibuiEventType } from "../types.ts";
+import { ShibuiEventType } from "$core/types";
 
 export class ShibuiEvent {
   type = ShibuiEventType.UNKNOWN;

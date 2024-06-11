@@ -24,7 +24,7 @@ import {
   type ILoggerOptions,
   Level,
   SourceType,
-} from "../types.ts";
+} from "$core/types";
 import { emitters } from "../emitters.ts";
 import { colors } from "../../deps.ts";
 

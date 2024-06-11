@@ -11,7 +11,7 @@
  */
 
 import { ShibuiEvent } from "../../entities/ShibuiEvent.ts";
-import { ShibuiEventType } from "../../types.ts";
+import { ShibuiEventType } from "../$core/types";
 
 export class CoreEvent extends ShibuiEvent {
   type = ShibuiEventType.CORE;

@@ -10,17 +10,17 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { Constructor } from "../../helpers/types.ts";
-import {
+import type { Constructor } from "../../helpers/types.ts";
+import type {
   IPot,
   ITaskBuilder,
   IWorkflow,
   IWorkflowBuilder,
   IWorkflowBuilderSetupArgs,
   WorkflowTriggerHandler,
-} from "../types.ts";
+} from "$core/types";
 import { task1 } from "./TaskBuilder.ts";
-import { TaskBuilder } from "./mod.ts";
+import type { TaskBuilder } from "./mod.ts";
 
 export class WorkflowBuilder<ContextPot extends IPot>
   implements IWorkflowBuilder {
@@ -109,11 +109,18 @@ export class WorkflowBuilder<ContextPot extends IPot>
   #task1(builder: TaskBuilder<ContextPot, IPot, IPot, IPot, IPot>) {
     builder.belongsToWorkflow(this);
 
-    builder.on(
-      this.contextPotConstructor as Constructor<Exclude<ContextPot, undefined>>,
-      ({ pots, allow, deny }) =>
-        pots[0].to.task === builder.task.name ? allow() : deny(),
-    );
+    // const length = builder.task.triggers[this.contextPotConstructor.name]
+    //   ?.length;
+
+    // if (!length || length == 0) {
+    //   builder.on(
+    //     this.contextPotConstructor as Constructor<
+    //       Exclude<ContextPot, undefined>
+    //     >,
+    //     ({ pots, allow, deny }) =>
+    //       pots[0].to.task === builder.task.name ? allow() : deny(),
+    //   );
+    // }
 
     this.taskBuilders.push(builder);
     return builder;

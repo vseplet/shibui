@@ -11,7 +11,7 @@
  */
 
 import { Pot } from "../entities/Pot.ts";
-import { PotType } from "../types.ts";
+import { PotType } from "$core/types";
 
 export class SystemPot<T extends { [key: string]: unknown }> extends Pot<T> {
   type = PotType.SYSTEM;

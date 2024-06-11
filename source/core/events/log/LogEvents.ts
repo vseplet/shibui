@@ -18,7 +18,7 @@ import {
   Level,
   ShibuiEventType,
   SourceType,
-} from "../../types.ts";
+} from "../$core/types";
 
 export class LogEvent<T> extends ShibuiEvent {
   type = ShibuiEventType.LOG;

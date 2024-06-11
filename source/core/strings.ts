@@ -1,4 +1,4 @@
-import type { ITask, IWorkflow } from "./types.ts";
+import type { ITask, IWorkflow } from "$core/types";
 
 export const rwn = (workflow: IWorkflow) =>
   `registered workflow '${workflow.name}'`;

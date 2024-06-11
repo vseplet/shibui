@@ -22,7 +22,7 @@ import {
   IWorkflowBuilder,
   TriggerHandlerContext,
   TriggerHandlerResult,
-} from "../types.ts";
+} from "$core/types";
 
 export class TaskBuilder<
   P1 extends IPot,

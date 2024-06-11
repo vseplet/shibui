@@ -21,7 +21,7 @@ import {
   type ITaskBuilder,
   type IWorkflowBuilder,
   SourceType,
-} from "../types.ts";
+} from "$core/types";
 import { Tester } from "./Tester.ts";
 
 export default class Distributor {
@@ -75,7 +75,7 @@ export default class Distributor {
       this.#tester.registerTask(task);
     }
 
-    this.#tester.show();
+    // this.#tester.show();
   }
 
   disable(builder: IWorkflowBuilder | ITaskBuilder) {

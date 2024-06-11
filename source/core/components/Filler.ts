@@ -4,18 +4,15 @@ import {
   type IShibuiCore,
   type ITask,
   SourceType,
-} from "../types.ts";
-import Runner from "./Runner.ts";
+} from "$core/types";
 
 export class Filler {
   #core: IShibuiCore;
   #kv: Deno.Kv;
   #log: IEventDrivenLogger;
-  #runner: Runner;
 
   constructor(core: IShibuiCore, kv: Deno.Kv) {
     this.#core = core;
-    this.#runner = new Runner(core, kv);
     this.#kv = kv;
     this.#log = core.createLogger({
       sourceType: SourceType.CORE,
@@ -24,13 +21,14 @@ export class Filler {
   }
 
   registerTask(task: ITask) {
-    this.#runner.registerTask(task);
   }
 
   fill(taskkName: string, pot: Pot, slot: number): {
     taskName: string;
     pots: Array<Pot>;
   } | null {
+    // тут что-то
+
     return {
       taskName: "",
       pots: [],

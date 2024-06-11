@@ -14,7 +14,7 @@ import {
   type TaskTriggerStorage,
   type WorkflowsStorage,
   type WorkflowTriggersStorage,
-} from "../types.ts";
+} from "$core/types";
 import { Filler } from "./Filler.ts";
 import Runner from "./Runner.ts";
 
@@ -77,7 +77,8 @@ export class Tester {
   }
 
   show() {
-    // console.log(this.#dependentTaskTriggers);
+    console.log(this.#taskTriggers);
+    console.log(this.#dependentTaskTriggers);
     // console.log(this.#workflowTriggers);
     // console.log(this.#workflowDependentTaskTriggers);
   }
@@ -162,7 +163,7 @@ export class Tester {
   }
 
   #testDependedTaskTriggers(pot: Pot): boolean {
-    const triggers = this.#taskTriggers[pot.name];
+    const triggers = this.#dependentTaskTriggers[pot.name];
 
     if (!triggers) {
       this.#log.trc(

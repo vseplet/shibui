@@ -1,7 +1,7 @@
 // deno-lint-ignore-file require-await
 import core from "../mod.ts";
 import { InternalPot } from "../pots/InternalPot.ts";
-import { SourceType } from "../types.ts";
+import { SourceType } from "$core/types";
 
 class SimplePot extends InternalPot<{ value: number }> {
   ttl = 1;

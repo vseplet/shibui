@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import type { IEventDrivenLogger, IShibuiCore } from "../../core/types.ts";
+import type { IEventDrivenLogger, IShibuiCore } from "$core/types";
 
 export type TPlugin = (core: IShibuiCore) => void;
 

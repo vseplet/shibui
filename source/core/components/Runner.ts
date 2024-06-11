@@ -19,9 +19,8 @@ import {
   type IShibuiCore,
   type ITask,
   type ITaskBuilder,
-  type IWorkflow,
   SourceType,
-} from "../types.ts";
+} from "$core/types";
 
 export default class Runner {
   #core: IShibuiCore;
@@ -45,7 +44,6 @@ export default class Runner {
 
   async run(taskName: string, pots: Array<Pot>) {
     const task = this.#tasks[taskName];
-
     this.#log.trc(
       `trying to exec do handler from task '${taskName}' by pot '${
         pots[0].name

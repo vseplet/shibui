@@ -11,7 +11,7 @@ class SimplePot extends InternalPot<{ value: number }> {
 
 const task = core.task(SimplePot)
   .name`Simple Task`
-  .on(SimplePot, ({ allow, deny, pots, log }) => {
+  .on(SimplePot, ({ allow, deny, log }) => {
     log.dbg(`run test function... `);
     return Math.random() > 0.7 ? allow() : deny();
   })

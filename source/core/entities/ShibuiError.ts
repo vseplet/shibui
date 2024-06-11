@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { IShibuiError } from "../types.ts";
+import type { IShibuiError } from "$core/types";
 
 export class ShibuiError extends Error implements IShibuiError {
   createdAt = new Date().getTime();
