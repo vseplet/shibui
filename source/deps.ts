@@ -1,6 +1,9 @@
 import luminous from "jsr:@vseplet/luminous@1.0.3";
-
 export { luminous };
+export {
+  AbstractFormatter,
+  type IDataForFormatting,
+} from "jsr:@vseplet/luminous@1.0.3/Formatter";
 export {
   basename,
   dirname,

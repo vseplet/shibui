@@ -10,14 +10,14 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import framework from "../../mod.ts";
-import luminous from "@vseplet/luminous";
-import type { LogEvent } from "$core/events";
+import framework from "$framework";
 import {
   AbstractFormatter,
+  colors,
   type IDataForFormatting,
-} from "@vseplet/luminous/Formatter";
-import * as colors from "@std/fmt/colors";
+  luminous,
+} from "$deps";
+import type { LogEvent } from "$core/events";
 import { Level } from "$core/types";
 
 interface IShibuiTextFormatterOptions {
