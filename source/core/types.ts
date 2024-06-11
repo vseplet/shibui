@@ -333,3 +333,6 @@ export interface IEventDrivenLogger {
 export interface ILogEventMetadata {
   name?: string;
 }
+
+export interface IShibuiCoreOptions {
+}

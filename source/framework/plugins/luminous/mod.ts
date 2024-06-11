@@ -17,8 +17,5 @@ export default framework.plugin("luminous", ({ core, log }) => {
   const worker = new Worker(new URL("./_worker.ts", import.meta.url).href, {
     type: "module",
   });
-
-  worker.postMessage({
-    logChannelName: core.emitters.logEventEmitter.name,
-  });
+  worker.postMessage({ name: core.emitters.logEventEmitter.name });
 });

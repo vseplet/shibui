@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Vsevolod Plentev
+ * Copyright 2023 Vsevolod Plentev
  *
  * This program is licensed under the Creative Commons Attribution-NonCommercial 3.0 Unported License (CC BY-NC 3.0).
  * You may obtain a copy of the license at https://creativecommons.org/licenses/by-nc/3.0/legalcode.
@@ -87,13 +87,11 @@ const logger = new luminous.Logger(
 );
 
 //@ts-ignore
-self.onmessage = (m) => {
-  console.log(m);
-  const logEventEmitter = new EventEmitter<LogEvent<unknown>>(
-    m.data.logChannelName,
-  );
+self.onmessage = (message) => {
+  const channelName = message.data.name;
+  const emitter = new EventEmitter<LogEvent<unknown>>(channelName);
 
-  logEventEmitter.addListener((event) => {
+  emitter.addListener((event) => {
     switch (event.level) {
       case Level.TRACE:
         logger.trc(event.msg, event);

@@ -22,8 +22,6 @@ import {
 import { Distributor, EventDrivenLogger } from "$core/components";
 import { TaskBuilder, WorkflowBuilder } from "$core/entities";
 import type { Constructor } from "$helpers/types";
-import { EventEmitter } from "./EventEmitter.ts";
-import type { CoreEvent, LogEvent } from "$core/events";
 
 export class ShibuiCore implements IShibuiCore {
   emitters = emitters;
@@ -43,15 +41,15 @@ export class ShibuiCore implements IShibuiCore {
   };
 
   constructor() {
-    this.emitters = {
-      logEventEmitter: new EventEmitter<LogEvent<unknown>>(
-        "log" + Math.random(),
-      ),
+    // this.emitters = {
+    //   logEventEmitter: new EventEmitter<LogEvent<unknown>>(
+    //     "log" + Math.random(),
+    //   ),
 
-      coreEventEmitter: new EventEmitter<CoreEvent>(
-        "log" + Math.random(),
-      ),
-    };
+    //   coreEventEmitter: new EventEmitter<CoreEvent>(
+    //     "log" + Math.random(),
+    //   ),
+    // };
 
     this.#globalPotDistributor = new Distributor(this);
   }
