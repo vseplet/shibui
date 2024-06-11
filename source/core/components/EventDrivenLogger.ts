@@ -11,10 +11,12 @@
  */
 
 import {
+  type CoreEvent,
   DebugLogEvent,
   ErrorLogEvent,
   FatalLogEvent,
   InfoLogEvent,
+  LogEvent,
   TraceLogEvent,
   VerboseLogEvent,
   WarnLogEvent,
@@ -25,8 +27,8 @@ import {
   Level,
   SourceType,
 } from "$core/types";
-import { emitters } from "$core/emitters";
 import { colors } from "$deps";
+import { EventEmitter } from "$core/components";
 
 const colorizeByLevel = {
   [Level.UNKNOWN]: colors.dim,
@@ -56,10 +58,17 @@ export class EventDrivenLogger implements IEventDrivenLogger {
     sourceName: "unknown",
   };
 
+  #emitter: EventEmitter<LogEvent<unknown>>;
+
   #settings;
 
-  constructor(settings: any, args?: ILoggerOptions) {
+  constructor(
+    emitter: EventEmitter<LogEvent<unknown>>,
+    settings: any,
+    args?: ILoggerOptions,
+  ) {
     this.#settings = settings;
+    this.#emitter = emitter;
     if (args?.sourceName) this.#options.sourceName = args.sourceName;
     if (args?.sourceType) this.#options.sourceType = args.sourceType;
   }
@@ -89,7 +98,7 @@ export class EventDrivenLogger implements IEventDrivenLogger {
 
   dbg(msg: string) {
     this.log(Level.DEBUG, msg);
-    emitters.logEventEmitter.emit(
+    this.#emitter.emit(
       new DebugLogEvent(
         {
           sourceType: this.#options.sourceType,
@@ -102,7 +111,7 @@ export class EventDrivenLogger implements IEventDrivenLogger {
 
   dbgm({ msg, meta }: { msg: string; meta: {} }) {
     this.log(Level.DEBUG, msg);
-    emitters.logEventEmitter.emit(
+    this.#emitter.emit(
       new DebugLogEvent(
         {
           sourceType: this.#options.sourceType,
@@ -116,7 +125,7 @@ export class EventDrivenLogger implements IEventDrivenLogger {
 
   trc(msg: string) {
     this.log(Level.TRACE, msg);
-    emitters.logEventEmitter.emit(
+    this.#emitter.emit(
       new TraceLogEvent(
         {
           sourceType: this.#options.sourceType,
@@ -129,7 +138,7 @@ export class EventDrivenLogger implements IEventDrivenLogger {
 
   trcm({ msg, meta }: { msg: string; meta: {} }) {
     this.log(Level.TRACE, msg);
-    emitters.logEventEmitter.emit(
+    this.#emitter.emit(
       new TraceLogEvent(
         {
           sourceType: this.#options.sourceType,
@@ -143,7 +152,7 @@ export class EventDrivenLogger implements IEventDrivenLogger {
 
   vrb(msg: string) {
     this.log(Level.VERBOSE, msg);
-    emitters.logEventEmitter.emit(
+    this.#emitter.emit(
       new VerboseLogEvent(
         {
           sourceType: this.#options.sourceType,
@@ -156,7 +165,7 @@ export class EventDrivenLogger implements IEventDrivenLogger {
 
   vrbm({ msg, meta }: { msg: string; meta: {} }) {
     this.log(Level.VERBOSE, msg);
-    emitters.logEventEmitter.emit(
+    this.#emitter.emit(
       new VerboseLogEvent(
         {
           sourceType: this.#options.sourceType,
@@ -170,7 +179,7 @@ export class EventDrivenLogger implements IEventDrivenLogger {
 
   inf(msg: string) {
     this.log(Level.INFO, msg);
-    emitters.logEventEmitter.emit(
+    this.#emitter.emit(
       new InfoLogEvent(
         {
           sourceType: this.#options.sourceType,
@@ -183,7 +192,7 @@ export class EventDrivenLogger implements IEventDrivenLogger {
 
   err(msg: string) {
     this.log(Level.ERROR, msg);
-    emitters.logEventEmitter.emit(
+    this.#emitter.emit(
       new ErrorLogEvent(
         {
           sourceType: this.#options.sourceType,
@@ -196,7 +205,7 @@ export class EventDrivenLogger implements IEventDrivenLogger {
 
   wrn(msg: string) {
     this.log(Level.WARN, msg);
-    emitters.logEventEmitter.emit(
+    this.#emitter.emit(
       new WarnLogEvent(
         {
           sourceType: this.#options.sourceType,
@@ -209,7 +218,7 @@ export class EventDrivenLogger implements IEventDrivenLogger {
 
   flt(msg: string) {
     this.log(Level.FATAL, msg);
-    emitters.logEventEmitter.emit(
+    this.#emitter.emit(
       new FatalLogEvent(
         {
           sourceType: this.#options.sourceType,

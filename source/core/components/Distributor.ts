@@ -62,7 +62,7 @@ export default class Distributor {
     this.#log.inf(`starting update cycle...`);
     this.#kv = await Deno.openKv();
     this.#kv.listenQueue((rawPotObj: IPot) => this.#test(rawPotObj));
-    this.#core.send(new CoreStartPot());
+    this.send(new CoreStartPot());
   }
 
   register(builder: IWorkflowBuilder | ITaskBuilder) {

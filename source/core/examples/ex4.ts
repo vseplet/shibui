@@ -1,9 +1,8 @@
 // deno-lint-ignore-file require-await
-import { ContextPot } from "../pots/ContextPot.ts";
-import { CoreStartPot } from "../pots/CoreStartPot.ts";
-import core from "../mod.ts";
+import { execute, workflow } from "$core";
+import { ContextPot, CoreStartPot } from "$core/pots";
 
-const w1 = core.workflow(class CTX extends ContextPot<{}> {})
+const simpleWorkflow = workflow(class CTX extends ContextPot<{}> {})
   .name("simple workflow")
   .on(CoreStartPot)
   .sq(({ task1 }) => {
@@ -26,5 +25,5 @@ const w1 = core.workflow(class CTX extends ContextPot<{}> {})
     return t1;
   });
 
-core.register(w1);
-await core.start();
+const res = await execute(simpleWorkflow);
+Deno.exit(res ? 1 : -1);

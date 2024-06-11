@@ -313,14 +313,6 @@ export interface IShibuiCore {
   settings: IShibuiCoreSettings;
 
   createLogger(options: ILoggerOptions): IEventDrivenLogger;
-  execute(
-    builder: ITaskBuilder | IWorkflowBuilder,
-    pots?: Array<IPot>,
-  ): Promise<IPot>;
-  executeSync(
-    builder: ITaskBuilder | IWorkflowBuilder,
-    pots?: Array<IPot>,
-  ): IPot;
   start(): Promise<void>;
   register(builder: ITaskBuilder | IWorkflowBuilder): void;
   disable(builder: ITaskBuilder | IWorkflowBuilder): void;

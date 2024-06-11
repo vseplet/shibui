@@ -11,7 +11,6 @@
  */
 
 import { emitters } from "$core/emitters";
-import { syncPromiseWithTimeout } from "$helpers";
 import {
   type ILoggerOptions,
   type IPot,
@@ -23,6 +22,8 @@ import {
 import { Distributor, EventDrivenLogger } from "$core/components";
 import { TaskBuilder, WorkflowBuilder } from "$core/entities";
 import type { Constructor } from "$helpers/types";
+import { EventEmitter } from "./EventEmitter.ts";
+import { CoreEvent, LogEvent } from "$core/events";
 
 export class ShibuiCore implements IShibuiCore {
   emitters = emitters;
@@ -42,6 +43,16 @@ export class ShibuiCore implements IShibuiCore {
   };
 
   constructor() {
+    this.emitters = {
+      logEventEmitter: new EventEmitter<LogEvent<unknown>>(
+        "log" + Math.random(),
+      ),
+
+      coreEventEmitter: new EventEmitter<CoreEvent>(
+        "log" + Math.random(),
+      ),
+    };
+
     this.#globalPotDistributor = new Distributor(this);
   }
 
@@ -74,33 +85,12 @@ export class ShibuiCore implements IShibuiCore {
   }
 
   createLogger = (options: ILoggerOptions) => {
-    return new EventDrivenLogger(this.settings, options);
+    return new EventDrivenLogger(
+      emitters.logEventEmitter,
+      this.settings,
+      options,
+    );
   };
-
-  async execute(
-    builder: ITaskBuilder | IWorkflowBuilder,
-    pots?: Array<IPot>,
-  ): Promise<IPot> {
-    const distributor = new Distributor(this);
-    distributor.register(builder);
-
-    if (pots) {
-      pots.forEach((pot) => {
-        distributor.send(pot);
-      });
-    }
-
-    distributor.start();
-
-    return {} as IPot;
-  }
-
-  executeSync(
-    builder: ITaskBuilder | IWorkflowBuilder,
-    pots?: Array<IPot>,
-  ): IPot {
-    return syncPromiseWithTimeout<IPot>(() => this.execute(builder, pots));
-  }
 
   async start() {
     await this.#globalPotDistributor.start();

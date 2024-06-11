@@ -1,6 +1,7 @@
 export {
   CoreEvent,
   TaskFailedEvent,
+  TaskFinishedEvent,
   WorkflowFailedEvent,
   WorkflowFinishedEvent,
   WorkflowStartedEvent,

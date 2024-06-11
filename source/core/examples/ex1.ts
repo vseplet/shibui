@@ -1,19 +1,19 @@
 // deno-lint-ignore-file
 import { InternalPot } from "$core/pots";
-import core from "$core";
+import { execute, task } from "$core";
 
 class SimplePot extends InternalPot<{ value: number }> {
-  ttl = 5;
+  ttl = 100;
   data = {
     value: Math.random(),
   };
 }
 
-const task = core.task(SimplePot)
+const mySimpleTask = task(SimplePot)
   .name`Simple Task`
-  .on(SimplePot, ({ allow, deny, log }) => {
+  .on(SimplePot, ({ allow, deny, log, pots }) => {
     log.dbg(`run test function... `);
-    return Math.random() > 0.7 ? allow() : deny();
+    return pots[0].data.value > Math.random() ? allow() : deny();
   })
   .do(async ({ finish, pots, log }) => {
     log.dbg(`run do function...`);
@@ -21,6 +21,5 @@ const task = core.task(SimplePot)
     return finish();
   });
 
-core.register(task);
-await core.start();
-core.send(new SimplePot());
+const res = await execute(mySimpleTask, [new SimplePot()]);
+Deno.exit(res ? 1 : -1);

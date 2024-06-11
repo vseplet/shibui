@@ -55,7 +55,6 @@
     "$core/emitters": "./source/core/emitters.ts",
     "$core/constants": "./source/core/constants.ts",
     "$core/components": "./source/core/components/mod.ts",
-    "$core/components/": "./source/core/components/",
     "$framework": "./source/framework/mod.ts",
     "$framework/components/": "./source/framework/components/",
     "$framework/runtime/": "./source/framework/runtime/",

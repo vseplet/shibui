@@ -21,6 +21,12 @@ import {
   type ITaskBuilder,
   SourceType,
 } from "$core/types";
+import {
+  TaskFailedEvent,
+  TaskFinishedEvent,
+  WorkflowFailedEvent,
+  WorkflowFinishedEvent,
+} from "$core/events";
 
 export default class Runner {
   #core: IShibuiCore;
@@ -102,13 +108,13 @@ export default class Runner {
   ) {
     try {
       if (result.op === DoHandlerOp.FINISH) {
-        this.#onFinish();
+        this.#onFinish(task);
       } else if (result.op == DoHandlerOp.NEXT) {
         this.#onNext(pots, task, result.taskBuilders, result.data);
       } else if (result.op === DoHandlerOp.REPEAT) {
         this.#onRepeat();
       } else if (result.op === DoHandlerOp.FAIL) {
-        this.#onFail();
+        this.#onFail(task, result.reason);
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -117,7 +123,12 @@ export default class Runner {
     }
   }
 
-  #onFail() {}
+  #onFail(task: ITask, reason: string) {
+    this.#core.emitters.coreEventEmitter.emit(new TaskFailedEvent());
+    if (task.belongsToWorkflow) {
+      this.#core.emitters.coreEventEmitter.emit(new WorkflowFailedEvent());
+    }
+  }
 
   #onNext(
     pots: Array<Pot>,
@@ -130,6 +141,9 @@ export default class Runner {
     } else {
       // это одиночный task
     }
+
+    this.#core.emitters.coreEventEmitter.emit(new TaskFinishedEvent());
+
     nextTasks.forEach((builder) => {
       const newContextPot = pots[0].copy(data || pots[0].data);
       newContextPot.from.task = task.name;
@@ -140,7 +154,13 @@ export default class Runner {
     });
   }
 
-  #onFinish() {}
+  #onFinish(task: ITask) {
+    this.#core.emitters.coreEventEmitter.emit(new TaskFinishedEvent());
+
+    if (task.belongsToWorkflow) {
+      this.#core.emitters.coreEventEmitter.emit(new WorkflowFinishedEvent());
+    }
+  }
 
   #onRepeat() {}
 

@@ -11,7 +11,88 @@
  */
 
 import { ShibuiCore } from "$core/components";
+import type { IPot, ITaskBuilder, IWorkflowBuilder } from "$core/types";
+import type { Constructor } from "$helpers/types";
+import { TaskBuilder, WorkflowBuilder } from "$core/entities";
+import {
+  TaskFailedEvent,
+  TaskFinishedEvent,
+  WorkflowFailedEvent,
+  WorkflowFinishedEvent,
+} from "$core/events";
+import { delay } from "$deps";
 
-const core = new ShibuiCore();
+export const execute = async (
+  builder: ITaskBuilder | IWorkflowBuilder,
+  pots?: Array<IPot>,
+): Promise<boolean> => {
+  const startTime = new Date().getTime();
+  let isComplete = false;
+  let isOk = true;
 
-export default core;
+  const tmpCore = new ShibuiCore();
+  tmpCore.register(builder);
+
+  const finish = () => {
+    isComplete = true;
+  };
+
+  const fail = () => {
+    isComplete = true;
+    isOk = false;
+  };
+
+  if (builder instanceof TaskBuilder) {
+    tmpCore.emitters.coreEventEmitter.addListenerByName(
+      TaskFinishedEvent,
+      finish,
+    );
+    tmpCore.emitters.coreEventEmitter.addListenerByName(TaskFailedEvent, fail);
+  } else {
+    tmpCore.emitters.coreEventEmitter.addListenerByName(
+      WorkflowFinishedEvent,
+      finish,
+    );
+    tmpCore.emitters.coreEventEmitter.addListenerByName(
+      WorkflowFailedEvent,
+      fail,
+    );
+  }
+
+  await tmpCore.start();
+  if (pots) pots.forEach((pot) => tmpCore.send(pot));
+  while (!isComplete) await delay(0);
+  return isOk;
+};
+
+export const task = <
+  P1 extends IPot,
+  P2 extends IPot,
+  P3 extends IPot,
+  P4 extends IPot,
+  P5 extends IPot,
+>(
+  p1: Constructor<P1>,
+  p2?: Constructor<P2>,
+  p3?: Constructor<P3>,
+  p4?: Constructor<P4>,
+  p5?: Constructor<P5>,
+) =>
+  new TaskBuilder<P1, P2, P3, P4, P5>(
+    p1,
+    p2,
+    p3,
+    p4,
+    p5,
+  );
+
+export const workflow = <ContextPot extends IPot>(
+  contextPotConstructor: Constructor<ContextPot>,
+) => new WorkflowBuilder<ContextPot>(contextPotConstructor);
+
+export const core = () => {
+  return new ShibuiCore();
+};
+
+const defaultCore = new ShibuiCore();
+export default defaultCore;
