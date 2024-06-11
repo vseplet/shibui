@@ -11,7 +11,7 @@
  */
 
 // like https://github.com/denoland/fresh/blob/main/update.ts
-import { colors } from "../../deps.ts";
+import { colors } from "$deps";
 import { INTRO_TEXT } from "./_strings.ts";
 
 console.log(colors.brightYellow(INTRO_TEXT));

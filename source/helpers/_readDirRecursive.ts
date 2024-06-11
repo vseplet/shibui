@@ -1,4 +1,4 @@
-import { join } from "../deps.ts";
+import { join } from "$deps";
 
 export async function* readDirRecursive(
   path: string,

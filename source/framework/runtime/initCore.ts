@@ -13,7 +13,7 @@
 import { SourceType } from "../../core/types.ts";
 import type { IManifest } from "../entities/Manifest.ts";
 import type { IPlugin } from "../entities/Plugin.ts";
-import framework from "../mod.ts";
+import framework from "$framework";
 
 export const initCore = async (
   manifest: IManifest,

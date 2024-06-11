@@ -14,7 +14,7 @@ import type { IManifest } from "../entities/Manifest.ts";
 import { INTRO_TEXT } from "../scripts/_strings.ts";
 import { initCore } from "./initCore.ts";
 import type { IPlugin } from "../entities/Plugin.ts";
-import { colors } from "../../deps.ts";
+import { colors } from "$deps";
 
 const prod = async (manifest: IManifest, plugins: Array<IPlugin> = []) => {
   console.log(colors.magenta(INTRO_TEXT));

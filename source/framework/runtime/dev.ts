@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { colors, dirname, fromFileUrl, resolve } from "../../deps.ts";
+import { colors, dirname, fromFileUrl, resolve } from "$deps";
 import type { IManifest } from "../entities/Manifest.ts";
 import { INTRO_TEXT } from "../scripts/_strings.ts";
 import { generateManifest } from "./generateManifest.ts";
@@ -24,6 +24,7 @@ const dev = async (path: string, plugins: Array<IPlugin> = []) => {
   const pathToManifest = `file:///${resolve(dir, "shibui.manifest.ts")}`;
   const manifest = (await import(pathToManifest))
     .default as IManifest;
+
   await initCore(manifest, plugins);
 };
 

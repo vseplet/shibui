@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import versions from "../../versions.ts";
+import versions from "$versions";
 
 // https://patorjk.com/software/taag/#p=display&h=0&f=ANSI%20Shadow&t=shibui%0ACORE
 export const INTRO_TEXT = `

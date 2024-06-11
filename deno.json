@@ -43,6 +43,7 @@
     ]
   },
   "imports": {
+    "$deps": "./source/deps.ts",
     "$versions": "./source/versions.ts",
     "$core": "./source/core/mod.ts",
     "$core/types": "./source/core/types.ts",
@@ -60,10 +61,6 @@
     "$framework/runtime/": "./source/framework/runtime/",
     "$framework/entities/": "./source/framework/entities/",
     "$helpers/types": "./source/helpers/types.ts",
-    "@std/fmt": "jsr:@std/fmt@0.224.0",
-    "@std/path": "jsr:@std/path@0.224.0",
-    "@std/flags": "jsr:@std/flags@0.224.0",
-    "@std/async": "jsr:@std/async@0.224.0",
-    "@vseplet/luminous": "jsr:@vseplet/luminous@1.0.3"
+    "$helpers": "./source/helpers/mod.ts"
   }
 }

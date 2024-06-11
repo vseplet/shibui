@@ -10,8 +10,8 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { join, relative, resolve } from "../../deps.ts";
-import { readDirRecursive } from "../../helpers/_readDirRecursive.ts";
+import { join, relative, resolve } from "$deps";
+import { readDirRecursive } from "$helpers";
 
 export const generateManifest = async (dir: string) => {
   const moduleExports: { [subDir: string]: { [path: string]: string } } = {

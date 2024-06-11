@@ -27,7 +27,7 @@ import {
   SIMPLE_TASK_TS,
   SIMPLE_WORKFLOW_TS,
 } from "./_strings.ts";
-import { colors, join, parse, resolve } from "../../deps.ts";
+import { colors, join, parse, resolve } from "$deps";
 import { error } from "../errors/mod.ts";
 
 const flags = parse(Deno.args, {

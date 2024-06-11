@@ -1,7 +1,6 @@
-import luminous from "@vseplet/luminous";
+import luminous from "jsr:@vseplet/luminous@1.0.3";
 
 export { luminous };
-
 export {
   basename,
   dirname,
@@ -12,9 +11,9 @@ export {
   relative,
   resolve,
   toFileUrl,
-} from "@std/path";
-export { parse } from "@std/flags";
-export { delay } from "@std/async";
+} from "jsr:@std/path@0.224.0";
+export { parse } from "jsr:@std/flags@0.224.0";
+export { delay } from "jsr:@std/async@0.224.0";
 
-import * as colors from "@std/fmt/colors";
+import * as colors from "jsr:@std/fmt@0.224.0/colors";
 export { colors };

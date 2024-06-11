@@ -26,7 +26,7 @@ import {
   SourceType,
 } from "$core/types";
 import { emitters } from "$core/emitters";
-import { colors } from "../../deps.ts";
+import { colors } from "$deps";
 
 const colorizeByLevel = {
   [Level.UNKNOWN]: colors.dim,

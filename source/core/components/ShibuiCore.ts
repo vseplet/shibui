@@ -11,7 +11,7 @@
  */
 
 import { emitters } from "$core/emitters";
-import { syncPromiseWithTimeout } from "../../helpers/syncPromiseWithTimeout.ts";
+import { syncPromiseWithTimeout } from "$helpers";
 import {
   type ILoggerOptions,
   type IPot,
