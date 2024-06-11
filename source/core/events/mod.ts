@@ -1,4 +1,18 @@
-import { CoreEvent } from "./CoreEvent.ts";
-import { LogEvent } from "./LogEvents.ts";
+export {
+  CoreEvent,
+  TaskFailedEvent,
+  WorkflowFailedEvent,
+  WorkflowFinishedEvent,
+  WorkflowStartedEvent,
+} from "./core.ts";
 
-export { CoreEvent, LogEvent };
+export {
+  DebugLogEvent,
+  ErrorLogEvent,
+  FatalLogEvent,
+  InfoLogEvent,
+  LogEvent,
+  TraceLogEvent,
+  VerboseLogEvent,
+  WarnLogEvent,
+} from "./log.ts";

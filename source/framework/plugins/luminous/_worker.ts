@@ -12,7 +12,7 @@
 
 import framework from "../../mod.ts";
 import luminous from "@vseplet/luminous";
-import type { LogEvent } from "../../../core/events/LogEvents.ts";
+import type { LogEvent } from "$core/events";
 import {
   AbstractFormatter,
   type IDataForFormatting,

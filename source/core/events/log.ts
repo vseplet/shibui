@@ -13,7 +13,13 @@
 // deno-lint-ignore-file
 
 import { ShibuiEvent } from "$core/entities";
-import { ILogEventArgs, Level, ShibuiEventType, SourceType } from "$core/types";
+import {
+  ILogEventArgs,
+  ILogEventMetadata,
+  Level,
+  ShibuiEventType,
+  SourceType,
+} from "$core/types";
 
 export class LogEvent<T> extends ShibuiEvent {
   type = ShibuiEventType.LOG;
@@ -30,10 +36,6 @@ export class LogEvent<T> extends ShibuiEvent {
     this.msg = msg;
     if (metadata) this.metadata = metadata;
   }
-}
-
-interface ILogEventMetadata {
-  name?: string;
 }
 
 export class DebugLogEvent extends LogEvent<ILogEventMetadata> {
@@ -63,16 +65,3 @@ export class ErrorLogEvent extends LogEvent<ILogEventMetadata> {
 export class FatalLogEvent extends LogEvent<ILogEventMetadata> {
   level = Level.FATAL;
 }
-
-const LogEvents = {
-  LogEvent,
-  DebugLogEvent,
-  ErrorLogEvent,
-  TraceLogEvent,
-  InfoLogEvent,
-  WarnLogEvent,
-  VerboseLogEvent,
-  FatalLogEvent,
-};
-
-export default LogEvents;

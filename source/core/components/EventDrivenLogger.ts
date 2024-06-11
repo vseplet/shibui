@@ -18,14 +18,14 @@ import {
   TraceLogEvent,
   VerboseLogEvent,
   WarnLogEvent,
-} from "../events/LogEvents.ts";
+} from "$core/events";
 import {
   type IEventDrivenLogger,
   type ILoggerOptions,
   Level,
   SourceType,
 } from "$core/types";
-import { emitters } from "../emitters.ts";
+import { emitters } from "$core/emitters";
 import { colors } from "../../deps.ts";
 
 const colorizeByLevel = {

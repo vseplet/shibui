@@ -10,8 +10,8 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import type { Constructor } from "../helpers/types.ts";
-import type { emitters } from "./emitters.ts";
+import type { Constructor } from "$helpers/types";
+import type { emitters } from "$core/emitters";
 import type { task, TaskBuilder } from "./entities/TaskBuilder.ts";
 import type { workflow } from "./entities/WorkflowBuilder.ts";
 
@@ -336,4 +336,8 @@ export interface IEventDrivenLogger {
   err(msg: string): void;
   wrn(msg: string): void;
   flt(msg: string): void;
+}
+
+export interface ILogEventMetadata {
+  name?: string;
 }

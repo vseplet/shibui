@@ -1,6 +1,6 @@
 import { middleware } from "../entities/Middleware.ts";
 import { plugin } from "../entities/Plugin.ts";
-import { ShibuiCore } from "../../core/components/ShibuiCore.ts";
+import { ShibuiCore } from "$core/components";
 
 export class ShibuiFramework {
   core = new ShibuiCore();

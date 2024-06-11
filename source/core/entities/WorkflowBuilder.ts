@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import type { Constructor } from "../../helpers/types.ts";
+import type { Constructor } from "$helpers/types";
 import type {
   IPot,
   ITaskBuilder,
@@ -109,18 +109,18 @@ export class WorkflowBuilder<ContextPot extends IPot>
   #task1(builder: TaskBuilder<ContextPot, IPot, IPot, IPot, IPot>) {
     builder.belongsToWorkflow(this);
 
-    // const length = builder.task.triggers[this.contextPotConstructor.name]
-    //   ?.length;
+    const length = builder.task.triggers[this.contextPotConstructor.name]
+      ?.length;
 
-    // if (!length || length == 0) {
-    //   builder.on(
-    //     this.contextPotConstructor as Constructor<
-    //       Exclude<ContextPot, undefined>
-    //     >,
-    //     ({ pots, allow, deny }) =>
-    //       pots[0].to.task === builder.task.name ? allow() : deny(),
-    //   );
-    // }
+    if (!length || length == 0) {
+      builder.on(
+        this.contextPotConstructor as Constructor<
+          Exclude<ContextPot, undefined>
+        >,
+        ({ pots, allow, deny }) =>
+          pots[0].to.task === builder.task.name ? allow() : deny(),
+      );
+    }
 
     this.taskBuilders.push(builder);
     return builder;

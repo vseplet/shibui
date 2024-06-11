@@ -10,9 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { workflow } from "../entities/WorkflowBuilder.ts";
-import { task } from "../entities/TaskBuilder.ts";
-import { emitters } from "../emitters.ts";
+import { emitters } from "$core/emitters";
 import { syncPromiseWithTimeout } from "../../helpers/syncPromiseWithTimeout.ts";
 import {
   type ILoggerOptions,
@@ -23,10 +21,10 @@ import {
   SourceType,
 } from "$core/types";
 import { Distributor, EventDrivenLogger } from "$core/components";
+import { TaskBuilder, WorkflowBuilder } from "$core/entities";
+import type { Constructor } from "$helpers/types";
 
 export class ShibuiCore implements IShibuiCore {
-  workflow = workflow;
-  task = task;
   emitters = emitters;
 
   #globalPotDistributor: Distributor;
@@ -45,6 +43,34 @@ export class ShibuiCore implements IShibuiCore {
 
   constructor() {
     this.#globalPotDistributor = new Distributor(this);
+  }
+
+  workflow<ContextPot extends IPot>(
+    contextPotConstructor: Constructor<ContextPot>,
+  ) {
+    return new WorkflowBuilder<ContextPot>(contextPotConstructor);
+  }
+
+  task<
+    P1 extends IPot,
+    P2 extends IPot,
+    P3 extends IPot,
+    P4 extends IPot,
+    P5 extends IPot,
+  >(
+    p1: Constructor<P1>,
+    p2?: Constructor<P2>,
+    p3?: Constructor<P3>,
+    p4?: Constructor<P4>,
+    p5?: Constructor<P5>,
+  ) {
+    return new TaskBuilder<P1, P2, P3, P4, P5>(
+      p1,
+      p2,
+      p3,
+      p4,
+      p5,
+    );
   }
 
   createLogger = (options: ILoggerOptions) => {

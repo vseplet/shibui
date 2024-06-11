@@ -11,7 +11,7 @@
  */
 
 // deno-lint-ignore-file
-import { Constructor } from "../../helpers/types.ts";
+import { Constructor } from "$helpers/types";
 import { TaskNameMissingError } from "$core/errors";
 import {
   DoHandlerContext,

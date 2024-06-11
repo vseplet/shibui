@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import type { Constructor } from "../../helpers/types.ts";
+import type { Constructor } from "$helpers/types";
 import type { ShibuiEvent } from "$core/entities";
 
 export class EventEmitter<
