@@ -10,10 +10,9 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { CoreStartPot } from "../pots/CoreStartPot.ts";
-import { Pot } from "../entities/Pot.ts";
-import { TaskBuilder } from "../entities/TaskBuilder.ts";
-import { WorkflowBuilder } from "../entities/WorkflowBuilder.ts";
+import { CoreStartPot } from "$core/pots";
+import { Pot } from "$core/entities";
+import { TaskBuilder, WorkflowBuilder } from "$core/entities";
 import {
   type IEventDrivenLogger,
   type IPot,
@@ -22,7 +21,7 @@ import {
   type IWorkflowBuilder,
   SourceType,
 } from "$core/types";
-import { Tester } from "./Tester.ts";
+import { Tester } from "$core/components";
 
 export default class Distributor {
   #kv: Deno.Kv = undefined as unknown as Deno.Kv;
@@ -109,3 +108,5 @@ export default class Distributor {
     this.#kv.enqueue(pot);
   }
 }
+
+export { Distributor };

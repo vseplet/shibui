@@ -1,6 +1,6 @@
 // deno-lint-ignore-file
-import { InternalPot } from "../pots/InternalPot.ts";
-import core from "../mod.ts";
+import { InternalPot } from "$core/pots";
+import core from "$core";
 
 class SimplePot extends InternalPot<{ value: number }> {
   ttl = 5;

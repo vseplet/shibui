@@ -1,4 +1,4 @@
-import type { Pot } from "../entities/mod.ts";
+import type { Pot } from "$core/entities";
 import {
   type IEventDrivenLogger,
   type IShibuiCore,

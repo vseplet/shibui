@@ -1,5 +1,5 @@
-import { EventEmitter } from "./components/mod.ts";
-import type { CoreEvent, LogEvent } from "./events/mod.ts";
+import { EventEmitter } from "$core/components";
+import type { CoreEvent, LogEvent } from "$core/events";
 
 export const emitters = {
   logEventEmitter: new EventEmitter<LogEvent<unknown>>("log"),

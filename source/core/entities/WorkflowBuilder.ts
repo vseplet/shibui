@@ -20,7 +20,7 @@ import type {
   WorkflowTriggerHandler,
 } from "$core/types";
 import { task1 } from "./TaskBuilder.ts";
-import type { TaskBuilder } from "./mod.ts";
+import type { TaskBuilder } from "$core/entities";
 
 export class WorkflowBuilder<ContextPot extends IPot>
   implements IWorkflowBuilder {

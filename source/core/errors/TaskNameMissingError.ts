@@ -1,4 +1,4 @@
-import { ShibuiError } from "../entities/ShibuiError.ts";
+import { ShibuiError } from "$core/entities";
 
 export class TaskNameMissingError extends ShibuiError {
   constructor() {

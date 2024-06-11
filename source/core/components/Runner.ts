@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import type { Pot } from "../entities/Pot.ts";
+import type { Pot } from "$core/entities";
 import {
   DoHandlerOp,
   type DoHandlerResult,
@@ -152,3 +152,5 @@ export default class Runner {
     );
   }
 }
+
+export { Runner };

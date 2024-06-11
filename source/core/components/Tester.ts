@@ -1,7 +1,7 @@
 // deno-lint-ignore-file no-unused-vars
-import { TRIGGER_OP_ALLOW, TRIGGER_OP_DENY } from "../constants.ts";
-import type { Pot } from "../entities/mod.ts";
-import STRS from "../strings.ts";
+import { TRIGGER_OP_ALLOW, TRIGGER_OP_DENY } from "$core/constants";
+import type { Pot } from "$core/entities";
+import STRS from "$core/strings";
 import {
   type IEventDrivenLogger,
   type IPot,
@@ -15,8 +15,7 @@ import {
   type WorkflowsStorage,
   type WorkflowTriggersStorage,
 } from "$core/types";
-import { Filler } from "./Filler.ts";
-import Runner from "./Runner.ts";
+import { Filler, Runner } from "$core/components";
 
 export class Tester {
   #core: IShibuiCore;

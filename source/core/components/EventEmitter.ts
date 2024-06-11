@@ -11,7 +11,7 @@
  */
 
 import type { Constructor } from "../../helpers/types.ts";
-import type { ShibuiEvent } from "../entities/ShibuiEvent.ts";
+import type { ShibuiEvent } from "$core/entities";
 
 export class EventEmitter<
   T extends ShibuiEvent,

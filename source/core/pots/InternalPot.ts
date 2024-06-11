@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { Pot } from "../entities/Pot.ts";
+import { Pot } from "$core/entities";
 import { PotType } from "$core/types";
 
 export class InternalPot<T extends { [key: string]: unknown }> extends Pot<T> {

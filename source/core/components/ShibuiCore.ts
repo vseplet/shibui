@@ -22,8 +22,7 @@ import {
   type IWorkflowBuilder,
   SourceType,
 } from "$core/types";
-import Distributor from "./Distributor.ts";
-import { EventDrivenLogger } from "./EventDrivenLogger.ts";
+import { Distributor, EventDrivenLogger } from "$core/components";
 
 export class ShibuiCore implements IShibuiCore {
   workflow = workflow;

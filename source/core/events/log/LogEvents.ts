@@ -12,13 +12,8 @@
 
 // deno-lint-ignore-file
 
-import { ShibuiEvent } from "../../entities/ShibuiEvent.ts";
-import {
-  ILogEventArgs,
-  Level,
-  ShibuiEventType,
-  SourceType,
-} from "../$core/types";
+import { ShibuiEvent } from "$core/entities";
+import { ILogEventArgs, Level, ShibuiEventType, SourceType } from "$core/types";
 
 export class LogEvent<T> extends ShibuiEvent {
   type = ShibuiEventType.LOG;
