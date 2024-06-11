@@ -1,7 +1,7 @@
 {
   "name": "@vseplet/shibui",
   "lock": false,
-  "version": "0.4.11",
+  "version": "0.4.12",
   "exports": {
     ".": "./source/core/mod.ts",
     "./core": "./source/core/mod.ts",
@@ -18,7 +18,6 @@
     "./framework/scripts/init": "./source/framework/scripts/init.ts",
     "./framework/scripts/update": "./source/framework/scripts/update.ts"
   },
-
   "publish": {
     "include": [
       "LICENSE",
@@ -26,7 +25,6 @@
       "source/**/*.ts"
     ]
   },
-
   "tasks": {
     "pub-dry": "deno publish --dry-run --allow-slow-types",
     "serve": "deno run --allow-all --unstable-broadcast-channel ./source/moduleServe.ts",
@@ -39,16 +37,13 @@
     "ex7": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./source/core/examples/ex7.ts",
     "ex8": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./source/core/examples/ex8.ts"
   },
-
   "fmt": {
     "exclude": [
       "./source/core/versions.ts"
     ]
   },
-
   "imports": {
     "$versions": "./source/versions.ts",
-
     "$core": "./source/core/mod.ts",
     "$core/types": "./source/core/types.ts",
     "$core/pots": "./source/core/pots/mod.ts",
@@ -60,14 +55,11 @@
     "$core/constants": "./source/core/constants.ts",
     "$core/components": "./source/core/components/mod.ts",
     "$core/components/": "./source/core/components/",
-
     "$framework": "./source/framework/mod.ts",
     "$framework/components/": "./source/framework/components/",
     "$framework/runtime/": "./source/framework/runtime/",
     "$framework/entities/": "./source/framework/entities/",
-
     "$helpers/types": "./source/helpers/types.ts",
-
     "@std/fmt": "jsr:@std/fmt@0.224.0",
     "@std/path": "jsr:@std/path@0.224.0",
     "@std/flags": "jsr:@std/flags@0.224.0",
