@@ -62,6 +62,7 @@ export const execute = async (
   await tmpCore.start();
   if (pots) pots.forEach((pot) => tmpCore.send(pot));
   while (!isComplete) await delay(0);
+  // tmpCore.stop();
   return isOk;
 };
 

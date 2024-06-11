@@ -66,6 +66,11 @@ export class EventEmitter<
     // this.channelB.onmessageerror = callback; ?
   }
 
+  // close() {
+  //   this.#channelA.close();
+  //   this.#channelB.close();
+  // }
+
   emit(event: ShibuiEvent) {
     this.#channelB.postMessage(event);
   }

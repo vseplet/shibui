@@ -65,6 +65,10 @@ export default class Distributor {
     this.send(new CoreStartPot());
   }
 
+  // stop() {
+  //   this.#kv.close();
+  // }
+
   register(builder: IWorkflowBuilder | ITaskBuilder) {
     if (builder instanceof WorkflowBuilder) {
       const workflow = builder.build();

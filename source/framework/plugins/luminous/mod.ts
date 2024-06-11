@@ -10,9 +10,15 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import framework from "../../mod.ts";
+import framework from "$framework";
 
-export default framework.plugin("luminous", ({ log }) => {
+export default framework.plugin("luminous", ({ core, log }) => {
   log.inf("start worker...");
-  new Worker(new URL("./_worker.ts", import.meta.url).href, { type: "module" });
+  const worker = new Worker(new URL("./_worker.ts", import.meta.url).href, {
+    type: "module",
+  });
+
+  worker.postMessage({
+    logChannelName: core.emitters.logEventEmitter.name,
+  });
 });

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Vsevolod Plentev
+ * Copyright 2024 Vsevolod Plentev
  *
  * This program is licensed under the Creative Commons Attribution-NonCommercial 3.0 Unported License (CC BY-NC 3.0).
  * You may obtain a copy of the license at https://creativecommons.org/licenses/by-nc/3.0/legalcode.
@@ -10,7 +10,6 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import framework from "$framework";
 import {
   AbstractFormatter,
   colors,
@@ -19,6 +18,7 @@ import {
 } from "$deps";
 import type { LogEvent } from "$core/events";
 import { Level } from "$core/types";
+import { EventEmitter } from "$core/components";
 
 interface IShibuiTextFormatterOptions {
   showMetadata?: boolean;
@@ -86,8 +86,14 @@ const logger = new luminous.Logger(
     .build(),
 );
 
-const main = () => {
-  framework.emitters.logEventEmitter.addListener((event) => {
+//@ts-ignore
+self.onmessage = (m) => {
+  console.log(m);
+  const logEventEmitter = new EventEmitter<LogEvent<unknown>>(
+    m.data.logChannelName,
+  );
+
+  logEventEmitter.addListener((event) => {
     switch (event.level) {
       case Level.TRACE:
         logger.trc(event.msg, event);
@@ -113,5 +119,3 @@ const main = () => {
     }
   });
 };
-
-main();

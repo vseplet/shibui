@@ -23,7 +23,7 @@ import { Distributor, EventDrivenLogger } from "$core/components";
 import { TaskBuilder, WorkflowBuilder } from "$core/entities";
 import type { Constructor } from "$helpers/types";
 import { EventEmitter } from "./EventEmitter.ts";
-import { CoreEvent, LogEvent } from "$core/events";
+import type { CoreEvent, LogEvent } from "$core/events";
 
 export class ShibuiCore implements IShibuiCore {
   emitters = emitters;
@@ -95,6 +95,12 @@ export class ShibuiCore implements IShibuiCore {
   async start() {
     await this.#globalPotDistributor.start();
   }
+
+  // stop() {
+  //   this.#globalPotDistributor.stop();
+  //   this.emitters.coreEventEmitter.close();
+  //   this.emitters.logEventEmitter.close();
+  // }
 
   register(builder: ITaskBuilder | IWorkflowBuilder) {
     this.#globalPotDistributor.register(builder);
