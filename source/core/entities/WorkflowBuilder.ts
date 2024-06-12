@@ -17,12 +17,13 @@ import type {
   IWorkflow,
   IWorkflowBuilder,
   IWorkflowBuilderSetupArgs,
+  Spicy,
   WorkflowTriggerHandler,
 } from "$core/types";
 import { task1 } from "./TaskBuilder.ts";
-import type { TaskBuilder } from "$core/entities";
+import { TaskBuilder } from "$core/entities";
 
-export class WorkflowBuilder<ContextPot extends IPot>
+export class WorkflowBuilder<ContextPot extends IPot, S = Spicy>
   implements IWorkflowBuilder {
   contextPotConstructor: Constructor<ContextPot>;
 
@@ -68,10 +69,11 @@ export class WorkflowBuilder<ContextPot extends IPot>
 
     return this;
   }
+  x;
 
   on<T extends IPot>(
     potConstructor: Constructor<T>,
-    handler?: WorkflowTriggerHandler<ContextPot, T>,
+    handler?: WorkflowTriggerHandler<ContextPot, T, S>,
   ) {
     if (handler) {
       this.workflow.triggers[potConstructor.name] = {
@@ -106,7 +108,9 @@ export class WorkflowBuilder<ContextPot extends IPot>
   //   return builder;
   // }
 
-  #task1(builder: TaskBuilder<ContextPot, IPot, IPot, IPot, IPot>) {
+  #task1(
+    builder: TaskBuilder<ContextPot, IPot, IPot, IPot, IPot, S>,
+  ): TaskBuilder<ContextPot, IPot, IPot, IPot, IPot, S> {
     builder.belongsToWorkflow(this);
 
     const length = builder.task.triggers[this.contextPotConstructor.name]
@@ -128,12 +132,26 @@ export class WorkflowBuilder<ContextPot extends IPot>
 
   sq(
     fun: (
-      args: IWorkflowBuilderSetupArgs<ContextPot>,
+      args: IWorkflowBuilderSetupArgs<ContextPot, S>,
     ) => ITaskBuilder,
   ) {
     const initArgs = {
-      task1: () => {
-        const builder = task1(this.contextPotConstructor);
+      task1: (): TaskBuilder<
+        ContextPot,
+        IPot,
+        IPot,
+        IPot,
+        IPot,
+        S
+      > => {
+        const builder = new TaskBuilder<
+          ContextPot,
+          IPot,
+          IPot,
+          IPot,
+          IPot,
+          S
+        >(this.contextPotConstructor);
         return this.#task1(builder);
       },
       shared1: (

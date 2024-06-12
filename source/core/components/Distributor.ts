@@ -14,22 +14,22 @@ import { CoreStartPot } from "$core/pots";
 import { Pot } from "$core/entities";
 import { TaskBuilder, WorkflowBuilder } from "$core/entities";
 import {
+  type ICore,
   type IEventDrivenLogger,
   type IPot,
-  type IShibuiCore,
   type ITaskBuilder,
   type IWorkflowBuilder,
   SourceType,
 } from "$core/types";
 import { Tester } from "$core/components";
 
-export default class Distributor {
+export default class Distributor<S> {
   #kv: Deno.Kv = undefined as unknown as Deno.Kv;
-  #core: IShibuiCore;
+  #core: ICore<S>;
   #log: IEventDrivenLogger;
   #tester: Tester;
 
-  constructor(core: IShibuiCore) {
+  constructor(core: ICore<S>) {
     this.#core = core;
     this.#log = core.createLogger({
       sourceType: SourceType.CORE,
@@ -64,10 +64,6 @@ export default class Distributor {
     this.#kv.listenQueue((rawPotObj: IPot) => this.#test(rawPotObj));
     this.send(new CoreStartPot());
   }
-
-  // stop() {
-  //   this.#kv.close();
-  // }
 
   register(builder: IWorkflowBuilder | ITaskBuilder) {
     if (builder instanceof WorkflowBuilder) {

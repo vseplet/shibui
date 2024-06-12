@@ -12,9 +12,10 @@
 
 import { emitters } from "$core/emitters";
 import {
+  type ICore,
+  type ICoreOptions,
   type ILoggerOptions,
   type IPot,
-  type IShibuiCore,
   type ITaskBuilder,
   type IWorkflowBuilder,
   SourceType,
@@ -23,10 +24,10 @@ import { Distributor, EventDrivenLogger } from "$core/components";
 import { TaskBuilder, WorkflowBuilder } from "$core/entities";
 import type { Constructor } from "$helpers/types";
 
-export class ShibuiCore implements IShibuiCore {
+export class Core<S> implements ICore<S> {
   emitters = emitters;
 
-  #globalPotDistributor: Distributor;
+  #globalPotDistributor: Distributor<S>;
   settings = {
     DEFAULT_LOGGING_ENABLED: true,
     DEFAULT_LOGGING_LEVEL: 0,
@@ -40,24 +41,14 @@ export class ShibuiCore implements IShibuiCore {
     ],
   };
 
-  constructor() {
-    // this.emitters = {
-    //   logEventEmitter: new EventEmitter<LogEvent<unknown>>(
-    //     "log" + Math.random(),
-    //   ),
-
-    //   coreEventEmitter: new EventEmitter<CoreEvent>(
-    //     "log" + Math.random(),
-    //   ),
-    // };
-
-    this.#globalPotDistributor = new Distributor(this);
+  constructor(config: ICoreOptions<S>) {
+    this.#globalPotDistributor = new Distributor<S>(this);
   }
 
   workflow<ContextPot extends IPot>(
     contextPotConstructor: Constructor<ContextPot>,
-  ) {
-    return new WorkflowBuilder<ContextPot>(contextPotConstructor);
+  ): WorkflowBuilder<ContextPot, S> {
+    return new WorkflowBuilder<ContextPot, S>(contextPotConstructor);
   }
 
   task<
@@ -73,7 +64,7 @@ export class ShibuiCore implements IShibuiCore {
     p4?: Constructor<P4>,
     p5?: Constructor<P5>,
   ) {
-    return new TaskBuilder<P1, P2, P3, P4, P5>(
+    return new TaskBuilder<P1, P2, P3, P4, P5, S>(
       p1,
       p2,
       p3,

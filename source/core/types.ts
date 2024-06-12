@@ -13,7 +13,7 @@
 import type { Constructor } from "$helpers/types";
 import type { emitters } from "$core/emitters";
 import type { task, TaskBuilder } from "./entities/TaskBuilder.ts";
-import type { workflow } from "./entities/WorkflowBuilder.ts";
+import type { workflow, WorkflowBuilder } from "./entities/WorkflowBuilder.ts";
 
 export enum PotType {
   UNKNOWN = "UNKNOWN",
@@ -96,17 +96,20 @@ export type AnyWorkflowTaskBuilder<CTX extends IPot> = TaskBuilder<
   IPot
 >;
 
+export type Spicy = Record<string | number | symbol, never>;
+
 export type Context<
   P1 extends IPot,
   P2 extends IPot | undefined = undefined,
   P3 extends IPot | undefined = undefined,
   P4 extends IPot | undefined = undefined,
   P5 extends IPot | undefined = undefined,
+  S = Spicy,
 > = {
-  core: IShibuiCore;
+  core: ICore;
   pots: [P1, P2, P3, P4, P5];
   log: IEventDrivenLogger;
-};
+} & S;
 
 export type TriggerHandlerContext<
   P1 extends IPot,
@@ -114,7 +117,8 @@ export type TriggerHandlerContext<
   P3 extends IPot | undefined = undefined,
   P4 extends IPot | undefined = undefined,
   P5 extends IPot | undefined = undefined,
-> = Context<P1, P2, P3, P4, P5> & {
+  S = Spicy,
+> = Context<P1, P2, P3, P4, P5, S> & {
   allow: (
     potIndex?: number,
   ) => { op: TriggerHandlerOp; potIndex: number };
@@ -127,7 +131,8 @@ export type DoHandlerContext<
   P3 extends IPot | undefined = undefined,
   P4 extends IPot | undefined = undefined,
   P5 extends IPot | undefined = undefined,
-> = Context<P1, P2, P3, P4, P5> & {
+  S = Spicy,
+> = Context<P1, P2, P3, P4, P5, S> & {
   next: (
     taskBuilders: ITaskBuilder | Array<ITaskBuilder>,
     data?: Partial<P1["data"]>,
@@ -184,7 +189,7 @@ export type DoHandlerResult =
     data?: Partial<IPot["data"]>;
   };
 
-export type TaskTrigger = {
+export type TaskTrigger<S = Spicy> = {
   taskName: string;
   potConstructor: Constructor<IPot>;
   slot: number;
@@ -194,24 +199,35 @@ export type TaskTrigger = {
       IPot | undefined,
       IPot | undefined,
       IPot | undefined,
-      IPot | undefined
+      IPot | undefined,
+      S
     >,
   ): TriggerHandlerResult;
   belongsToWorkflow: string | undefined;
 };
 
+export type WorkflowTriggerHandlerContext<
+  TriggerPot extends IPot,
+  S = Spicy,
+> = S & {
+  pot: TriggerPot;
+  log: IEventDrivenLogger;
+};
+
 export type WorkflowTriggerHandler<
   ContextPot extends IPot,
   TriggerPot extends IPot,
-> = (args: { pot: TriggerPot; log: IEventDrivenLogger }) => ContextPot | null;
+  S = Spicy,
+> = (args: WorkflowTriggerHandlerContext<TriggerPot, S>) => ContextPot | null;
 
-export interface IWorkflowBuilderSetupArgs<ContextPot extends IPot> {
+export interface IWorkflowBuilderSetupArgs<ContextPot extends IPot, S = Spicy> {
   task1: () => TaskBuilder<
     ContextPot,
     IPot,
     IPot,
     IPot,
-    IPot
+    IPot,
+    S
   >;
 
   shared1: (
@@ -306,9 +322,23 @@ interface IShibuiCoreSettings {
   ALLOWED_LOGGING_SOURCE_TYPES: SourceType[];
 }
 
-export interface IShibuiCore {
-  workflow: typeof workflow;
-  task: typeof task;
+export interface ICore<S = Spicy> {
+  workflow<ContextPot extends IPot>(
+    contextPotConstructor: Constructor<ContextPot>,
+  ): WorkflowBuilder<ContextPot, S>;
+  task<
+    P1 extends IPot,
+    P2 extends IPot,
+    P3 extends IPot,
+    P4 extends IPot,
+    P5 extends IPot,
+  >(
+    p1: Constructor<P1>,
+    p2?: Constructor<P2>,
+    p3?: Constructor<P3>,
+    p4?: Constructor<P4>,
+    p5?: Constructor<P5>,
+  ): TaskBuilder<P1, P2, P3, P4, P5, S>;
   emitters: typeof emitters;
   settings: IShibuiCoreSettings;
 
@@ -334,5 +364,7 @@ export interface ILogEventMetadata {
   name?: string;
 }
 
-export interface IShibuiCoreOptions {
+export interface ICoreOptions<S = Spicy> {
+  useDenoKV?: boolean;
+  spicy?: S;
 }

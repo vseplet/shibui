@@ -1,8 +1,27 @@
 // deno-lint-ignore-file require-await
 import core from "$core";
-import { InternalPot } from "$core/pots";
+import { ContextPot, InternalPot } from "$core/pots";
 
-const c = core();
+const c = core({
+  useDenoKV: false,
+  spicy: {
+    x: 100,
+  },
+});
+
+c.workflow(class CTX extends ContextPot<{}> {})
+  .name`Workflow 1`
+  .on(InternalPot, ({ x, pot }) => {
+    throw new Error("Not allowed");
+  })
+  .sq(({ task1 }) => {
+    return task1()
+      .name`Task 1`
+      .do(async ({ log, pots, finish, x }) => {
+        log.dbg(``);
+        return finish();
+      });
+  });
 
 class SimplePot extends InternalPot<{ value: number }> {
   ttl = 1;
@@ -13,8 +32,8 @@ class SimplePot extends InternalPot<{ value: number }> {
 
 const task1 = c.task(SimplePot)
   .name`Task 1`
-  .onRule("ForThisTask", SimplePot)
-  .do(async ({ log, pots, next }) => {
+  .on(SimplePot, ({ x, allow }) => allow())
+  .do(async ({ log, pots, next, x }) => {
     log.dbg(`value: ${pots[0].data.value}`);
     return next(task2, {
       value: pots[0].data.value += 1,

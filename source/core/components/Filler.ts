@@ -1,17 +1,17 @@
 import type { Pot } from "$core/entities";
 import {
+  type ICore,
   type IEventDrivenLogger,
-  type IShibuiCore,
   type ITask,
   SourceType,
 } from "$core/types";
 
 export class Filler {
-  #core: IShibuiCore;
+  #core: ICore;
   #kv: Deno.Kv;
   #log: IEventDrivenLogger;
 
-  constructor(core: IShibuiCore, kv: Deno.Kv) {
+  constructor(core: ICore, kv: Deno.Kv) {
     this.#core = core;
     this.#kv = kv;
     this.#log = core.createLogger({

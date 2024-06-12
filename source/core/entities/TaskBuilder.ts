@@ -20,6 +20,7 @@ import {
   ITask,
   ITaskBuilder,
   IWorkflowBuilder,
+  Spicy,
   TriggerHandlerContext,
   TriggerHandlerResult,
 } from "$core/types";
@@ -30,6 +31,7 @@ export class TaskBuilder<
   P3 extends IPot | undefined = undefined,
   P4 extends IPot | undefined = undefined,
   P5 extends IPot | undefined = undefined,
+  S = Spicy,
 > implements ITaskBuilder {
   task: ITask = {
     name: "unknown",
@@ -121,7 +123,14 @@ export class TaskBuilder<
   on<TP extends Exclude<P1 | P2 | P3 | P4 | P5, undefined>>(
     potConstructor: Constructor<TP>,
     handler?: (
-      args: TriggerHandlerContext<P1>,
+      args: TriggerHandlerContext<
+        P1,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        S
+      >,
     ) => TriggerHandlerResult,
     slot?: number,
   ): this {
@@ -225,7 +234,7 @@ export class TaskBuilder<
 
   do(
     handler: (
-      args: DoHandlerContext<P1, P2, P3, P4, P5>,
+      args: DoHandlerContext<P1, P2, P3, P4, P5, S>,
     ) => Promise<DoHandlerResult>,
   ) {
     this.task.do = handler;

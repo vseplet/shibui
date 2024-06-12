@@ -14,9 +14,9 @@ import type { Pot } from "$core/entities";
 import {
   DoHandlerOp,
   type DoHandlerResult,
+  type ICore,
   type IEventDrivenLogger,
   type IPot,
-  type IShibuiCore,
   type ITask,
   type ITaskBuilder,
   SourceType,
@@ -27,14 +27,15 @@ import {
   WorkflowFailedEvent,
   WorkflowFinishedEvent,
 } from "$core/events";
+import { delay } from "$deps";
 
 export default class Runner {
-  #core: IShibuiCore;
+  #core: ICore;
   #kv: Deno.Kv;
   #log: IEventDrivenLogger;
   #tasks: { [name: string]: ITask } = {};
 
-  constructor(core: IShibuiCore, kv: Deno.Kv) {
+  constructor(core: ICore, kv: Deno.Kv) {
     this.#core = core;
     this.#kv = kv;
     this.#log = core.createLogger({
@@ -107,14 +108,19 @@ export default class Runner {
     result: DoHandlerResult,
   ) {
     try {
-      if (result.op === DoHandlerOp.FINISH) {
-        this.#onFinish(task);
-      } else if (result.op == DoHandlerOp.NEXT) {
-        this.#onNext(pots, task, result.taskBuilders, result.data);
-      } else if (result.op === DoHandlerOp.REPEAT) {
-        this.#onRepeat();
-      } else if (result.op === DoHandlerOp.FAIL) {
-        this.#onFail(task, result.reason);
+      switch (result.op) {
+        case DoHandlerOp.FINISH:
+          this.#onFinish(task);
+          break;
+        case DoHandlerOp.NEXT:
+          this.#onNext(pots, task, result.taskBuilders, result.data);
+          break;
+        case DoHandlerOp.REPEAT:
+          this.#onRepeat(pots, task);
+          break;
+        case DoHandlerOp.FAIL:
+          this.#onFail(task, result.reason);
+          break;
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -124,8 +130,12 @@ export default class Runner {
   }
 
   #onFail(task: ITask, reason: string) {
+    this.#log.err(`Task '${task.name}' failed due to reason: '${reason}'.`);
     this.#core.emitters.coreEventEmitter.emit(new TaskFailedEvent());
     if (task.belongsToWorkflow) {
+      this.#log.err(
+        `Workflow '${task.belongsToWorkflow}' failed due to task failure.`,
+      );
       this.#core.emitters.coreEventEmitter.emit(new WorkflowFailedEvent());
     }
   }
@@ -136,15 +146,18 @@ export default class Runner {
     nextTasks: Array<ITaskBuilder>,
     data?: Partial<unknown> | undefined,
   ) {
-    if (task.belongsToWorkflow) {
-      // это task из workflow скрипта
-    } else {
-      // это одиночный task
-    }
-
     this.#core.emitters.coreEventEmitter.emit(new TaskFinishedEvent());
 
     nextTasks.forEach((builder) => {
+      if (builder.task.belongsToWorkflow) {
+        this.#log.inf(
+          `calling the next task ${builder.task.name} within the workflow '${task.belongsToWorkflow}'.`,
+        );
+      } else {
+        this.#log.inf(
+          `calling the next task ${builder.task.name}`,
+        );
+      }
       const newContextPot = pots[0].copy(data || pots[0].data);
       newContextPot.from.task = task.name;
       newContextPot.from.workflow = task.belongsToWorkflow;
@@ -155,6 +168,14 @@ export default class Runner {
   }
 
   #onFinish(task: ITask) {
+    if (task.belongsToWorkflow) {
+      this.#log.inf(
+        `Task '${task.name}' in workflow '${task.belongsToWorkflow}' successfully completed.`,
+      );
+    } else {
+      this.#log.inf(`Task '${task.name}' successfully completed.`);
+    }
+
     this.#core.emitters.coreEventEmitter.emit(new TaskFinishedEvent());
 
     if (task.belongsToWorkflow) {
@@ -162,14 +183,31 @@ export default class Runner {
     }
   }
 
-  #onRepeat() {}
+  async #onRepeat(pots: Array<Pot>, task: ITask, afterMs: number = 0) {
+    await delay(afterMs);
+
+    if (task.belongsToWorkflow) {
+      // это task из workflow скрипта
+    } else {
+      // это одиночный task
+    }
+    this.run(task.name, pots);
+  }
 
   #onError(pots: Array<Pot>, task: ITask, err: Error) {
-    this.#log.err(
-      `trying to process do handler result from task '${task.name}' by pot(?context) '${
-        pots[0].name
-      }' failed with error: '${err.message}'`,
-    );
+    if (task.belongsToWorkflow) {
+      this.#log.err(
+        `trying to process do handler result from workflow ${task.belongsToWorkflow} task '${task.name}' by context '${
+          pots[0].name
+        }' failed with error: '${err.message}'`,
+      );
+    } else {
+      this.#log.err(
+        `trying to process do handler result from task '${task.name}' by pot'${
+          pots[0].name
+        }' failed with error: '${err.message}'`,
+      );
+    }
   }
 }
 
