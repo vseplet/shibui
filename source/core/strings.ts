@@ -1,7 +1,6 @@
-import type { ITask, IWorkflow } from "$core/types";
+import type { ITask, type } from "$core/types";
 
-export const rwn = (workflow: IWorkflow) =>
-  `registered workflow '${workflow.name}'`;
+export const rwn = (workflow: type) => `registered workflow '${workflow.name}'`;
 
 export const rtn$own = (task: ITask) => {
   return `registered task '${task.name}'${

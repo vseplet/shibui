@@ -30,12 +30,12 @@ import {
 import { delay } from "$deps";
 
 export default class Runner {
-  #core: ICore;
+  #core: ICore<{}>;
   #kv: Deno.Kv;
   #log: IEventDrivenLogger;
   #tasks: { [name: string]: ITask } = {};
 
-  constructor(core: ICore, kv: Deno.Kv) {
+  constructor(core: ICore<{}>, kv: Deno.Kv) {
     this.#core = core;
     this.#kv = kv;
     this.#log = core.createLogger({

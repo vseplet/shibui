@@ -12,8 +12,7 @@
 
 import type { Constructor } from "$helpers/types";
 import type { emitters } from "$core/emitters";
-import type { task, TaskBuilder } from "./entities/TaskBuilder.ts";
-import type { workflow, WorkflowBuilder } from "./entities/WorkflowBuilder.ts";
+import type { TaskBuilder, WorkflowBuilder } from "$core/entities";
 
 export enum PotType {
   UNKNOWN = "UNKNOWN",
@@ -42,11 +41,11 @@ export interface IPot {
 
 export type IPotPack = Array<IPot>;
 
-export interface IShibuiError {
+export interface ISError {
   createdAt: number;
 }
 
-export enum ShibuiEventType {
+export enum SEventType {
   UNKNOWN,
   CORE,
   LOG,
@@ -56,7 +55,7 @@ export enum ShibuiEventType {
 }
 
 export interface IShibuiEvent {
-  type: ShibuiEventType;
+  type: SEventType;
   name: string;
   timestamp: number;
 }
@@ -75,7 +74,7 @@ export interface ITask {
   timeout: number;
   slotsCount: number;
   triggers: {
-    [key: string]: Array<TaskTrigger>;
+    [key: string]: Array<TaskTrigger<{}>>;
   };
   do({}): Promise<DoHandlerResult>;
   belongsToWorkflow: string | undefined;
@@ -88,37 +87,19 @@ export interface ITaskBuilder {
 
 export type TriggerHandlerOp = "ALLOW" | "DENY";
 
-export type AnyWorkflowTaskBuilder<CTX extends IPot> = TaskBuilder<
-  CTX,
-  IPot,
-  IPot,
-  IPot,
-  IPot
->;
-
 export type Spicy = Record<string | number | symbol, never>;
 
-export type Context<
+export type TriggerHandlerContext<
+  S extends Spicy,
   P1 extends IPot,
   P2 extends IPot | undefined = undefined,
   P3 extends IPot | undefined = undefined,
   P4 extends IPot | undefined = undefined,
   P5 extends IPot | undefined = undefined,
-  S = Spicy,
-> = {
-  core: ICore;
+> = S & {
+  core: ICore<S>;
   pots: [P1, P2, P3, P4, P5];
   log: IEventDrivenLogger;
-} & S;
-
-export type TriggerHandlerContext<
-  P1 extends IPot,
-  P2 extends IPot | undefined = undefined,
-  P3 extends IPot | undefined = undefined,
-  P4 extends IPot | undefined = undefined,
-  P5 extends IPot | undefined = undefined,
-  S = Spicy,
-> = Context<P1, P2, P3, P4, P5, S> & {
   allow: (
     potIndex?: number,
   ) => { op: TriggerHandlerOp; potIndex: number };
@@ -126,13 +107,17 @@ export type TriggerHandlerContext<
 };
 
 export type DoHandlerContext<
+  S extends Spicy,
   P1 extends IPot,
   P2 extends IPot | undefined = undefined,
   P3 extends IPot | undefined = undefined,
   P4 extends IPot | undefined = undefined,
   P5 extends IPot | undefined = undefined,
-  S = Spicy,
-> = Context<P1, P2, P3, P4, P5, S> & {
+> = S & {
+  core: ICore<S>;
+  pots: [P1, P2, P3, P4, P5];
+  log: IEventDrivenLogger;
+
   next: (
     taskBuilders: ITaskBuilder | Array<ITaskBuilder>,
     data?: Partial<P1["data"]>,
@@ -189,18 +174,18 @@ export type DoHandlerResult =
     data?: Partial<IPot["data"]>;
   };
 
-export type TaskTrigger<S = Spicy> = {
+export type TaskTrigger<S extends Spicy> = {
   taskName: string;
   potConstructor: Constructor<IPot>;
   slot: number;
   handler(
     ctx: TriggerHandlerContext<
+      S,
       IPot,
       IPot | undefined,
       IPot | undefined,
       IPot | undefined,
-      IPot | undefined,
-      S
+      IPot | undefined
     >,
   ): TriggerHandlerResult;
   belongsToWorkflow: string | undefined;
@@ -220,18 +205,22 @@ export type WorkflowTriggerHandler<
   S = Spicy,
 > = (args: WorkflowTriggerHandlerContext<TriggerPot, S>) => ContextPot | null;
 
-export interface IWorkflowBuilderSetupArgs<ContextPot extends IPot, S = Spicy> {
+export type IWorkflowBuilderSetupArgs<
+  ContextPot extends IPot,
+  S extends Spicy,
+> = {
   task1: () => TaskBuilder<
+    S,
     ContextPot,
     IPot,
     IPot,
     IPot,
-    IPot,
-    S
+    IPot
   >;
 
   shared1: (
     builder: TaskBuilder<
+      Spicy,
       ContextPot,
       IPot,
       IPot,
@@ -239,13 +228,14 @@ export interface IWorkflowBuilderSetupArgs<ContextPot extends IPot, S = Spicy> {
       IPot
     >,
   ) => TaskBuilder<
+    Spicy,
     ContextPot,
     IPot,
     IPot,
     IPot,
     IPot
   >;
-}
+};
 
 export type WorkflowTrigger = {
   workflowName: string;
@@ -253,14 +243,14 @@ export type WorkflowTrigger = {
   handler({}): IPot | null;
 };
 
-export interface IWorkflow {
+export type IWorkflow = {
   name: string;
   triggers: {
     [key: string]: WorkflowTrigger;
   };
   tasks: Array<ITask>;
   firstTaskName: string;
-}
+};
 
 export interface IWorkflowBuilder {
   workflow: IWorkflow;
@@ -275,7 +265,7 @@ export type WorkflowTriggersStorage = {
 };
 
 export type TaskTriggerStorage = {
-  [potName: string]: Array<TaskTrigger>;
+  [potName: string]: Array<TaskTrigger<{}>>;
 };
 
 export type WorkflowsStorage = { [workflowName: string]: IWorkflow };
@@ -316,13 +306,7 @@ export interface ILoggerOptions {
   sourceName?: string;
 }
 
-interface IShibuiCoreSettings {
-  DEFAULT_LOGGING_ENABLED: boolean;
-  DEFAULT_LOGGING_LEVEL: number;
-  ALLOWED_LOGGING_SOURCE_TYPES: SourceType[];
-}
-
-export interface ICore<S = Spicy> {
+export type ICore<S extends Spicy> = {
   workflow<ContextPot extends IPot>(
     contextPotConstructor: Constructor<ContextPot>,
   ): WorkflowBuilder<ContextPot, S>;
@@ -338,9 +322,8 @@ export interface ICore<S = Spicy> {
     p3?: Constructor<P3>,
     p4?: Constructor<P4>,
     p5?: Constructor<P5>,
-  ): TaskBuilder<P1, P2, P3, P4, P5, S>;
+  ): TaskBuilder<S, P1, P2, P3, P4, P5>;
   emitters: typeof emitters;
-  settings: IShibuiCoreSettings;
 
   createLogger(options: ILoggerOptions): IEventDrivenLogger;
   start(): Promise<void>;
@@ -348,7 +331,7 @@ export interface ICore<S = Spicy> {
   disable(builder: ITaskBuilder | IWorkflowBuilder): void;
   enable(builder: ITaskBuilder | IWorkflowBuilder): void;
   send(pot: IPot, builder?: ITaskBuilder): void;
-}
+};
 
 export interface IEventDrivenLogger {
   dbg(msg: string): void;

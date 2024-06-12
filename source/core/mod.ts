@@ -16,6 +16,7 @@ import type {
   IPot,
   ITaskBuilder,
   IWorkflowBuilder,
+  Spicy,
 } from "$core/types";
 import type { Constructor } from "$helpers/types";
 import { TaskBuilder, WorkflowBuilder } from "$core/entities";
@@ -99,7 +100,7 @@ export const task = <
   p4?: Constructor<P4>,
   p5?: Constructor<P5>,
 ) =>
-  new TaskBuilder<P1, P2, P3, P4, P5>(
+  new TaskBuilder<Spicy, P1, P2, P3, P4, P5>(
     p1,
     p2,
     p3,
@@ -114,14 +115,14 @@ export const task = <
  */
 export const workflow = <ContextPot extends IPot>(
   contextPotConstructor: Constructor<ContextPot>,
-) => new WorkflowBuilder<ContextPot>(contextPotConstructor);
+) => new WorkflowBuilder<ContextPot, Spicy>(contextPotConstructor);
 
 /**
  * Creates and returns a new instance of ShibuiCore.
  * @param {ICoreOptions} [config={ useDenoKV: true }] - Configuration for ShibuiCore.
  * @returns {Core} - A new instance of ShibuiCore.
  */
-export const core = <S>(
+export const core = <S extends Spicy = {}>(
   config: ICoreOptions<S> = { useDenoKV: true },
 ): Core<S> => {
   return new Core<S>(config);

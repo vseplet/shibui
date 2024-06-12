@@ -12,17 +12,17 @@
 
 // deno-lint-ignore-file
 
-import { ShibuiEvent } from "$core/entities";
+import { SEvent } from "$core/entities";
 import {
   ILogEventArgs,
   ILogEventMetadata,
   Level,
-  ShibuiEventType,
+  SEventType,
   SourceType,
 } from "$core/types";
 
-export class LogEvent<T> extends ShibuiEvent {
-  type = ShibuiEventType.LOG;
+export class LogEvent<T> extends SEvent {
+  type = SEventType.LOG;
   level = Level.UNKNOWN;
   sourceName = "unknown";
   sourceType = SourceType.UNKNOWN;

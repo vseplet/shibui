@@ -10,6 +10,7 @@ import {
   type IWorkflow,
   PotType,
   SourceType,
+  type Spicy,
   type TasksStorage,
   type TaskTriggerStorage,
   type WorkflowsStorage,
@@ -17,8 +18,8 @@ import {
 } from "$core/types";
 import { Filler, Runner } from "$core/components";
 
-export class Tester {
-  #core: ICore;
+export class Tester<S extends Spicy> {
+  #core: ICore<S>;
   #kv: Deno.Kv;
   #log: IEventDrivenLogger;
   #filler: Filler;
@@ -33,7 +34,7 @@ export class Tester {
   #workflowTaskTriggers: TaskTriggerStorage = {}; // зап��скаются от одного контекстного пота
   #workflowDependentTaskTriggers: TaskTriggerStorage = {}; // запускаются от нескольких потов, но при наличии контекста
 
-  constructor(core: ICore, kv: Deno.Kv) {
+  constructor(core: ICore<S>, kv: Deno.Kv) {
     this.#core = core;
     this.#kv = kv;
     this.#log = core.createLogger({

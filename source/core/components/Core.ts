@@ -19,12 +19,13 @@ import {
   type ITaskBuilder,
   type IWorkflowBuilder,
   SourceType,
+  type Spicy,
 } from "$core/types";
 import { Distributor, EventDrivenLogger } from "$core/components";
 import { TaskBuilder, WorkflowBuilder } from "$core/entities";
 import type { Constructor } from "$helpers/types";
 
-export class Core<S> implements ICore<S> {
+export class Core<S extends Spicy> implements ICore<S> {
   emitters = emitters;
 
   #globalPotDistributor: Distributor<S>;
@@ -64,7 +65,7 @@ export class Core<S> implements ICore<S> {
     p4?: Constructor<P4>,
     p5?: Constructor<P5>,
   ) {
-    return new TaskBuilder<P1, P2, P3, P4, P5, S>(
+    return new TaskBuilder<S, P1, P2, P3, P4, P5>(
       p1,
       p2,
       p3,
@@ -95,16 +96,16 @@ export class Core<S> implements ICore<S> {
     this.#globalPotDistributor.register(builder);
   }
 
-  disable = (builder: ITaskBuilder | IWorkflowBuilder) => {
+  disable(builder: ITaskBuilder | IWorkflowBuilder) {
     this.#globalPotDistributor.disable(builder);
-  };
+  }
 
-  enable = (builder: ITaskBuilder | IWorkflowBuilder) => {
+  enable(builder: ITaskBuilder | IWorkflowBuilder) {
     this.#globalPotDistributor.enable(builder);
-  };
+  }
 
-  send = (pot: IPot, builder?: ITaskBuilder) => {
+  send(pot: IPot, builder?: ITaskBuilder) {
     if (builder) pot.to.task = builder.task.name;
     this.#globalPotDistributor.send(pot);
-  };
+  }
 }

@@ -1,15 +1,15 @@
 // deno-lint-ignore-file require-await
-import core from "$core";
+import shibuiCore from "$core";
 import { ContextPot, InternalPot } from "$core/pots";
 
-const c = core({
+const core = shibuiCore({
   useDenoKV: false,
   spicy: {
     x: 100,
   },
 });
 
-c.workflow(class CTX extends ContextPot<{}> {})
+core.workflow(class CTX extends ContextPot<{}> {})
   .name`Workflow 1`
   .on(InternalPot, ({ x, pot }) => {
     throw new Error("Not allowed");
@@ -30,17 +30,16 @@ class SimplePot extends InternalPot<{ value: number }> {
   };
 }
 
-const task1 = c.task(SimplePot)
+const task1 = core.task(SimplePot)
   .name`Task 1`
-  .on(SimplePot, ({ x, allow }) => allow())
-  .do(async ({ log, pots, next, x }) => {
+  .do(async ({ log, pots, next }) => {
     log.dbg(`value: ${pots[0].data.value}`);
     return next(task2, {
       value: pots[0].data.value += 1,
     });
   });
 
-const task2 = c.task(SimplePot)
+const task2 = core.task(SimplePot)
   .name`Task 2`
   .onRule("ForThisTask", SimplePot)
   .do(async ({ log, pots, next }) => {
@@ -50,7 +49,7 @@ const task2 = c.task(SimplePot)
     });
   });
 
-const task3 = c.task(SimplePot)
+const task3 = core.task(SimplePot)
   .name`Task 3`
   .onRule("ForThisTask", SimplePot)
   .do(async ({ log, pots, finish }) => {
@@ -58,9 +57,9 @@ const task3 = c.task(SimplePot)
     return finish();
   });
 
-c.register(task1);
-c.register(task2);
-c.register(task3);
+core.register(task1);
+core.register(task2);
+core.register(task3);
 
-await c.start();
-c.send(new SimplePot(), task1);
+await core.start();
+core.send(new SimplePot(), task1);

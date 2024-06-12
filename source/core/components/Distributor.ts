@@ -20,14 +20,15 @@ import {
   type ITaskBuilder,
   type IWorkflowBuilder,
   SourceType,
+  Spicy,
 } from "$core/types";
 import { Tester } from "$core/components";
 
-export default class Distributor<S> {
+export default class Distributor<S extends Spicy> {
   #kv: Deno.Kv = undefined as unknown as Deno.Kv;
   #core: ICore<S>;
   #log: IEventDrivenLogger;
-  #tester: Tester;
+  #tester: Tester<S>;
 
   constructor(core: ICore<S>) {
     this.#core = core;

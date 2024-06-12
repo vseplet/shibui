@@ -26,19 +26,19 @@ import {
 } from "$core/types";
 
 export class TaskBuilder<
+  S extends Spicy,
   P1 extends IPot,
   P2 extends IPot | undefined = undefined,
   P3 extends IPot | undefined = undefined,
   P4 extends IPot | undefined = undefined,
   P5 extends IPot | undefined = undefined,
-  S = Spicy,
 > implements ITaskBuilder {
   task: ITask = {
     name: "unknown",
     attempts: 1,
     timeout: 0,
     slotsCount: 0,
-    do: async ({ fail }: DoHandlerContext<P1>) => {
+    do: async ({ fail }: DoHandlerContext<S, P1>) => {
       return fail("not implemented");
     },
     triggers: {},
@@ -109,7 +109,7 @@ export class TaskBuilder<
         potConstructor: constructor,
         slot: Object.keys(this.task.triggers).length - 1,
         handler: (
-          { allow }: TriggerHandlerContext<P1, IPot, IPot, IPot, IPot>,
+          { allow }: TriggerHandlerContext<S, P1, IPot, IPot, IPot, IPot>,
         ) => {
           return allow();
         },
@@ -124,12 +124,12 @@ export class TaskBuilder<
     potConstructor: Constructor<TP>,
     handler?: (
       args: TriggerHandlerContext<
+        S,
         P1,
         undefined,
         undefined,
         undefined,
-        undefined,
-        S
+        undefined
       >,
     ) => TriggerHandlerResult,
     slot?: number,
@@ -156,7 +156,7 @@ export class TaskBuilder<
         potConstructor,
         slot: slot || Object.keys(this.task.triggers).length - 1,
         handler: (
-          { allow }: TriggerHandlerContext<TP>,
+          { allow }: TriggerHandlerContext<S, TP>,
         ) => {
           return allow();
         },
@@ -184,17 +184,13 @@ export class TaskBuilder<
 
     if (rule === "ForThisTask") {
       handler = (
-        { allow, deny, pots }: TriggerHandlerContext<
-          TP
-        >,
+        { allow, deny, pots }: TriggerHandlerContext<S, TP>,
       ) => {
         return pots[0].to.task === this.task.name ? allow() : deny();
       };
     } else if (rule == "ForAnyTask") {
       handler = (
-        { allow, deny, pots }: TriggerHandlerContext<
-          TP
-        >,
+        { allow, deny, pots }: TriggerHandlerContext<S, TP>,
       ) => {
         return pots[0].to.task !== this.task.name &&
             pots[0].to.task !== "unknown"
@@ -204,6 +200,7 @@ export class TaskBuilder<
     } else if (rule == "ForUnknown") {
       handler = (
         { allow, deny, pots }: TriggerHandlerContext<
+          S,
           TP,
           IPot,
           IPot,
@@ -215,7 +212,7 @@ export class TaskBuilder<
       };
     } else {
       handler = (
-        { deny }: TriggerHandlerContext<TP>,
+        { deny }: TriggerHandlerContext<S, TP>,
       ) => {
         return deny();
       };
@@ -234,7 +231,7 @@ export class TaskBuilder<
 
   do(
     handler: (
-      args: DoHandlerContext<P1, P2, P3, P4, P5, S>,
+      args: DoHandlerContext<S, P1, P2, P3, P4, P5>,
     ) => Promise<DoHandlerResult>,
   ) {
     this.task.do = handler;
@@ -275,7 +272,7 @@ export const task = <
   p4?: Constructor<P4>,
   p5?: Constructor<P5>,
 ) =>
-  new TaskBuilder<P1, P2, P3, P4, P5>(
+  new TaskBuilder<Spicy, P1, P2, P3, P4, P5>(
     p1,
     p2,
     p3,
@@ -287,4 +284,4 @@ export const task1 = <
   P1 extends IPot,
 >(
   p1: Constructor<P1>,
-) => new TaskBuilder<P1, IPot, IPot, IPot, IPot>(p1);
+) => new TaskBuilder<Spicy, P1, IPot, IPot, IPot, IPot>(p1);

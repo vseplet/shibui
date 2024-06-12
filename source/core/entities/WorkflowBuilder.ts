@@ -20,10 +20,9 @@ import type {
   Spicy,
   WorkflowTriggerHandler,
 } from "$core/types";
-import { task1 } from "./TaskBuilder.ts";
 import { TaskBuilder } from "$core/entities";
 
-export class WorkflowBuilder<ContextPot extends IPot, S = Spicy>
+export class WorkflowBuilder<ContextPot extends IPot, S extends Spicy>
   implements IWorkflowBuilder {
   contextPotConstructor: Constructor<ContextPot>;
 
@@ -69,7 +68,6 @@ export class WorkflowBuilder<ContextPot extends IPot, S = Spicy>
 
     return this;
   }
-  x;
 
   on<T extends IPot>(
     potConstructor: Constructor<T>,
@@ -109,8 +107,8 @@ export class WorkflowBuilder<ContextPot extends IPot, S = Spicy>
   // }
 
   #task1(
-    builder: TaskBuilder<ContextPot, IPot, IPot, IPot, IPot, S>,
-  ): TaskBuilder<ContextPot, IPot, IPot, IPot, IPot, S> {
+    builder: TaskBuilder<S, ContextPot, IPot, IPot, IPot, IPot>,
+  ): TaskBuilder<S, ContextPot, IPot, IPot, IPot, IPot> {
     builder.belongsToWorkflow(this);
 
     const length = builder.task.triggers[this.contextPotConstructor.name]
@@ -133,29 +131,30 @@ export class WorkflowBuilder<ContextPot extends IPot, S = Spicy>
   sq(
     fun: (
       args: IWorkflowBuilderSetupArgs<ContextPot, S>,
-    ) => ITaskBuilder,
+    ) => TaskBuilder<S, ContextPot, IPot, IPot, IPot, IPot>,
   ) {
     const initArgs = {
       task1: (): TaskBuilder<
+        S,
         ContextPot,
         IPot,
         IPot,
         IPot,
-        IPot,
-        S
+        IPot
       > => {
         const builder = new TaskBuilder<
+          S,
           ContextPot,
           IPot,
           IPot,
           IPot,
-          IPot,
-          S
+          IPot
         >(this.contextPotConstructor);
         return this.#task1(builder);
       },
       shared1: (
         builder: TaskBuilder<
+          Spicy,
           ContextPot,
           IPot,
           IPot,
@@ -189,4 +188,4 @@ export class WorkflowBuilder<ContextPot extends IPot, S = Spicy>
 
 export const workflow = <ContextPot extends IPot>(
   contextPotConstructor: Constructor<ContextPot>,
-) => new WorkflowBuilder<ContextPot>(contextPotConstructor);
+) => new WorkflowBuilder<ContextPot, {}>(contextPotConstructor);
