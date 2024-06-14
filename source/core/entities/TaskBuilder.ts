@@ -11,34 +11,34 @@
  */
 
 // deno-lint-ignore-file
-import { Constructor } from "$helpers/types";
+import { TConstructor } from "$helpers/types";
 import { TaskNameMissingError } from "$core/errors";
 import {
-  DoHandlerContext,
-  DoHandlerResult,
-  IPot,
-  ITask,
-  ITaskBuilder,
-  IWorkflowBuilder,
-  Spicy,
-  TriggerHandlerContext,
-  TriggerHandlerResult,
+  TDoHandlerContext,
+  TDoHandlerResult,
+  TPot,
+  TSpicy,
+  TTask,
+  TTaskBuilder,
+  TTriggerHandlerContext,
+  TTriggerHandlerResult,
+  TWorkflowBuilder,
 } from "$core/types";
 
 export class TaskBuilder<
-  S extends Spicy,
-  P1 extends IPot,
-  P2 extends IPot | undefined = undefined,
-  P3 extends IPot | undefined = undefined,
-  P4 extends IPot | undefined = undefined,
-  P5 extends IPot | undefined = undefined,
-> implements ITaskBuilder {
-  task: ITask = {
+  S extends TSpicy,
+  P1 extends TPot,
+  P2 extends TPot | undefined = undefined,
+  P3 extends TPot | undefined = undefined,
+  P4 extends TPot | undefined = undefined,
+  P5 extends TPot | undefined = undefined,
+> implements TTaskBuilder {
+  task: TTask = {
     name: "unknown",
     attempts: 1,
     timeout: 0,
     slotsCount: 0,
-    do: async ({ fail }: DoHandlerContext<S, P1>) => {
+    do: async ({ fail }: TDoHandlerContext<S, P1>) => {
       return fail("not implemented");
     },
     triggers: {},
@@ -46,17 +46,17 @@ export class TaskBuilder<
   };
 
   constructor(
-    p1: Constructor<P1>,
-    p2?: Constructor<P2>,
-    p3?: Constructor<P3>,
-    p4?: Constructor<P4>,
-    p5?: Constructor<P5>,
+    p1: TConstructor<P1>,
+    p2?: TConstructor<P2>,
+    p3?: TConstructor<P3>,
+    p4?: TConstructor<P4>,
+    p5?: TConstructor<P5>,
   ) {
     this.task.slotsCount =
       Array.from(arguments).filter((arg) => arg !== undefined).length;
   }
 
-  belongsToWorkflow(builder: IWorkflowBuilder) {
+  belongsToWorkflow(builder: TWorkflowBuilder) {
     this.task.belongsToWorkflow = builder.workflow.name;
     return this;
   }
@@ -92,7 +92,7 @@ export class TaskBuilder<
 
   triggers(
     ...constructorList: Array<
-      Constructor<Exclude<P1, undefined>>
+      TConstructor<Exclude<P1, undefined>>
     >
   ) {
     for (const constructor of constructorList) {
@@ -109,7 +109,7 @@ export class TaskBuilder<
         potConstructor: constructor,
         slot: Object.keys(this.task.triggers).length - 1,
         handler: (
-          { allow }: TriggerHandlerContext<S, P1, IPot, IPot, IPot, IPot>,
+          { allow }: TTriggerHandlerContext<S, P1, TPot, TPot, TPot, TPot>,
         ) => {
           return allow();
         },
@@ -121,9 +121,9 @@ export class TaskBuilder<
   }
 
   on<TP extends Exclude<P1 | P2 | P3 | P4 | P5, undefined>>(
-    potConstructor: Constructor<TP>,
+    potConstructor: TConstructor<TP>,
     handler?: (
-      args: TriggerHandlerContext<
+      args: TTriggerHandlerContext<
         S,
         P1,
         undefined,
@@ -131,7 +131,7 @@ export class TaskBuilder<
         undefined,
         undefined
       >,
-    ) => TriggerHandlerResult,
+    ) => TTriggerHandlerResult,
     slot?: number,
   ): this {
     if (
@@ -156,7 +156,7 @@ export class TaskBuilder<
         potConstructor,
         slot: slot || Object.keys(this.task.triggers).length - 1,
         handler: (
-          { allow }: TriggerHandlerContext<S, TP>,
+          { allow }: TTriggerHandlerContext<S, TP>,
         ) => {
           return allow();
         },
@@ -169,7 +169,7 @@ export class TaskBuilder<
 
   onRule<TP extends Exclude<P1 | P2 | P3 | P4, undefined>>(
     rule: "ForThisTask" | "ForAnyTask" | "ForUnknown",
-    potConstructor: Constructor<TP>,
+    potConstructor: TConstructor<TP>,
     slot?: number,
   ) {
     let handler;
@@ -184,13 +184,13 @@ export class TaskBuilder<
 
     if (rule === "ForThisTask") {
       handler = (
-        { allow, deny, pots }: TriggerHandlerContext<S, TP>,
+        { allow, deny, pots }: TTriggerHandlerContext<S, TP>,
       ) => {
         return pots[0].to.task === this.task.name ? allow() : deny();
       };
     } else if (rule == "ForAnyTask") {
       handler = (
-        { allow, deny, pots }: TriggerHandlerContext<S, TP>,
+        { allow, deny, pots }: TTriggerHandlerContext<S, TP>,
       ) => {
         return pots[0].to.task !== this.task.name &&
             pots[0].to.task !== "unknown"
@@ -199,20 +199,20 @@ export class TaskBuilder<
       };
     } else if (rule == "ForUnknown") {
       handler = (
-        { allow, deny, pots }: TriggerHandlerContext<
+        { allow, deny, pots }: TTriggerHandlerContext<
           S,
           TP,
-          IPot,
-          IPot,
-          IPot,
-          IPot
+          TPot,
+          TPot,
+          TPot,
+          TPot
         >,
       ) => {
         return pots[0].to.task === "unknown" ? allow() : deny();
       };
     } else {
       handler = (
-        { deny }: TriggerHandlerContext<S, TP>,
+        { deny }: TTriggerHandlerContext<S, TP>,
       ) => {
         return deny();
       };
@@ -231,8 +231,8 @@ export class TaskBuilder<
 
   do(
     handler: (
-      args: DoHandlerContext<S, P1, P2, P3, P4, P5>,
-    ) => Promise<DoHandlerResult>,
+      args: TDoHandlerContext<S, P1, P2, P3, P4, P5>,
+    ) => Promise<TDoHandlerResult>,
   ) {
     this.task.do = handler;
     return this;
@@ -246,7 +246,7 @@ export class TaskBuilder<
     return this;
   }
 
-  build(): ITask {
+  build(): TTask {
     if (this.task.name == "unknown") {
       throw new TaskNameMissingError();
     }
@@ -258,30 +258,3 @@ export class TaskBuilder<
     return this.task;
   }
 }
-
-export const task = <
-  P1 extends IPot,
-  P2 extends IPot,
-  P3 extends IPot,
-  P4 extends IPot,
-  P5 extends IPot,
->(
-  p1: Constructor<P1>,
-  p2?: Constructor<P2>,
-  p3?: Constructor<P3>,
-  p4?: Constructor<P4>,
-  p5?: Constructor<P5>,
-) =>
-  new TaskBuilder<Spicy, P1, P2, P3, P4, P5>(
-    p1,
-    p2,
-    p3,
-    p4,
-    p5,
-  );
-
-export const task1 = <
-  P1 extends IPot,
->(
-  p1: Constructor<P1>,
-) => new TaskBuilder<Spicy, P1, IPot, IPot, IPot, IPot>(p1);

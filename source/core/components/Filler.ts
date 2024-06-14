@@ -1,17 +1,17 @@
 import type { Pot } from "$core/entities";
 import {
-  type ICore,
-  type IEventDrivenLogger,
-  type ITask,
   SourceType,
+  type TCore,
+  type TEventDrivenLogger,
+  type TTask,
 } from "$core/types";
 
 export class Filler {
-  #core: ICore;
+  #core: TCore<{}>;
   #kv: Deno.Kv;
-  #log: IEventDrivenLogger;
+  #log: TEventDrivenLogger;
 
-  constructor(core: ICore, kv: Deno.Kv) {
+  constructor(core: TCore<{}>, kv: Deno.Kv) {
     this.#core = core;
     this.#kv = kv;
     this.#log = core.createLogger({
@@ -20,7 +20,7 @@ export class Filler {
     });
   }
 
-  registerTask(task: ITask) {
+  registerTask(task: TTask) {
   }
 
   fill(taskkName: string, pot: Pot, slot: number): {

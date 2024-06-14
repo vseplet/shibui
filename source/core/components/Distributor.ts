@@ -14,23 +14,23 @@ import { CoreStartPot } from "$core/pots";
 import { Pot } from "$core/entities";
 import { TaskBuilder, WorkflowBuilder } from "$core/entities";
 import {
-  type ICore,
-  type IEventDrivenLogger,
-  type IPot,
-  type ITaskBuilder,
-  type IWorkflowBuilder,
   SourceType,
-  Spicy,
+  type TCore,
+  type TEventDrivenLogger,
+  type TPot,
+  type TSpicy,
+  type TTaskBuilder,
+  type TWorkflowBuilder,
 } from "$core/types";
 import { Tester } from "$core/components";
 
-export default class Distributor<S extends Spicy> {
+export default class Distributor<S extends TSpicy> {
   #kv: Deno.Kv = undefined as unknown as Deno.Kv;
-  #core: ICore<S>;
-  #log: IEventDrivenLogger;
+  #core: TCore<S>;
+  #log: TEventDrivenLogger;
   #tester: Tester<S>;
 
-  constructor(core: ICore<S>) {
+  constructor(core: TCore<S>) {
     this.#core = core;
     this.#log = core.createLogger({
       sourceType: SourceType.CORE,
@@ -40,7 +40,7 @@ export default class Distributor<S extends Spicy> {
     this.#tester = new Tester(core, this.#kv);
   }
 
-  #test(rawPotObj: IPot) {
+  #test(rawPotObj: TPot) {
     try {
       const pot = new Pot().deserialize(rawPotObj);
       if (!pot) return;
@@ -62,11 +62,11 @@ export default class Distributor<S extends Spicy> {
   async start() {
     this.#log.inf(`starting update cycle...`);
     this.#kv = await Deno.openKv();
-    this.#kv.listenQueue((rawPotObj: IPot) => this.#test(rawPotObj));
+    this.#kv.listenQueue((rawPotObj: TPot) => this.#test(rawPotObj));
     this.send(new CoreStartPot());
   }
 
-  register(builder: IWorkflowBuilder | ITaskBuilder) {
+  register(builder: TWorkflowBuilder | TTaskBuilder) {
     if (builder instanceof WorkflowBuilder) {
       const workflow = builder.build();
       this.#tester.registerWorkflow(workflow);
@@ -78,19 +78,19 @@ export default class Distributor<S extends Spicy> {
     // this.#tester.show();
   }
 
-  disable(builder: IWorkflowBuilder | ITaskBuilder) {
+  disable(builder: TWorkflowBuilder | TTaskBuilder) {
     if (builder instanceof WorkflowBuilder) {
     } else if (builder instanceof TaskBuilder) {
     }
   }
 
-  enable(builder: IWorkflowBuilder | ITaskBuilder) {
+  enable(builder: TWorkflowBuilder | TTaskBuilder) {
     if (builder instanceof WorkflowBuilder) {
     } else if (builder instanceof TaskBuilder) {
     }
   }
 
-  resend(pot: IPot) {
+  resend(pot: TPot) {
     if (pot.ttl > 0) {
       this.#log.trc(
         `return pot '${pot.name}' with ttl:{${pot.ttl}} back to the queue`,
@@ -104,7 +104,7 @@ export default class Distributor<S extends Spicy> {
     }
   }
 
-  send(pot: IPot) {
+  send(pot: TPot) {
     this.#log.trc(`sending pot '${pot.name} to queue'`);
     this.#kv.enqueue(pot);
   }

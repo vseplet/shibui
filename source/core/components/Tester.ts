@@ -3,38 +3,38 @@ import { TRIGGER_OP_ALLOW, TRIGGER_OP_DENY } from "$core/constants";
 import type { Pot } from "$core/entities";
 import STRS from "$core/strings";
 import {
-  type ICore,
-  type IEventDrivenLogger,
-  type IPot,
-  type ITask,
-  type IWorkflow,
   PotType,
   SourceType,
-  type Spicy,
   type TasksStorage,
-  type TaskTriggerStorage,
+  type TCore,
+  type TEventDrivenLogger,
+  type TPot,
+  type TSpicy,
+  type TTask,
+  type TTaskTriggerStorage,
+  type TWorkflow,
+  type TWorkflowTriggersStorage,
   type WorkflowsStorage,
-  type WorkflowTriggersStorage,
 } from "$core/types";
 import { Filler, Runner } from "$core/components";
 
-export class Tester<S extends Spicy> {
-  #core: ICore<S>;
+export class Tester<S extends TSpicy> {
+  #core: TCore<S>;
   #kv: Deno.Kv;
-  #log: IEventDrivenLogger;
+  #log: TEventDrivenLogger;
   #filler: Filler;
   #runner: Runner;
 
   #tasks: TasksStorage = {};
   #workflows: WorkflowsStorage = {};
 
-  #taskTriggers: TaskTriggerStorage = {}; // запускаются от одного пота
-  #dependentTaskTriggers: TaskTriggerStorage = {}; // запускаются от нескольких потов
-  #workflowTriggers: WorkflowTriggersStorage = {}; // запускаются от одного пота и генерирует контекст в очередь
-  #workflowTaskTriggers: TaskTriggerStorage = {}; // зап��скаются от одного контекстного пота
-  #workflowDependentTaskTriggers: TaskTriggerStorage = {}; // запускаются от нескольких потов, но при наличии контекста
+  #taskTriggers: TTaskTriggerStorage = {}; // запускаются от одного пота
+  #dependentTaskTriggers: TTaskTriggerStorage = {}; // запускаются от нескольких потов
+  #workflowTriggers: TWorkflowTriggersStorage = {}; // запускаются от одного пота и генерирует контекст в очередь
+  #workflowTaskTriggers: TTaskTriggerStorage = {}; // зап��скаются от одного контекстного пота
+  #workflowDependentTaskTriggers: TTaskTriggerStorage = {}; // запускаются от нескольких потов, но при наличии контекста
 
-  constructor(core: ICore<S>, kv: Deno.Kv) {
+  constructor(core: TCore<S>, kv: Deno.Kv) {
     this.#core = core;
     this.#kv = kv;
     this.#log = core.createLogger({
@@ -45,7 +45,7 @@ export class Tester<S extends Spicy> {
     this.#runner = new Runner(core, kv);
   }
 
-  registerTask(task: ITask) {
+  registerTask(task: TTask) {
     this.#filler.registerTask(task);
     this.#runner.registerTask(task);
 
@@ -66,7 +66,7 @@ export class Tester<S extends Spicy> {
     this.#log.vrb(STRS.rtn$own(task));
   }
 
-  registerWorkflow(workflow: IWorkflow) {
+  registerWorkflow(workflow: TWorkflow) {
     this.#workflows[workflow.name] = workflow;
     workflow.tasks.forEach((task) => this.registerTask(task));
     for (const potName in workflow.triggers) {
@@ -101,11 +101,11 @@ export class Tester<S extends Spicy> {
     taskName: string,
     slot: number,
     pots: [
-      IPot,
-      IPot | undefined,
-      IPot | undefined,
-      IPot | undefined,
-      IPot | undefined,
+      TPot,
+      TPot | undefined,
+      TPot | undefined,
+      TPot | undefined,
+      TPot | undefined,
     ],
   ) {
     return {

@@ -1,7 +1,7 @@
 // deno-lint-ignore-file require-await
 import { execute, task, workflow } from "$core";
 import { ContextPot, CoreStartPot } from "$core/pots";
-import type { IPot } from "$core/types";
+import type { TPot } from "$core/types";
 import { sh } from "https://deno.land/x/shelly@v0.1.1/mod.ts";
 import type { TaskBuilder } from "../entities/TaskBuilder.ts";
 
@@ -11,7 +11,7 @@ export const checkUpdateTypeByCommitMessage = <
   }>,
 >(
   contextPot: new () => CTX,
-  nextTask?: TaskBuilder<CTX, IPot, IPot, IPot, IPot>,
+  nextTask?: TaskBuilder<{}, CTX, TPot, TPot, TPot, TPot>,
 ) =>
   task(contextPot)
     .name("checkUpdateTypeByCommitMessage")

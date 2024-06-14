@@ -12,20 +12,20 @@
 
 import { emitters } from "$core/emitters";
 import {
-  type ICore,
-  type ICoreOptions,
-  type ILoggerOptions,
-  type IPot,
-  type ITaskBuilder,
-  type IWorkflowBuilder,
   SourceType,
-  type Spicy,
+  type TCore,
+  type TCoreOptions,
+  type TLoggerOptions,
+  type TPot,
+  type TSpicy,
+  type TTaskBuilder,
+  type TWorkflowBuilder,
 } from "$core/types";
 import { Distributor, EventDrivenLogger } from "$core/components";
 import { TaskBuilder, WorkflowBuilder } from "$core/entities";
-import type { Constructor } from "$helpers/types";
+import type { TConstructor } from "$helpers/types";
 
-export class Core<S extends Spicy> implements ICore<S> {
+export class Core<S extends TSpicy> implements TCore<S> {
   emitters = emitters;
 
   #globalPotDistributor: Distributor<S>;
@@ -42,28 +42,28 @@ export class Core<S extends Spicy> implements ICore<S> {
     ],
   };
 
-  constructor(config: ICoreOptions<S>) {
+  constructor(config: TCoreOptions<S>) {
     this.#globalPotDistributor = new Distributor<S>(this);
   }
 
-  workflow<ContextPot extends IPot>(
-    contextPotConstructor: Constructor<ContextPot>,
+  workflow<ContextPot extends TPot>(
+    contextPotConstructor: TConstructor<ContextPot>,
   ): WorkflowBuilder<ContextPot, S> {
     return new WorkflowBuilder<ContextPot, S>(contextPotConstructor);
   }
 
   task<
-    P1 extends IPot,
-    P2 extends IPot,
-    P3 extends IPot,
-    P4 extends IPot,
-    P5 extends IPot,
+    P1 extends TPot,
+    P2 extends TPot,
+    P3 extends TPot,
+    P4 extends TPot,
+    P5 extends TPot,
   >(
-    p1: Constructor<P1>,
-    p2?: Constructor<P2>,
-    p3?: Constructor<P3>,
-    p4?: Constructor<P4>,
-    p5?: Constructor<P5>,
+    p1: TConstructor<P1>,
+    p2?: TConstructor<P2>,
+    p3?: TConstructor<P3>,
+    p4?: TConstructor<P4>,
+    p5?: TConstructor<P5>,
   ) {
     return new TaskBuilder<S, P1, P2, P3, P4, P5>(
       p1,
@@ -74,7 +74,7 @@ export class Core<S extends Spicy> implements ICore<S> {
     );
   }
 
-  createLogger = (options: ILoggerOptions) => {
+  createLogger = (options: TLoggerOptions) => {
     return new EventDrivenLogger(
       emitters.logEventEmitter,
       this.settings,
@@ -92,19 +92,19 @@ export class Core<S extends Spicy> implements ICore<S> {
   //   this.emitters.logEventEmitter.close();
   // }
 
-  register(builder: ITaskBuilder | IWorkflowBuilder) {
+  register(builder: TTaskBuilder | TWorkflowBuilder) {
     this.#globalPotDistributor.register(builder);
   }
 
-  disable(builder: ITaskBuilder | IWorkflowBuilder) {
+  disable(builder: TTaskBuilder | TWorkflowBuilder) {
     this.#globalPotDistributor.disable(builder);
   }
 
-  enable(builder: ITaskBuilder | IWorkflowBuilder) {
+  enable(builder: TTaskBuilder | TWorkflowBuilder) {
     this.#globalPotDistributor.enable(builder);
   }
 
-  send(pot: IPot, builder?: ITaskBuilder) {
+  send(pot: TPot, builder?: TTaskBuilder) {
     if (builder) pot.to.task = builder.task.name;
     this.#globalPotDistributor.send(pot);
   }

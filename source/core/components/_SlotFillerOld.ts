@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import type { IPot, ITask } from "$core/types";
+import type { TPot, TTask } from "$core/types";
 
 export default class SlotFillerOld {
   // #log = new EventDrivenLogger({
@@ -20,7 +20,7 @@ export default class SlotFillerOld {
 
   #slots: {
     [taskName: string]: {
-      slots: Array<Array<IPot | undefined>>;
+      slots: Array<Array<TPot | undefined>>;
     };
   } = {};
 
@@ -29,7 +29,7 @@ export default class SlotFillerOld {
 
   public fill(
     taskName: string,
-    pot: IPot,
+    pot: TPot,
     slot: number,
     row?: number,
   ): boolean {
@@ -69,7 +69,7 @@ export default class SlotFillerOld {
     }
   }
 
-  public allocateSlots(task: ITask) {
+  public allocateSlots(task: TTask) {
     this.#slots[task.name] = {
       slots: Array.from({ length: task.slotsCount }, () => []),
     };
@@ -78,7 +78,7 @@ export default class SlotFillerOld {
   public getRowWithContext(
     taskName: string,
     rowIndex: number,
-  ): Array<IPot | undefined> | null {
+  ): Array<TPot | undefined> | null {
     if (rowIndex < this.#slots[taskName].slots[0].length) {
       return this.#slots[taskName].slots.map((arr) => arr[rowIndex]);
     } else {
@@ -86,7 +86,7 @@ export default class SlotFillerOld {
     }
   }
 
-  public getContext(taskName: string, slot = 0): IPot | undefined {
+  public getContext(taskName: string, slot = 0): TPot | undefined {
     const maxRow = this.#slots[taskName].slots[0].length;
     const freeRow = this.#slots[taskName].slots[slot].length;
     const contextPot = this.#slots[taskName].slots[0][freeRow];
@@ -98,8 +98,8 @@ export default class SlotFillerOld {
     }
   }
 
-  public getContexts(taskName: string): Map<number, IPot> {
-    const contexts: Map<number, IPot> = new Map();
+  public getContexts(taskName: string): Map<number, TPot> {
+    const contexts: Map<number, TPot> = new Map();
     this.#slots[taskName].slots[0].forEach((value, index) => {
       if (value) {
         contexts.set(index, value);

@@ -1,5 +1,5 @@
-import type { ICoreOptions } from "$core/types";
+import type { TCoreOptions } from "$core/types";
 
 export interface IConfig {
-  core?: ICoreOptions;
+  core?: TCoreOptions;
 }

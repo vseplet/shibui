@@ -1,8 +1,9 @@
-import type { ITask, type } from "$core/types";
+import type { TTask, TWorkflow } from "$core/types";
 
-export const rwn = (workflow: type) => `registered workflow '${workflow.name}'`;
+export const rwn = (workflow: TWorkflow) =>
+  `registered workflow '${workflow.name}'`;
 
-export const rtn$own = (task: ITask) => {
+export const rtn$own = (task: TTask) => {
   return `registered task '${task.name}'${
     task.belongsToWorkflow ? ` of workflow '${task.belongsToWorkflow}'` : ""
   }`;

@@ -10,19 +10,11 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import type { Constructor } from "$helpers/types";
+import type { TConstructor } from "$helpers/types";
 import type { emitters } from "$core/emitters";
 import type { TaskBuilder, WorkflowBuilder } from "$core/entities";
 
-export enum PotType {
-  UNKNOWN = "UNKNOWN",
-  EXTERNAL = "EXTERNAL",
-  INTERNAL = "INTERNAL",
-  SYSTEM = "SYSTEM",
-  CONTEXT = "CONTEXT",
-}
-
-export interface IPot {
+export type TPot = {
   toc: number;
   uuid: `${string}-${string}-${string}-${string}-${string}`;
   name: string;
@@ -37,93 +29,77 @@ export interface IPot {
   };
   ttl: number;
   data: unknown;
-}
+};
 
-export type IPotPack = Array<IPot>;
+export type TPotPack = Array<TPot>;
 
-export interface ISError {
+export type TSError = {
   createdAt: number;
-}
+};
 
-export enum SEventType {
-  UNKNOWN,
-  CORE,
-  LOG,
-  RUNNER,
-  WORKFLOW,
-  TASK,
-}
-
-export interface IShibuiEvent {
+export type TSEvent = {
   type: SEventType;
   name: string;
   timestamp: number;
-}
+};
 
-export enum TaskType {
-  single,
-  depended,
-  singleWorkflow,
-  dependedWorkflow,
-}
-
-export interface ITask {
+export type TTask = {
   type?: TaskType;
   name: string;
   attempts: number;
   timeout: number;
   slotsCount: number;
   triggers: {
-    [key: string]: Array<TaskTrigger<{}>>;
+    [key: string]: Array<TTaskTrigger<{}>>;
   };
-  do({}): Promise<DoHandlerResult>;
+  do({}): Promise<TDoHandlerResult>;
   belongsToWorkflow: string | undefined;
-}
-
-export interface ITaskBuilder {
-  task: ITask;
-  build(): ITask;
-}
-
-export type TriggerHandlerOp = "ALLOW" | "DENY";
-
-export type Spicy = Record<string | number | symbol, never>;
-
-export type TriggerHandlerContext<
-  S extends Spicy,
-  P1 extends IPot,
-  P2 extends IPot | undefined = undefined,
-  P3 extends IPot | undefined = undefined,
-  P4 extends IPot | undefined = undefined,
-  P5 extends IPot | undefined = undefined,
-> = S & {
-  core: ICore<S>;
-  pots: [P1, P2, P3, P4, P5];
-  log: IEventDrivenLogger;
-  allow: (
-    potIndex?: number,
-  ) => { op: TriggerHandlerOp; potIndex: number };
-  deny: () => { op: TriggerHandlerOp };
 };
 
-export type DoHandlerContext<
-  S extends Spicy,
-  P1 extends IPot,
-  P2 extends IPot | undefined = undefined,
-  P3 extends IPot | undefined = undefined,
-  P4 extends IPot | undefined = undefined,
-  P5 extends IPot | undefined = undefined,
+export type TTaskBuilder = {
+  task: TTask;
+  build(): TTask;
+};
+
+export type TTriggerHandlerOp = "ALLOW" | "DENY";
+
+export type TSpicy = Record<string | number | symbol, never>;
+
+export type TTriggerHandlerContext<
+  S extends TSpicy,
+  P1 extends TPot,
+  P2 extends TPot | undefined = undefined,
+  P3 extends TPot | undefined = undefined,
+  P4 extends TPot | undefined = undefined,
+  P5 extends TPot | undefined = undefined,
 > = S & {
-  core: ICore<S>;
+  core: TCore<S>;
   pots: [P1, P2, P3, P4, P5];
-  log: IEventDrivenLogger;
+  log: TEventDrivenLogger;
+  allow: (
+    potIndex?: number,
+  ) => { op: TTriggerHandlerOp; potIndex: number };
+  deny: () => { op: TTriggerHandlerOp };
+};
+
+export type TDoHandlerContext<
+  S extends TSpicy,
+  P1 extends TPot,
+  P2 extends TPot | undefined = undefined,
+  P3 extends TPot | undefined = undefined,
+  P4 extends TPot | undefined = undefined,
+  P5 extends TPot | undefined = undefined,
+> = S & {
+  core: TCore<S>;
+  pots: [P1, P2, P3, P4, P5];
+  log: TEventDrivenLogger;
 
   next: (
-    taskBuilders: ITaskBuilder | Array<ITaskBuilder>,
+    taskBuilders: TTaskBuilder | Array<TTaskBuilder>,
     data?: Partial<P1["data"]>,
   ) => {
     op: DoHandlerOp.NEXT;
-    taskBuilders: Array<ITaskBuilder>;
+    taskBuilders: Array<TTaskBuilder>;
     data?: Partial<P1["data"]>;
   };
 
@@ -144,23 +120,16 @@ export type DoHandlerContext<
   };
 };
 
-export type TriggerHandlerResult = {
-  op: TriggerHandlerOp;
+export type TTriggerHandlerResult = {
+  op: TTriggerHandlerOp;
   potIndex?: number;
 };
 
-export enum DoHandlerOp {
-  NEXT,
-  FAIL,
-  FINISH,
-  REPEAT,
-}
-
-export type DoHandlerResult =
+export type TDoHandlerResult =
   | {
     op: DoHandlerOp.NEXT;
-    taskBuilders: Array<ITaskBuilder>;
-    data?: Partial<IPot["data"]>;
+    taskBuilders: Array<TTaskBuilder>;
+    data?: Partial<TPot["data"]>;
   }
   | {
     op: DoHandlerOp.FAIL;
@@ -171,106 +140,215 @@ export type DoHandlerResult =
   }
   | {
     op: DoHandlerOp.REPEAT;
-    data?: Partial<IPot["data"]>;
+    data?: Partial<TPot["data"]>;
   };
 
-export type TaskTrigger<S extends Spicy> = {
+export type TTaskTrigger<S extends TSpicy> = {
   taskName: string;
-  potConstructor: Constructor<IPot>;
+  potConstructor: TConstructor<TPot>;
   slot: number;
   handler(
-    ctx: TriggerHandlerContext<
+    ctx: TTriggerHandlerContext<
       S,
-      IPot,
-      IPot | undefined,
-      IPot | undefined,
-      IPot | undefined,
-      IPot | undefined
+      TPot,
+      TPot | undefined,
+      TPot | undefined,
+      TPot | undefined,
+      TPot | undefined
     >,
-  ): TriggerHandlerResult;
+  ): TTriggerHandlerResult;
   belongsToWorkflow: string | undefined;
 };
 
-export type WorkflowTriggerHandlerContext<
-  TriggerPot extends IPot,
-  S = Spicy,
+export type TWorkflowTriggerHandlerContext<
+  TriggerPot extends TPot,
+  S = TSpicy,
 > = S & {
   pot: TriggerPot;
-  log: IEventDrivenLogger;
+  log: TEventDrivenLogger;
 };
 
-export type WorkflowTriggerHandler<
-  ContextPot extends IPot,
-  TriggerPot extends IPot,
-  S = Spicy,
-> = (args: WorkflowTriggerHandlerContext<TriggerPot, S>) => ContextPot | null;
+export type TWorkflowTriggerHandler<
+  ContextPot extends TPot,
+  TriggerPot extends TPot,
+  S = TSpicy,
+> = (args: TWorkflowTriggerHandlerContext<TriggerPot, S>) => ContextPot | null;
 
 export type IWorkflowBuilderSetupArgs<
-  ContextPot extends IPot,
-  S extends Spicy,
+  ContextPot extends TPot,
+  S extends TSpicy,
 > = {
   task1: () => TaskBuilder<
     S,
     ContextPot,
-    IPot,
-    IPot,
-    IPot,
-    IPot
+    TPot,
+    TPot,
+    TPot,
+    TPot
   >;
 
   shared1: (
     builder: TaskBuilder<
-      Spicy,
+      TSpicy,
       ContextPot,
-      IPot,
-      IPot,
-      IPot,
-      IPot
+      TPot,
+      TPot,
+      TPot,
+      TPot
     >,
   ) => TaskBuilder<
-    Spicy,
+    TSpicy,
     ContextPot,
-    IPot,
-    IPot,
-    IPot,
-    IPot
+    TPot,
+    TPot,
+    TPot,
+    TPot
   >;
 };
 
-export type WorkflowTrigger = {
+export type TWorkflowTrigger = {
   workflowName: string;
-  potConstructor: Constructor<IPot>;
-  handler({}): IPot | null;
+  potConstructor: TConstructor<TPot>;
+  handler({}): TPot | null;
 };
 
-export type IWorkflow = {
+export type TWorkflow = {
   name: string;
   triggers: {
-    [key: string]: WorkflowTrigger;
+    [key: string]: TWorkflowTrigger;
   };
-  tasks: Array<ITask>;
+  tasks: Array<TTask>;
   firstTaskName: string;
 };
 
-export interface IWorkflowBuilder {
-  workflow: IWorkflow;
+export type TWorkflowBuilder = {
+  workflow: TWorkflow;
   taskBuilders: Array<
-    ITaskBuilder
+    TTaskBuilder
   >;
-  build(): IWorkflow;
+  build(): TWorkflow;
+};
+
+export type TWorkflowTriggersStorage = {
+  [potName: string]: Array<TWorkflowTrigger>;
+};
+
+export type TTaskTriggerStorage = {
+  [potName: string]: Array<TTaskTrigger<{}>>;
+};
+
+export type WorkflowsStorage = { [workflowName: string]: TWorkflow };
+
+export type TasksStorage = { [taskName: string]: TTask };
+
+export type TLogEventArgs = {
+  sourceType: SourceType;
+  sourceName: string;
+};
+
+export type TLoggerOptions = {
+  sourceType?: SourceType;
+  sourceName?: string;
+};
+
+export type TCore<S extends TSpicy> = {
+  workflow<ContextPot extends TPot>(
+    contextPotConstructor: TConstructor<ContextPot>,
+  ): WorkflowBuilder<ContextPot, S>;
+  task<
+    P1 extends TPot,
+    P2 extends TPot,
+    P3 extends TPot,
+    P4 extends TPot,
+    P5 extends TPot,
+  >(
+    p1: TConstructor<P1>,
+    p2?: TConstructor<P2>,
+    p3?: TConstructor<P3>,
+    p4?: TConstructor<P4>,
+    p5?: TConstructor<P5>,
+  ): TaskBuilder<S, P1, P2, P3, P4, P5>;
+  emitters: typeof emitters;
+
+  createLogger(options: TLoggerOptions): TEventDrivenLogger;
+  start(): Promise<void>;
+  register(builder: TTaskBuilder | TWorkflowBuilder): void;
+  disable(builder: TTaskBuilder | TWorkflowBuilder): void;
+  enable(builder: TTaskBuilder | TWorkflowBuilder): void;
+  send(pot: TPot, builder?: TTaskBuilder): void;
+};
+
+export type TEventDrivenLogger = {
+  dbg(msg: string): void;
+  trc(msg: string): void;
+  vrb(msg: string): void;
+  inf(msg: string): void;
+  err(msg: string): void;
+  wrn(msg: string): void;
+  flt(msg: string): void;
+};
+
+export type TLogEventMetadata = {
+  name?: string;
+};
+
+export type TCoreOptions<S = TSpicy> = {
+  useDenoKV?: boolean;
+  spicy?: S;
+};
+
+// Какая-то хуйня:
+export type TTriggerOp = "ALLOW" | "DENY";
+export type TPotType =
+  | "UNKNOWN"
+  | "EXTERNAL"
+  | "INTERNAL"
+  | "SYSTEM"
+  | "CONTEXT";
+export type TDoOp = "NEXT" | "FAIL" | "FINISH" | "REPEAT";
+export type TLogLevel =
+  | "UNKNOWN"
+  | "TRACE"
+  | "DEBUG"
+  | "VERBOSE"
+  | "INFO"
+  | "WARN"
+  | "ERROR"
+  | "FATAL";
+export type TLogSource =
+  | "UNKNOWN"
+  | "CORE"
+  | "TASK"
+  | "TASK.ON"
+  | "TASK.DO"
+  | "WORKFLOW";
+export type TTaskType =
+  | "single"
+  | "depended"
+  | "singleWorkflow"
+  | "dependedWorkflow";
+export type TEventType =
+  | "UNKNOWN"
+  | "CORE"
+  | "LOG"
+  | "RUNNER"
+  | "WORKFLOW"
+  | "TASK";
+
+export enum PotType {
+  UNKNOWN = "UNKNOWN",
+  EXTERNAL = "EXTERNAL",
+  INTERNAL = "INTERNAL",
+  SYSTEM = "SYSTEM",
+  CONTEXT = "CONTEXT",
 }
 
-export type WorkflowTriggersStorage = {
-  [potName: string]: Array<WorkflowTrigger>;
-};
-
-export type TaskTriggerStorage = {
-  [potName: string]: Array<TaskTrigger<{}>>;
-};
-
-export type WorkflowsStorage = { [workflowName: string]: IWorkflow };
-
-export type TasksStorage = { [taskName: string]: ITask };
+export enum DoHandlerOp {
+  NEXT,
+  FAIL,
+  FINISH,
+  REPEAT,
+}
 
 export enum Level {
   UNKNOWN = 0,
@@ -281,6 +359,22 @@ export enum Level {
   WARN = 5,
   ERROR = 6,
   FATAL = 7,
+}
+
+export enum SEventType {
+  UNKNOWN,
+  CORE,
+  LOG,
+  RUNNER,
+  WORKFLOW,
+  TASK,
+}
+
+export enum TaskType {
+  single,
+  depended,
+  singleWorkflow,
+  dependedWorkflow,
 }
 
 export enum SourceType {
@@ -294,60 +388,4 @@ export enum SourceType {
   WORKFLOW_FAIL = "WORKFLOW.FAIL",
   FRAMEWORK = "FRAMEWORK",
   PLUGIN = "PLUGIN",
-}
-
-export interface ILogEventArgs {
-  sourceType: SourceType;
-  sourceName: string;
-}
-
-export interface ILoggerOptions {
-  sourceType?: SourceType;
-  sourceName?: string;
-}
-
-export type ICore<S extends Spicy> = {
-  workflow<ContextPot extends IPot>(
-    contextPotConstructor: Constructor<ContextPot>,
-  ): WorkflowBuilder<ContextPot, S>;
-  task<
-    P1 extends IPot,
-    P2 extends IPot,
-    P3 extends IPot,
-    P4 extends IPot,
-    P5 extends IPot,
-  >(
-    p1: Constructor<P1>,
-    p2?: Constructor<P2>,
-    p3?: Constructor<P3>,
-    p4?: Constructor<P4>,
-    p5?: Constructor<P5>,
-  ): TaskBuilder<S, P1, P2, P3, P4, P5>;
-  emitters: typeof emitters;
-
-  createLogger(options: ILoggerOptions): IEventDrivenLogger;
-  start(): Promise<void>;
-  register(builder: ITaskBuilder | IWorkflowBuilder): void;
-  disable(builder: ITaskBuilder | IWorkflowBuilder): void;
-  enable(builder: ITaskBuilder | IWorkflowBuilder): void;
-  send(pot: IPot, builder?: ITaskBuilder): void;
-};
-
-export interface IEventDrivenLogger {
-  dbg(msg: string): void;
-  trc(msg: string): void;
-  vrb(msg: string): void;
-  inf(msg: string): void;
-  err(msg: string): void;
-  wrn(msg: string): void;
-  flt(msg: string): void;
-}
-
-export interface ILogEventMetadata {
-  name?: string;
-}
-
-export interface ICoreOptions<S = Spicy> {
-  useDenoKV?: boolean;
-  spicy?: S;
 }

@@ -10,8 +10,8 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import type { ISError } from "$core/types";
+import type { TSError } from "$core/types";
 
-export class SError extends Error implements ISError {
+export class SError extends Error implements TSError {
   createdAt = new Date().getTime();
 }

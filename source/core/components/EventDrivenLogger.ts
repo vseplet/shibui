@@ -22,10 +22,10 @@ import {
   WarnLogEvent,
 } from "$core/events";
 import {
-  type IEventDrivenLogger,
-  type ILoggerOptions,
   Level,
   SourceType,
+  type TEventDrivenLogger,
+  type TLoggerOptions,
 } from "$core/types";
 import { colors } from "$deps";
 import { EventEmitter } from "$core/components";
@@ -52,7 +52,7 @@ const levelName = [
   "FTL",
 ];
 
-export class EventDrivenLogger implements IEventDrivenLogger {
+export class EventDrivenLogger implements TEventDrivenLogger {
   #options = {
     sourceType: SourceType.UNKNOWN,
     sourceName: "unknown",
@@ -65,7 +65,7 @@ export class EventDrivenLogger implements IEventDrivenLogger {
   constructor(
     emitter: EventEmitter<LogEvent<unknown>>,
     settings: any,
-    args?: ILoggerOptions,
+    args?: TLoggerOptions,
   ) {
     this.#settings = settings;
     this.#emitter = emitter;
