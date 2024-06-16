@@ -23,7 +23,7 @@ import {
 } from "$core/types";
 import { Distributor, EventDrivenLogger } from "$core/components";
 import { TaskBuilder, WorkflowBuilder } from "$core/entities";
-import type { TConstructor } from "$helpers/types";
+import type { Constructor } from "$helpers/types";
 
 export class Core<S extends TSpicy> implements TCore<S> {
   emitters = emitters;
@@ -47,7 +47,7 @@ export class Core<S extends TSpicy> implements TCore<S> {
   }
 
   workflow<ContextPot extends TPot>(
-    contextPotConstructor: TConstructor<ContextPot>,
+    contextPotConstructor: Constructor<ContextPot>,
   ): WorkflowBuilder<ContextPot, S> {
     return new WorkflowBuilder<ContextPot, S>(contextPotConstructor);
   }
@@ -59,11 +59,11 @@ export class Core<S extends TSpicy> implements TCore<S> {
     P4 extends TPot,
     P5 extends TPot,
   >(
-    p1: TConstructor<P1>,
-    p2?: TConstructor<P2>,
-    p3?: TConstructor<P3>,
-    p4?: TConstructor<P4>,
-    p5?: TConstructor<P5>,
+    p1: Constructor<P1>,
+    p2?: Constructor<P2>,
+    p3?: Constructor<P3>,
+    p4?: Constructor<P4>,
+    p5?: Constructor<P5>,
   ) {
     return new TaskBuilder<S, P1, P2, P3, P4, P5>(
       p1,

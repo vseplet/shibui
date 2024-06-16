@@ -19,7 +19,7 @@ import type {
   TTaskBuilder,
   TWorkflowBuilder,
 } from "$core/types";
-import type { TConstructor } from "$helpers/types";
+import type { Constructor } from "$helpers/types";
 import { TaskBuilder, WorkflowBuilder } from "$core/entities";
 import {
   TaskFailedEvent,
@@ -81,11 +81,11 @@ export const execute = async (
 
 /**
  * Creates a new task builder with the specified IPot constructors.
- * @param {TConstructor<P1>} p1 - Constructor for the first IPot.
- * @param {TConstructor<P2>} [p2] - Constructor for the second IPot.
- * @param {TConstructor<P3>} [p3] - Constructor for the third IPot.
- * @param {TConstructor<P4>} [p4] - Constructor for the fourth IPot.
- * @param {TConstructor<P5>} [p5] - Constructor for the fifth IPot.
+ * @param {Constructor<P1>} p1 - Constructor for the first IPot.
+ * @param {Constructor<P2>} [p2] - Constructor for the second IPot.
+ * @param {Constructor<P3>} [p3] - Constructor for the third IPot.
+ * @param {Constructor<P4>} [p4] - Constructor for the fourth IPot.
+ * @param {Constructor<P5>} [p5] - Constructor for the fifth IPot.
  * @returns {TaskBuilder<P1, P2, P3, P4, P5>} - A new task builder.
  */
 export const task = <
@@ -95,11 +95,11 @@ export const task = <
   P4 extends TPot,
   P5 extends TPot,
 >(
-  p1: TConstructor<P1>,
-  p2?: TConstructor<P2>,
-  p3?: TConstructor<P3>,
-  p4?: TConstructor<P4>,
-  p5?: TConstructor<P5>,
+  p1: Constructor<P1>,
+  p2?: Constructor<P2>,
+  p3?: Constructor<P3>,
+  p4?: Constructor<P4>,
+  p5?: Constructor<P5>,
 ) =>
   new TaskBuilder<TSpicy, P1, P2, P3, P4, P5>(
     p1,
@@ -111,11 +111,11 @@ export const task = <
 
 /**
  * Creates a new workflow builder with the specified context IPot constructor.
- * @param {TConstructor<ContextPot>} contextPotConstructor - Constructor for the context IPot.
+ * @param {Constructor<ContextPot>} contextPotConstructor - Constructor for the context IPot.
  * @returns {WorkflowBuilder<ContextPot>} - A new workflow builder.
  */
 export const workflow = <ContextPot extends TPot>(
-  contextPotConstructor: TConstructor<ContextPot>,
+  contextPotConstructor: Constructor<ContextPot>,
 ) => new WorkflowBuilder<ContextPot, TSpicy>(contextPotConstructor);
 
 /**

@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import type { TConstructor } from "$helpers/types";
+import type { Constructor } from "$helpers/types";
 import type { emitters } from "$core/emitters";
 import type { TaskBuilder, WorkflowBuilder } from "$core/entities";
 
@@ -145,7 +145,7 @@ export type TDoHandlerResult =
 
 export type TTaskTrigger<S extends TSpicy> = {
   taskName: string;
-  potConstructor: TConstructor<TPot>;
+  potConstructor: Constructor<TPot>;
   slot: number;
   handler(
     ctx: TTriggerHandlerContext<
@@ -208,7 +208,7 @@ export type IWorkflowBuilderSetupArgs<
 
 export type TWorkflowTrigger = {
   workflowName: string;
-  potConstructor: TConstructor<TPot>;
+  potConstructor: Constructor<TPot>;
   handler({}): TPot | null;
 };
 
@@ -253,7 +253,7 @@ export type TLoggerOptions = {
 
 export type TCore<S extends TSpicy> = {
   workflow<ContextPot extends TPot>(
-    contextPotConstructor: TConstructor<ContextPot>,
+    contextPotConstructor: Constructor<ContextPot>,
   ): WorkflowBuilder<ContextPot, S>;
   task<
     P1 extends TPot,
@@ -262,11 +262,11 @@ export type TCore<S extends TSpicy> = {
     P4 extends TPot,
     P5 extends TPot,
   >(
-    p1: TConstructor<P1>,
-    p2?: TConstructor<P2>,
-    p3?: TConstructor<P3>,
-    p4?: TConstructor<P4>,
-    p5?: TConstructor<P5>,
+    p1: Constructor<P1>,
+    p2?: Constructor<P2>,
+    p3?: Constructor<P3>,
+    p4?: Constructor<P4>,
+    p5?: Constructor<P5>,
   ): TaskBuilder<S, P1, P2, P3, P4, P5>;
   emitters: typeof emitters;
 

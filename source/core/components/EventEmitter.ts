@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import type { TConstructor } from "$helpers/types";
+import type { Constructor } from "$helpers/types";
 import type { SEvent } from "$core/entities";
 
 export class EventEmitter<
@@ -33,7 +33,7 @@ export class EventEmitter<
   }
 
   addListenerByType(
-    EventConstructor: TConstructor<T>,
+    EventConstructor: Constructor<T>,
     callback: (event: T) => void,
   ) {
     const targetEventType = (new EventConstructor()).type;

@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import type { TConstructor } from "$helpers/types";
+import type { Constructor } from "$helpers/types";
 import type {
   IWorkflowBuilderSetupArgs,
   TPot,
@@ -24,7 +24,7 @@ import { TaskBuilder } from "$core/entities";
 
 export class WorkflowBuilder<ContextPot extends TPot, S extends TSpicy>
   implements TWorkflowBuilder {
-  contextPotConstructor: TConstructor<ContextPot>;
+  contextPotConstructor: Constructor<ContextPot>;
 
   workflow: TWorkflow = {
     name: "unknown",
@@ -37,7 +37,7 @@ export class WorkflowBuilder<ContextPot extends TPot, S extends TSpicy>
     TTaskBuilder
   > = [];
 
-  constructor(contextPotConstructor: TConstructor<ContextPot>) {
+  constructor(contextPotConstructor: Constructor<ContextPot>) {
     this.contextPotConstructor = contextPotConstructor;
   }
 
@@ -53,7 +53,7 @@ export class WorkflowBuilder<ContextPot extends TPot, S extends TSpicy>
 
   triggers(
     ...constructorList: Array<
-      TConstructor<TPot>
+      Constructor<TPot>
     >
   ) {
     for (const constructor of constructorList) {
@@ -70,7 +70,7 @@ export class WorkflowBuilder<ContextPot extends TPot, S extends TSpicy>
   }
 
   on<T extends TPot>(
-    potConstructor: TConstructor<T>,
+    potConstructor: Constructor<T>,
     handler?: TWorkflowTriggerHandler<ContextPot, T, S>,
   ) {
     if (handler) {
@@ -116,7 +116,7 @@ export class WorkflowBuilder<ContextPot extends TPot, S extends TSpicy>
 
     if (!length || length == 0) {
       builder.on(
-        this.contextPotConstructor as TConstructor<
+        this.contextPotConstructor as Constructor<
           Exclude<ContextPot, undefined>
         >,
         ({ pots, allow, deny }) =>

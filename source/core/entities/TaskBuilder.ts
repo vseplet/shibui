@@ -11,7 +11,7 @@
  */
 
 // deno-lint-ignore-file
-import { TConstructor } from "$helpers/types";
+import { Constructor } from "$helpers/types";
 import { TaskNameMissingError } from "$core/errors";
 import {
   TDoHandlerContext,
@@ -46,11 +46,11 @@ export class TaskBuilder<
   };
 
   constructor(
-    p1: TConstructor<P1>,
-    p2?: TConstructor<P2>,
-    p3?: TConstructor<P3>,
-    p4?: TConstructor<P4>,
-    p5?: TConstructor<P5>,
+    p1: Constructor<P1>,
+    p2?: Constructor<P2>,
+    p3?: Constructor<P3>,
+    p4?: Constructor<P4>,
+    p5?: Constructor<P5>,
   ) {
     this.task.slotsCount =
       Array.from(arguments).filter((arg) => arg !== undefined).length;
@@ -92,7 +92,7 @@ export class TaskBuilder<
 
   triggers(
     ...constructorList: Array<
-      TConstructor<Exclude<P1, undefined>>
+      Constructor<Exclude<P1, undefined>>
     >
   ) {
     for (const constructor of constructorList) {
@@ -121,7 +121,7 @@ export class TaskBuilder<
   }
 
   on<TP extends Exclude<P1 | P2 | P3 | P4 | P5, undefined>>(
-    potConstructor: TConstructor<TP>,
+    potConstructor: Constructor<TP>,
     handler?: (
       args: TTriggerHandlerContext<
         S,
@@ -169,7 +169,7 @@ export class TaskBuilder<
 
   onRule<TP extends Exclude<P1 | P2 | P3 | P4, undefined>>(
     rule: "ForThisTask" | "ForAnyTask" | "ForUnknown",
-    potConstructor: TConstructor<TP>,
+    potConstructor: Constructor<TP>,
     slot?: number,
   ) {
     let handler;
