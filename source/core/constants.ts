@@ -6,16 +6,15 @@ import type {
   TPotType,
   TTaskType,
   TTriggerHandlerOp,
-  TTriggerOp,
 } from "$core/types";
 
 export const TRIGGER_OP_ALLOW: TTriggerHandlerOp = "ALLOW";
 export const TRIGGER_OP_DENY: TTriggerHandlerOp = "DENY";
 
-export const TRIGGER_OP = {
-  ALLOW: "ALLOW" as TTriggerOp,
-  DENY: "DENY" as TTriggerOp,
-};
+export const DO_OP_NEXT: TDoOp = "NEXT";
+export const DO_OP_FAIL: TDoOp = "FAIL";
+export const DO_OP_FINISH: TDoOp = "FINISH";
+export const DO_OP_REPEAT: TDoOp = "REPEAT";
 
 export const POT_TYPE = {
   UNKNOWN: "UNKNOWN" as TPotType,
@@ -24,14 +23,6 @@ export const POT_TYPE = {
   SYSTEM: "SYSTEM" as TPotType,
   CONTEXT: "CONTEXT" as TPotType,
 };
-
-export const DO_OP = {
-  NEXT: "NEXT" as TDoOp,
-  FAIL: "FAIL" as TDoOp,
-  FINISH: "FINISH" as TDoOp,
-  REPEAT: "REPEAT" as TDoOp,
-};
-
 export const LOG_LEVEL = {
   UNKNOWN: "UNKNOWN" as TLogLevel,
   TRACE: "TRACE" as TLogLevel,

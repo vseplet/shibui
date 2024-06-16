@@ -16,14 +16,16 @@ import {
   type TCore,
   type TCoreOptions,
   type TLoggerOptions,
+  type TNewTaskBuilder,
+  type TNewWorkflowBuilder,
   type TPot,
   type TSpicy,
-  type TTaskBuilder,
-  type TWorkflowBuilder,
 } from "$core/types";
 import { Distributor, EventDrivenLogger } from "$core/components";
-import { TaskBuilder, WorkflowBuilder } from "$core/entities";
+import { Pot, WorkflowBuilder } from "$core/entities";
 import type { Constructor } from "$helpers/types";
+import { TaskBuilder } from "../entities/TaskBuilder.ts";
+import type { ContextPot } from "$core/pots";
 
 export class Core<S extends TSpicy> implements TCore<S> {
   emitters = emitters;
@@ -46,32 +48,16 @@ export class Core<S extends TSpicy> implements TCore<S> {
     this.#globalPotDistributor = new Distributor<S>(this);
   }
 
-  workflow<ContextPot extends TPot>(
-    contextPotConstructor: Constructor<ContextPot>,
-  ): WorkflowBuilder<ContextPot, S> {
-    return new WorkflowBuilder<ContextPot, S>(contextPotConstructor);
+  workflow<CP extends ContextPot<{}>>(
+    contextPotConstructor: Constructor<CP>,
+  ): WorkflowBuilder<S, CP> {
+    return new WorkflowBuilder<S, CP>(contextPotConstructor);
   }
 
-  task<
-    P1 extends TPot,
-    P2 extends TPot,
-    P3 extends TPot,
-    P4 extends TPot,
-    P5 extends TPot,
-  >(
-    p1: Constructor<P1>,
-    p2?: Constructor<P2>,
-    p3?: Constructor<P3>,
-    p4?: Constructor<P4>,
-    p5?: Constructor<P5>,
+  task<Pots extends Pot[]>(
+    ...constructors: { [K in keyof Pots]: Constructor<Pots[K]> }
   ) {
-    return new TaskBuilder<S, P1, P2, P3, P4, P5>(
-      p1,
-      p2,
-      p3,
-      p4,
-      p5,
-    );
+    return new TaskBuilder<S, Pots>(...constructors);
   }
 
   createLogger = (options: TLoggerOptions) => {
@@ -92,19 +78,19 @@ export class Core<S extends TSpicy> implements TCore<S> {
   //   this.emitters.logEventEmitter.close();
   // }
 
-  register(builder: TTaskBuilder | TWorkflowBuilder) {
+  register(builder: TNewTaskBuilder | TNewWorkflowBuilder) {
     this.#globalPotDistributor.register(builder);
   }
 
-  disable(builder: TTaskBuilder | TWorkflowBuilder) {
+  disable(builder: TNewTaskBuilder | TNewWorkflowBuilder) {
     this.#globalPotDistributor.disable(builder);
   }
 
-  enable(builder: TTaskBuilder | TWorkflowBuilder) {
+  enable(builder: TNewTaskBuilder | TNewWorkflowBuilder) {
     this.#globalPotDistributor.enable(builder);
   }
 
-  send(pot: TPot, builder?: TTaskBuilder) {
+  send(pot: TPot, builder?: TNewTaskBuilder) {
     if (builder) pot.to.task = builder.task.name;
     this.#globalPotDistributor.send(pot);
   }

@@ -12,14 +12,13 @@
 
 import type { Pot } from "$core/entities";
 import {
-  DoHandlerOp,
   SourceType,
-  type TCore,
-  type TDoHandlerResult,
+  type TAnyCore,
   type TEventDrivenLogger,
+  type TNewDoHandlerResult,
+  type TNewTask,
+  type TNewTaskBuilder,
   type TPot,
-  type TTask,
-  type TTaskBuilder,
 } from "$core/types";
 import {
   TaskFailedEvent,
@@ -27,15 +26,21 @@ import {
   WorkflowFailedEvent,
   WorkflowFinishedEvent,
 } from "$core/events";
+import {
+  DO_OP_FAIL,
+  DO_OP_FINISH,
+  DO_OP_NEXT,
+  DO_OP_REPEAT,
+} from "$core/constants";
 import { delay } from "$deps";
 
 export default class Runner {
-  #core: TCore<{}>;
+  #core: TAnyCore;
   #kv: Deno.Kv;
   #log: TEventDrivenLogger;
-  #tasks: { [name: string]: TTask } = {};
+  #tasks: { [name: string]: TNewTask } = {};
 
-  constructor(core: TCore<{}>, kv: Deno.Kv) {
+  constructor(core: TAnyCore, kv: Deno.Kv) {
     this.#core = core;
     this.#kv = kv;
     this.#log = core.createLogger({
@@ -44,7 +49,7 @@ export default class Runner {
     });
   }
 
-  registerTask(task: TTask) {
+  registerTask(task: TNewTask) {
     this.#tasks[task.name] = task;
     this.#log.inf(`registered task '${task.name}'`);
   }
@@ -66,22 +71,22 @@ export default class Runner {
         }),
         pots,
         next: (
-          taskBuilders: TTaskBuilder | Array<TTaskBuilder>,
+          taskBuilders: TNewTaskBuilder | Array<TNewTaskBuilder>,
           data?: Partial<TPot["data"]>,
         ) => ({
-          op: DoHandlerOp.NEXT,
+          op: DO_OP_NEXT,
           taskBuilders: taskBuilders instanceof Array
             ? taskBuilders
             : [taskBuilders],
           data,
         }),
         fail: (reason?: string) => ({
-          op: DoHandlerOp.FAIL,
+          op: DO_OP_FAIL,
           reason: reason || "",
         }),
-        finish: () => ({ op: DoHandlerOp.FINISH }),
+        finish: () => ({ op: DO_OP_FINISH }),
         repeat: (_data?: Partial<TPot["data"]>) => ({
-          op: DoHandlerOp.REPEAT,
+          op: DO_OP_REPEAT,
         }),
       });
       this.#processResult(pots, task, doResult);
@@ -104,22 +109,23 @@ export default class Runner {
 
   #processResult(
     pots: Array<Pot>,
-    task: TTask,
-    result: TDoHandlerResult,
+    task: TNewTask,
+    result: TNewDoHandlerResult,
   ) {
     try {
+      console.log(result.op);
       switch (result.op) {
-        case DoHandlerOp.FINISH:
+        case DO_OP_FINISH:
           this.#onFinish(task);
           break;
-        case DoHandlerOp.NEXT:
-          this.#onNext(pots, task, result.taskBuilders, result.data);
+        case DO_OP_NEXT:
+          this.#onNext(pots, task, result?.taskBuilders || [], result.data);
           break;
-        case DoHandlerOp.REPEAT:
+        case DO_OP_REPEAT:
           this.#onRepeat(pots, task);
           break;
-        case DoHandlerOp.FAIL:
-          this.#onFail(task, result.reason);
+        case DO_OP_FAIL:
+          this.#onFail(task, result?.reason || "");
           break;
       }
     } catch (err: unknown) {
@@ -129,7 +135,7 @@ export default class Runner {
     }
   }
 
-  #onFail(task: TTask, reason: string) {
+  #onFail(task: TNewTask, reason: string) {
     this.#log.err(`Task '${task.name}' failed due to reason: '${reason}'.`);
     this.#core.emitters.coreEventEmitter.emit(new TaskFailedEvent());
     if (task.belongsToWorkflow) {
@@ -142,8 +148,8 @@ export default class Runner {
 
   #onNext(
     pots: Array<Pot>,
-    task: TTask,
-    nextTasks: Array<TTaskBuilder>,
+    task: TNewTask,
+    nextTasks: Array<TNewTaskBuilder>,
     data?: Partial<unknown> | undefined,
   ) {
     this.#core.emitters.coreEventEmitter.emit(new TaskFinishedEvent());
@@ -167,7 +173,7 @@ export default class Runner {
     });
   }
 
-  #onFinish(task: TTask) {
+  #onFinish(task: TNewTask) {
     if (task.belongsToWorkflow) {
       this.#log.inf(
         `Task '${task.name}' in workflow '${task.belongsToWorkflow}' successfully completed.`,
@@ -183,7 +189,7 @@ export default class Runner {
     }
   }
 
-  async #onRepeat(pots: Array<Pot>, task: TTask, afterMs: number = 0) {
+  async #onRepeat(pots: Array<Pot>, task: TNewTask, afterMs: number = 0) {
     await delay(afterMs);
 
     if (task.belongsToWorkflow) {
@@ -194,7 +200,7 @@ export default class Runner {
     this.run(task.name, pots);
   }
 
-  #onError(pots: Array<Pot>, task: TTask, err: Error) {
+  #onError(pots: Array<Pot>, task: TNewTask, err: Error) {
     if (task.belongsToWorkflow) {
       this.#log.err(
         `trying to process do handler result from workflow ${task.belongsToWorkflow} task '${task.name}' by context '${

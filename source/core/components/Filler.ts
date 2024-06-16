@@ -5,13 +5,14 @@ import {
   type TEventDrivenLogger,
   type TTask,
 } from "$core/types";
+import { TNewTask } from "../entities/TaskBuilder.ts";
 
 export class Filler {
-  #core: TCore<{}>;
+  #core: TAnyCore;
   #kv: Deno.Kv;
   #log: TEventDrivenLogger;
 
-  constructor(core: TCore<{}>, kv: Deno.Kv) {
+  constructor(core: TAnyCore, kv: Deno.Kv) {
     this.#core = core;
     this.#kv = kv;
     this.#log = core.createLogger({
@@ -20,7 +21,7 @@ export class Filler {
     });
   }
 
-  registerTask(task: TTask) {
+  registerTask(task: TNewTask) {
   }
 
   fill(taskkName: string, pot: Pot, slot: number): {

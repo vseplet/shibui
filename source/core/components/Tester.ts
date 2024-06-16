@@ -8,11 +8,11 @@ import {
   type TasksStorage,
   type TCore,
   type TEventDrivenLogger,
+  type TNewTask,
+  type TNewWorkflow,
   type TPot,
   type TSpicy,
-  type TTask,
   type TTaskTriggerStorage,
-  type TWorkflow,
   type TWorkflowTriggersStorage,
   type WorkflowsStorage,
 } from "$core/types";
@@ -45,7 +45,8 @@ export class Tester<S extends TSpicy> {
     this.#runner = new Runner(core, kv);
   }
 
-  registerTask(task: TTask) {
+  registerTask(task: TNewTask) {
+    console.log("registerTask!!!!");
     this.#filler.registerTask(task);
     this.#runner.registerTask(task);
 
@@ -63,17 +64,18 @@ export class Tester<S extends TSpicy> {
       storage[potName] ||= [];
       storage[potName].push(...task.triggers[potName]);
     }
+
     this.#log.vrb(STRS.rtn$own(task));
   }
 
-  registerWorkflow(workflow: TWorkflow) {
+  registerWorkflow(workflow: TNewWorkflow) {
     this.#workflows[workflow.name] = workflow;
     workflow.tasks.forEach((task) => this.registerTask(task));
     for (const potName in workflow.triggers) {
       this.#workflowTriggers[potName] ||= [];
       this.#workflowTriggers[potName].push(workflow.triggers[potName]);
     }
-    this.#log.vrb(STRS.rwn(workflow));
+    // this.#log.vrb(STRS.rwn(workflow));
   }
 
   show() {
@@ -188,7 +190,7 @@ export class Tester<S extends TSpicy> {
         const pack = this.#filler.fill(
           trigger.taskName,
           pot,
-          result.potIndex || 0,
+          result?.potIndex || 0,
         );
         if (pack) {
           this.#runner.run(pack.taskName, pack.pots);
