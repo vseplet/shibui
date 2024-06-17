@@ -16,10 +16,10 @@ import {
   type TCore,
   type TCoreOptions,
   type TLoggerOptions,
-  type TNewTaskBuilder,
-  type TNewWorkflowBuilder,
-  type TPot,
+  TPot,
   type TSpicy,
+  type TTaskBuilder,
+  type TWorkflowBuilder,
 } from "$core/types";
 import { Distributor, EventDrivenLogger } from "$core/components";
 import { Pot, WorkflowBuilder } from "$core/entities";
@@ -78,19 +78,19 @@ export class Core<S extends TSpicy> implements TCore<S> {
   //   this.emitters.logEventEmitter.close();
   // }
 
-  register(builder: TNewTaskBuilder | TNewWorkflowBuilder) {
+  register(builder: TTaskBuilder | TWorkflowBuilder) {
     this.#globalPotDistributor.register(builder);
   }
 
-  disable(builder: TNewTaskBuilder | TNewWorkflowBuilder) {
+  disable(builder: TTaskBuilder | TWorkflowBuilder) {
     this.#globalPotDistributor.disable(builder);
   }
 
-  enable(builder: TNewTaskBuilder | TNewWorkflowBuilder) {
+  enable(builder: TTaskBuilder | TWorkflowBuilder) {
     this.#globalPotDistributor.enable(builder);
   }
 
-  send(pot: TPot, builder?: TNewTaskBuilder) {
+  send(pot: TPot, builder?: TTaskBuilder) {
     if (builder) pot.to.task = builder.task.name;
     this.#globalPotDistributor.send(pot);
   }

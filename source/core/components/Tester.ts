@@ -8,15 +8,16 @@ import {
   type TasksStorage,
   type TCore,
   type TEventDrivenLogger,
-  type TNewTask,
-  type TNewWorkflow,
-  type TPot,
+  TPot,
   type TSpicy,
+  type TTask,
   type TTaskTriggerStorage,
+  type TWorkflow,
   type TWorkflowTriggersStorage,
   type WorkflowsStorage,
 } from "$core/types";
 import { Filler, Runner } from "$core/components";
+import { IPot } from "../../../drafts/draft9-horde.ts";
 
 export class Tester<S extends TSpicy> {
   #core: TCore<S>;
@@ -45,7 +46,7 @@ export class Tester<S extends TSpicy> {
     this.#runner = new Runner(core, kv);
   }
 
-  registerTask(task: TNewTask) {
+  registerTask(task: TTask) {
     console.log("registerTask!!!!");
     this.#filler.registerTask(task);
     this.#runner.registerTask(task);
@@ -68,7 +69,7 @@ export class Tester<S extends TSpicy> {
     this.#log.vrb(STRS.rtn$own(task));
   }
 
-  registerWorkflow(workflow: TNewWorkflow) {
+  registerWorkflow(workflow: TWorkflow) {
     this.#workflows[workflow.name] = workflow;
     workflow.tasks.forEach((task) => this.registerTask(task));
     for (const potName in workflow.triggers) {
@@ -102,13 +103,7 @@ export class Tester<S extends TSpicy> {
     potName: string,
     taskName: string,
     slot: number,
-    pots: [
-      TPot,
-      TPot | undefined,
-      TPot | undefined,
-      TPot | undefined,
-      TPot | undefined,
-    ],
+    pot: IPot,
   ) {
     return {
       core: this.#core,
@@ -121,7 +116,7 @@ export class Tester<S extends TSpicy> {
         sourceType: SourceType.TASK,
         sourceName: `ON (${[potName]}): ${taskName}`,
       }),
-      pots,
+      pot,
     };
   }
 
@@ -144,7 +139,7 @@ export class Tester<S extends TSpicy> {
         pot.name,
         trigger.taskName,
         trigger.slot,
-        [pot, undefined, undefined, undefined, undefined],
+        pot,
       );
 
       const result = trigger.handler(triggerContext);
@@ -179,7 +174,7 @@ export class Tester<S extends TSpicy> {
         pot.name,
         trigger.taskName,
         trigger.slot,
-        [pot, undefined, undefined, undefined, undefined],
+        pot,
       );
 
       const result = trigger.handler(triggerContext);
@@ -269,7 +264,7 @@ export class Tester<S extends TSpicy> {
         pot.name,
         trigger.taskName,
         trigger.slot,
-        [pot, undefined, undefined, undefined, undefined],
+        pot,
       );
 
       const result = trigger.handler(triggerContext);

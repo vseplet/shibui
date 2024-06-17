@@ -3,7 +3,7 @@ import { execute, task, workflow } from "$core";
 import { ContextPot, CoreStartPot } from "$core/pots";
 import type { TPot } from "$core/types";
 import { sh } from "https://deno.land/x/shelly@v0.1.1/mod.ts";
-import type { _OLdTaskBuilder } from "../entities/_OldTaskBuilder.ts";
+import { TaskBuilder } from "$core/entities";
 
 export const checkUpdateTypeByCommitMessage = <
   CTX extends ContextPot<{
@@ -11,7 +11,7 @@ export const checkUpdateTypeByCommitMessage = <
   }>,
 >(
   contextPot: new () => CTX,
-  nextTask?: _OLdTaskBuilder<{}, CTX, TPot, TPot, TPot, TPot>,
+  nextTask?: TaskBuilder<{}, [CTX], CTX>,
 ) =>
   task(contextPot)
     .name("checkUpdateTypeByCommitMessage")

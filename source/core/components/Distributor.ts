@@ -12,15 +12,14 @@
 
 import { CoreStartPot } from "$core/pots";
 import { Pot } from "$core/entities";
-import { _OLdTaskBuilder, _OldWorkflowBuilder } from "$core/entities";
 import {
   SourceType,
   type TCore,
   type TEventDrivenLogger,
-  type TNewTaskBuilder,
-  type TNewWorkflowBuilder,
   type TPot,
   type TSpicy,
+  type TTaskBuilder,
+  type TWorkflowBuilder,
 } from "$core/types";
 import { Tester } from "$core/components";
 import { TaskBuilder } from "../entities/TaskBuilder.ts";
@@ -68,7 +67,7 @@ export default class Distributor<S extends TSpicy> {
     this.send(new CoreStartPot());
   }
 
-  register(builder: TNewTaskBuilder | TNewWorkflowBuilder) {
+  register(builder: TTaskBuilder | TWorkflowBuilder) {
     console.log(builder);
     if (builder instanceof WorkflowBuilder) {
       const workflow = builder.build();
@@ -81,15 +80,15 @@ export default class Distributor<S extends TSpicy> {
     // this.#tester.show();
   }
 
-  disable(builder: TNewTaskBuilder | TNewWorkflowBuilder) {
-    if (builder instanceof _OldWorkflowBuilder) {
-    } else if (builder instanceof _OLdTaskBuilder) {
+  disable(builder: TTaskBuilder | TWorkflowBuilder) {
+    if (builder instanceof WorkflowBuilder) {
+    } else if (builder instanceof TaskBuilder) {
     }
   }
 
-  enable(builder: TNewTaskBuilder | TNewWorkflowBuilder) {
-    if (builder instanceof _OldWorkflowBuilder) {
-    } else if (builder instanceof _OLdTaskBuilder) {
+  enable(builder: TTaskBuilder | TWorkflowBuilder) {
+    if (builder instanceof WorkflowBuilder) {
+    } else if (builder instanceof TaskBuilder) {
     }
   }
 

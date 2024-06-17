@@ -73,8 +73,6 @@ export type TSEvent = {
 //   build(): TTask;
 // };
 
-export type TTriggerHandlerOp = "ALLOW" | "DENY";
-
 export type TSpicy = Record<string | number | symbol, never>;
 
 // export type TTriggerHandlerContext<
@@ -241,23 +239,23 @@ export type TWorkflowTriggerHandler<
 //   build(): TWorkflow;
 // };
 
-export type TNewWorkflowTrigger = {
+export type TWorkflowTrigger = {
   workflowName: string;
   potConstructor: Constructor<TPot>;
   handler: any;
 };
 
 export type TWorkflowTriggersStorage = {
-  [potName: string]: Array<TNewWorkflowTrigger>;
+  [potName: string]: Array<TWorkflowTrigger>;
 };
 
 export type TTaskTriggerStorage = {
-  [potName: string]: Array<TNewTaskTrigger<any, any, any>>;
+  [potName: string]: Array<TTaskTrigger<any, any, any>>;
 };
 
-export type WorkflowsStorage = { [workflowName: string]: TNewWorkflow };
+export type WorkflowsStorage = { [workflowName: string]: TWorkflow };
 
-export type TasksStorage = { [taskName: string]: TNewTask };
+export type TasksStorage = { [taskName: string]: TTask };
 
 export type TLogEventArgs = {
   sourceType: SourceType;
@@ -282,10 +280,10 @@ export type TCore<S extends TSpicy> = {
 
   createLogger(options: TLoggerOptions): TEventDrivenLogger;
   start(): Promise<void>;
-  register(builder: TNewTaskBuilder | TNewWorkflowBuilder): void;
-  disable(builder: TNewTaskBuilder | TNewWorkflowBuilder): void;
-  enable(builder: TNewTaskBuilder | TNewWorkflowBuilder): void;
-  send(pot: TPot, builder?: TNewTaskBuilder): void;
+  register(builder: TTaskBuilder | TWorkflowBuilder): void;
+  disable(builder: TTaskBuilder | TWorkflowBuilder): void;
+  enable(builder: TTaskBuilder | TWorkflowBuilder): void;
+  send(pot: TPot, builder?: TTaskBuilder): void;
 };
 
 export type TAnyCore = TCore<any>;
@@ -394,12 +392,12 @@ export enum SourceType {
   PLUGIN = "PLUGIN",
 }
 
-export type TNewOnHandlerResult = {
+export type TOnHandlerResult = {
   op: TTriggerOp;
   potIndex?: number;
 };
 
-export type TNewOnHandlerContext<Spicy, CtxPot, TriggerPot> =
+export type TOnHandlerContext<Spicy, CtxPot, TriggerPot> =
   & Spicy
   & (CtxPot extends undefined ? { pot: TriggerPot }
     : Equal<TriggerPot, CtxPot> extends true ? { ctx: CtxPot }
@@ -415,76 +413,82 @@ export type TNewOnHandlerContext<Spicy, CtxPot, TriggerPot> =
     };
   };
 
-export type TNewTaskTriggerHandler<Spicy, CtxPot, TriggerPot> = (
-  args: TNewOnHandlerContext<Spicy, CtxPot, TriggerPot>,
-) => TNewOnHandlerResult;
+export type TTaskTriggerHandler<Spicy, CtxPot, TriggerPot> = (
+  args: TOnHandlerContext<Spicy, CtxPot, TriggerPot>,
+) => TOnHandlerResult;
 
-export type TNewTaskTrigger<Spicy, CTX, TP> = {
+export type TTaskTrigger<Spicy, CTX, TP> = {
   taskName: string;
   potConstructor: Constructor<Pot>;
   slot: number;
-  handler: TNewTaskTriggerHandler<Spicy, CTX, TP>;
+  handler: TTaskTriggerHandler<Spicy, CTX, TP>;
   belongsToWorkflow: string | undefined;
 };
 
-export type TNewAnyTaskTrigger = TNewTaskTrigger<any, any, any>;
+export type TAnyTaskTrigger = TTaskTrigger<any, any, any>;
 
 export type TNewDoHandlerResult = {
   op: TDoOp;
   reason?: string;
-  taskBuilders?: Array<TNewTaskBuilder>;
+  taskBuilders?: Array<TTaskBuilder>;
   data?: Partial<TPot["data"]>;
 };
 
-export type TNewDoHandlerContext<Spicy, CtxPot, Pots extends Pot[]> =
+export type TDoHandlerContext<Spicy, CtxPot, Pots extends Pot[]> =
   & Spicy
   & (CtxPot extends undefined ? { pots: Pots }
     : { ctx: CtxPot; pots: Tail<Pots> })
   & {
     log: EventDrivenLogger;
-    next: () => {
+    next: (
+      builders: Array<TTaskBuilder> | TTaskBuilder,
+      data?: Partial<Pots[0]["data"]>,
+    ) => {
       op: typeof DO_OP_NEXT;
+      taskBuilders: Array<TTaskBuilder>;
+      data?: Partial<Pots[0]["data"]>;
     };
     finish: () => {
       op: typeof DO_OP_FINISH;
     };
-    fail: () => {
+    fail: (reason?: string) => {
       op: typeof DO_OP_FAIL;
+      reason?: string;
     };
     repeat: () => {
       op: typeof DO_OP_REPEAT;
     };
   };
 
-export type TNewTaskDoHandler<Spicy, CtxPot, Pots extends Pot[]> = (
-  args: TNewDoHandlerContext<Spicy, CtxPot, Pots>,
+export type TTaskDoHandler<Spicy, CtxPot, Pots extends Pot[]> = (
+  args: TDoHandlerContext<Spicy, CtxPot, Pots>,
 ) => Promise<TNewDoHandlerResult>;
 
-export type TNewAnyTaskDoHandler = TNewTaskDoHandler<any, any, any>;
+export type TAnyTaskDoHandler = TTaskDoHandler<any, any, any>;
 
-export type TNewTask = {
+export type TTask = {
   name: string;
   attempts: number;
   timeout: number;
   slotsCount: number;
   belongsToWorkflow: string | undefined;
-  triggers: { [key: string]: Array<TNewAnyTaskTrigger> };
-  do: TNewAnyTaskDoHandler;
+  triggers: { [key: string]: Array<TAnyTaskTrigger> };
+  do: TAnyTaskDoHandler;
 };
 
-export type TNewTaskBuilder = {
-  task: TNewTask;
-  build(): TNewTask;
+export type TTaskBuilder = {
+  task: TTask;
+  build(): TTask;
 };
 
-export type TNewWorkflow = {
+export type TWorkflow = {
   name: string;
-  triggers: { [key: string]: TNewWorkflowTrigger };
-  tasks: Array<TNewTask>;
+  triggers: { [key: string]: TWorkflowTrigger };
+  tasks: Array<TTask>;
   firstTaskName: string;
 };
 
-export type TNewWorkflowBuilder = {
-  workflow: TNewWorkflow;
-  build: () => TNewWorkflow;
+export type TWorkflowBuilder = {
+  workflow: TWorkflow;
+  build: () => TWorkflow;
 };

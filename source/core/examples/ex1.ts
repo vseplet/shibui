@@ -11,9 +11,9 @@ class SimplePot extends InternalPot<{ value: number }> {
 
 const mySimpleTask = task(SimplePot)
   .name`Simple Task`
-  .on(SimplePot, ({ allow, deny, log, pots }) => {
+  .on(SimplePot, ({ allow, deny, log, pot }) => {
     log.dbg(`run test function... `);
-    return pots[0].data.value > Math.random() ? allow() : deny();
+    return pot.data.value > Math.random() ? allow() : deny();
   })
   .do(async ({ finish, pots, log }) => {
     log.dbg(`run do function...`);

@@ -14,10 +14,10 @@ import { Core } from "$core/components";
 import type {
   TCore,
   TCoreOptions,
-  TNewTaskBuilder,
-  TNewWorkflowBuilder,
   TPot,
   TSpicy,
+  TTaskBuilder,
+  TWorkflowBuilder,
 } from "$core/types";
 import type { Constructor } from "$helpers/types";
 import { Pot } from "$core/entities";
@@ -39,7 +39,7 @@ import { ContextPot } from "$core/pots";
  * @returns {Promise<boolean>} - Returns true if execution is successful, otherwise false.
  */
 export const execute = async (
-  builder: TNewTaskBuilder | TNewWorkflowBuilder,
+  builder: TTaskBuilder | TWorkflowBuilder,
   pots?: Array<TPot>,
 ): Promise<boolean> => {
   const startTime = new Date().getTime();

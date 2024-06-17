@@ -11,12 +11,11 @@
  */
 
 import {
-  type CoreEvent,
   DebugLogEvent,
   ErrorLogEvent,
   FatalLogEvent,
   InfoLogEvent,
-  LogEvent,
+  type LogEvent,
   TraceLogEvent,
   VerboseLogEvent,
   WarnLogEvent,
@@ -28,7 +27,7 @@ import {
   type TLoggerOptions,
 } from "$core/types";
 import { colors } from "$deps";
-import { EventEmitter } from "$core/components";
+import type { EventEmitter } from "$core/components";
 
 const colorizeByLevel = {
   [Level.UNKNOWN]: colors.dim,
