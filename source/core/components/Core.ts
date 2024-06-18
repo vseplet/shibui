@@ -12,18 +12,22 @@
 
 import { emitters } from "$core/emitters";
 import {
-  type ILoggerOptions,
-  type IPot,
-  type IShibuiCore,
-  type ITaskBuilder,
-  type IWorkflowBuilder,
   SourceType,
+  type TCore,
+  type TCoreOptions,
+  type TLoggerOptions,
+  TPot,
+  type TSpicy,
+  type TTaskBuilder,
+  type TWorkflowBuilder,
 } from "$core/types";
 import { Distributor, EventDrivenLogger } from "$core/components";
-import { TaskBuilder, WorkflowBuilder } from "$core/entities";
+import { Pot, WorkflowBuilder } from "$core/entities";
 import type { Constructor } from "$helpers/types";
+import { TaskBuilder } from "../entities/TaskBuilder.ts";
+import type { ContextPot } from "$core/pots";
 
-export class ShibuiCore implements IShibuiCore {
+export class Core<S extends TSpicy> implements TCore<S> {
   emitters = emitters;
 
   #globalPotDistributor: Distributor;
@@ -40,49 +44,23 @@ export class ShibuiCore implements IShibuiCore {
     ],
   };
 
-  constructor() {
-    // this.emitters = {
-    //   logEventEmitter: new EventEmitter<LogEvent<unknown>>(
-    //     "log" + Math.random(),
-    //   ),
-
-    //   coreEventEmitter: new EventEmitter<CoreEvent>(
-    //     "log" + Math.random(),
-    //   ),
-    // };
-
-    this.#globalPotDistributor = new Distributor(this);
+  constructor(config: TCoreOptions) {
+    this.#globalPotDistributor = new Distributor(this, config.spicy);
   }
 
-  workflow<ContextPot extends IPot>(
-    contextPotConstructor: Constructor<ContextPot>,
+  workflow<CP extends ContextPot<{}>>(
+    contextPotConstructor: Constructor<CP>,
+  ): WorkflowBuilder<S, CP> {
+    return new WorkflowBuilder<S, CP>(contextPotConstructor);
+  }
+
+  task<Pots extends Pot[]>(
+    ...constructors: { [K in keyof Pots]: Constructor<Pots[K]> }
   ) {
-    return new WorkflowBuilder<ContextPot>(contextPotConstructor);
+    return new TaskBuilder<S, Pots>(...constructors);
   }
 
-  task<
-    P1 extends IPot,
-    P2 extends IPot,
-    P3 extends IPot,
-    P4 extends IPot,
-    P5 extends IPot,
-  >(
-    p1: Constructor<P1>,
-    p2?: Constructor<P2>,
-    p3?: Constructor<P3>,
-    p4?: Constructor<P4>,
-    p5?: Constructor<P5>,
-  ) {
-    return new TaskBuilder<P1, P2, P3, P4, P5>(
-      p1,
-      p2,
-      p3,
-      p4,
-      p5,
-    );
-  }
-
-  createLogger = (options: ILoggerOptions) => {
+  createLogger = (options: TLoggerOptions) => {
     return new EventDrivenLogger(
       emitters.logEventEmitter,
       this.settings,
@@ -100,20 +78,20 @@ export class ShibuiCore implements IShibuiCore {
   //   this.emitters.logEventEmitter.close();
   // }
 
-  register(builder: ITaskBuilder | IWorkflowBuilder) {
+  register(builder: TTaskBuilder | TWorkflowBuilder) {
     this.#globalPotDistributor.register(builder);
   }
 
-  disable = (builder: ITaskBuilder | IWorkflowBuilder) => {
+  disable(builder: TTaskBuilder | TWorkflowBuilder) {
     this.#globalPotDistributor.disable(builder);
-  };
+  }
 
-  enable = (builder: ITaskBuilder | IWorkflowBuilder) => {
+  enable(builder: TTaskBuilder | TWorkflowBuilder) {
     this.#globalPotDistributor.enable(builder);
-  };
+  }
 
-  send = (pot: IPot, builder?: ITaskBuilder) => {
+  send(pot: TPot, builder?: TTaskBuilder) {
     if (builder) pot.to.task = builder.task.name;
     this.#globalPotDistributor.send(pot);
-  };
+  }
 }

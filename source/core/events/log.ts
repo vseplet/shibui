@@ -12,24 +12,24 @@
 
 // deno-lint-ignore-file
 
-import { ShibuiEvent } from "$core/entities";
+import { SEvent } from "$core/entities";
 import {
-  ILogEventArgs,
-  ILogEventMetadata,
   Level,
-  ShibuiEventType,
+  SEventType,
   SourceType,
+  TLogEventArgs,
+  TLogEventMetadata,
 } from "$core/types";
 
-export class LogEvent<T> extends ShibuiEvent {
-  type = ShibuiEventType.LOG;
+export class LogEvent<T> extends SEvent {
+  type = SEventType.LOG;
   level = Level.UNKNOWN;
   sourceName = "unknown";
   sourceType = SourceType.UNKNOWN;
   msg: string;
   metadata: T = {} as T; // late init
 
-  constructor(args: ILogEventArgs, msg = "", metadata?: T) {
+  constructor(args: TLogEventArgs, msg = "", metadata?: T) {
     super();
     this.sourceName = args.sourceName;
     this.sourceType = args.sourceType;
@@ -38,30 +38,30 @@ export class LogEvent<T> extends ShibuiEvent {
   }
 }
 
-export class DebugLogEvent extends LogEvent<ILogEventMetadata> {
+export class DebugLogEvent extends LogEvent<TLogEventMetadata> {
   level = Level.DEBUG;
 }
 
-export class TraceLogEvent extends LogEvent<ILogEventMetadata> {
+export class TraceLogEvent extends LogEvent<TLogEventMetadata> {
   level = Level.TRACE;
 }
 
-export class VerboseLogEvent extends LogEvent<ILogEventMetadata> {
+export class VerboseLogEvent extends LogEvent<TLogEventMetadata> {
   level = Level.TRACE;
 }
 
-export class InfoLogEvent extends LogEvent<ILogEventMetadata> {
+export class InfoLogEvent extends LogEvent<TLogEventMetadata> {
   level = Level.INFO;
 }
 
-export class WarnLogEvent extends LogEvent<ILogEventMetadata> {
+export class WarnLogEvent extends LogEvent<TLogEventMetadata> {
   level = Level.WARN;
 }
 
-export class ErrorLogEvent extends LogEvent<ILogEventMetadata> {
+export class ErrorLogEvent extends LogEvent<TLogEventMetadata> {
   level = Level.ERROR;
 }
 
-export class FatalLogEvent extends LogEvent<ILogEventMetadata> {
+export class FatalLogEvent extends LogEvent<TLogEventMetadata> {
   level = Level.FATAL;
 }

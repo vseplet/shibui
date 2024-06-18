@@ -1,8 +1,12 @@
 // deno-lint-ignore-file require-await
-import core from "$core";
+import shibuiCore from "$core";
 import { InternalPot } from "$core/pots";
 
-const c = core();
+const core = shibuiCore<{ x: number }>({
+  spicy: {
+    x: 100,
+  },
+});
 
 class SimplePot extends InternalPot<{ value: number }> {
   ttl = 1;
@@ -11,37 +15,37 @@ class SimplePot extends InternalPot<{ value: number }> {
   };
 }
 
-const task1 = c.task(SimplePot)
-  .name`Task 1`
+const task1 = core.task(SimplePot)
   .onRule("ForThisTask", SimplePot)
-  .do(async ({ log, pots, next }) => {
-    log.dbg(`value: ${pots[0].data.value}`);
+  .name`Task 1`
+  .do(async ({ log, next, x }) => {
+    log.dbg(`value: ${x}`);
     return next(task2, {
-      value: pots[0].data.value += 1,
+      value: x += 1,
     });
   });
 
-const task2 = c.task(SimplePot)
+const task2 = core.task(SimplePot)
   .name`Task 2`
   .onRule("ForThisTask", SimplePot)
-  .do(async ({ log, pots, next }) => {
+  .do(async ({ pots, log, next }) => {
     log.dbg(`value: ${pots[0].data.value}`);
     return next(task3, {
       value: pots[0].data.value += 1,
     });
   });
 
-const task3 = c.task(SimplePot)
+const task3 = core.task(SimplePot)
   .name`Task 3`
   .onRule("ForThisTask", SimplePot)
-  .do(async ({ log, pots, finish }) => {
+  .do(async ({ log, finish, pots }) => {
     log.dbg(`value: ${pots[0].data.value}`);
     return finish();
   });
 
-c.register(task1);
-c.register(task2);
-c.register(task3);
+core.register(task1);
+core.register(task2);
+core.register(task3);
 
-await c.start();
-c.send(new SimplePot(), task1);
+await core.start();
+core.send(new SimplePot(), task1);

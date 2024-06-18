@@ -10,12 +10,12 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import type { IEventDrivenLogger, IShibuiCore } from "$core/types";
+import type { IEventDTEventDrivenLogger } from "$core/types";
 
-export type TPlugin = (core: IShibuiCore) => void;
+export type TPlugin = (core: TCore) => void;
 
 export type TPluginInit = (
-  args: { core: IShibuiCore; log: IEventDrivenLogger },
+  args: { core: TCore; log: TEventDrivenLogger },
 ) => void;
 
 export interface IPlugin {

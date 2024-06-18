@@ -121,12 +121,12 @@ class SimpleWorkflowContext extends ContextPot<{ message: string }> {
 const workflow = shibui.workflow(SimpleWorkflowContext)
   .name("Simple Workflow")
   .on(CoreStartPot)
-  .sq(({ task1 }) => {
-    const t1 = task1()
+  .sq(({ task }) => {
+    const t1 = task()
       .name("First Task")
       // deno-lint-ignore require-await
-      .do(async ({ pots, finish, log }) => {
-        log.inf(pots[0].data.message);
+      .do(async ({ ctx, finish, log }) => {
+        log.inf(ctx.data.message);
         return finish();
       });
 

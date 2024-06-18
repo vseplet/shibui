@@ -12,33 +12,52 @@
 
 import type { Constructor } from "$helpers/types";
 import type {
-  IPot,
-  ITaskBuilder,
-  IWorkflow,
-  IWorkflowBuilder,
-  IWorkflowBuilderSetupArgs,
-  WorkflowTriggerHandler,
+  TPot,
+  TSpicy,
+  TTaskBuilder,
+  TWorkflow,
+  TWorkflowBuilder,
 } from "$core/types";
-import { task1 } from "./TaskBuilder.ts";
-import type { TaskBuilder } from "$core/entities";
+import { type Pot, TaskBuilder } from "$core/entities";
 
-export class WorkflowBuilder<ContextPot extends IPot>
-  implements IWorkflowBuilder {
-  contextPotConstructor: Constructor<ContextPot>;
-
-  workflow: IWorkflow = {
+export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
+  implements TWorkflowBuilder {
+  ctxPotConstructor: Constructor<CPot>;
+  workflow: TWorkflow = {
     name: "unknown",
+    firstTaskName: "",
     triggers: {},
-    firstTaskName: "unknown",
     tasks: [],
   };
 
   taskBuilders: Array<
-    ITaskBuilder
+    TTaskBuilder
   > = [];
 
-  constructor(contextPotConstructor: Constructor<ContextPot>) {
-    this.contextPotConstructor = contextPotConstructor;
+  constructor(
+    ctxPotConstructor: Constructor<CPot>,
+  ) {
+    this.ctxPotConstructor = ctxPotConstructor;
+  }
+
+  on(potConstructor: Constructor<Pot>, handler?: (pot: TPot) => void) {
+    if (handler) {
+      this.workflow.triggers[potConstructor.name] = {
+        workflowName: this.workflow.name,
+        potConstructor,
+        handler,
+      };
+    } else {
+      this.workflow.triggers[potConstructor.name] = {
+        workflowName: this.workflow.name,
+        potConstructor,
+        handler: () => {
+          return new this.ctxPotConstructor();
+        },
+      };
+    }
+
+    return this;
   }
 
   name(name: string | TemplateStringsArray) {
@@ -51,124 +70,85 @@ export class WorkflowBuilder<ContextPot extends IPot>
     return this;
   }
 
-  triggers(
-    ...constructorList: Array<
-      Constructor<IPot>
-    >
-  ) {
-    for (const constructor of constructorList) {
-      this.workflow.triggers[constructor.name] = {
-        workflowName: this.workflow.name,
-        potConstructor: constructor,
-        handler: () => {
-          return new this.contextPotConstructor();
-        },
-      };
-    }
+  // triggers(
+  //   ...constructorList: Array<
+  //     Constructor<TPot>
+  //   >
+  // ) {
+  //   for (const constructor of constructorList) {
+  //     this.workflow.triggers[constructor.name] = {
+  //       workflowName: this.workflow.name,
+  //       potConstructor: constructor,
+  //       handler: () => {
+  //         return new this.contextPotConstructor();
+  //       },
+  //     };
+  //   }
 
-    return this;
-  }
-
-  on<T extends IPot>(
-    potConstructor: Constructor<T>,
-    handler?: WorkflowTriggerHandler<ContextPot, T>,
-  ) {
-    if (handler) {
-      this.workflow.triggers[potConstructor.name] = {
-        workflowName: this.workflow.name,
-        potConstructor,
-        handler,
-      };
-    } else {
-      this.workflow.triggers[potConstructor.name] = {
-        workflowName: this.workflow.name,
-        potConstructor,
-        handler: () => {
-          return new this.contextPotConstructor();
-        },
-      };
-    }
-
-    return this;
-  }
-
-  // #task() {
-  //   const builder = task1(this.contextPotConstructor);
-  //   builder.belongsToWorkflow(this);
-
-  //   builder.on(
-  //     this.contextPotConstructor as Constructor<Exclude<ContextPot, undefined>>,
-  //     ({ pots, allow, deny }) =>
-  //       pots[0].to.task === builder.task.name ? allow() : deny(),
-  //   );
-
-  //   this.taskBuilders.push(builder);
-  //   return builder;
+  //   return this;
   // }
 
-  #task1(builder: TaskBuilder<ContextPot, IPot, IPot, IPot, IPot>) {
-    builder.belongsToWorkflow(this);
-
-    const length = builder.task.triggers[this.contextPotConstructor.name]
-      ?.length;
-
-    if (!length || length == 0) {
-      builder.on(
-        this.contextPotConstructor as Constructor<
-          Exclude<ContextPot, undefined>
-        >,
-        ({ pots, allow, deny }) =>
-          pots[0].to.task === builder.task.name ? allow() : deny(),
-      );
-    }
-
-    this.taskBuilders.push(builder);
-    return builder;
-  }
-
   sq(
-    fun: (
-      args: IWorkflowBuilderSetupArgs<ContextPot>,
-    ) => ITaskBuilder,
+    _cb: (args: {
+      task: <Pots extends Pot[]>(
+        ...potConstructors: { [K in keyof Pots]: Constructor<Pots[K]> }
+      ) => TaskBuilder<Spicy, [CPot, ...Pots], CPot>;
+      shared: (
+        builder: TaskBuilder<any, any, any>,
+      ) => TaskBuilder<Spicy, [], CPot>;
+    }) => TTaskBuilder,
   ) {
-    const initArgs = {
-      task1: () => {
-        const builder = task1(this.contextPotConstructor);
-        return this.#task1(builder);
-      },
-      shared1: (
-        builder: TaskBuilder<
-          ContextPot,
-          IPot,
-          IPot,
-          IPot,
-          IPot
-        >,
-      ) => this.#task1(builder), // TODO: сделать тип task'и универсальным
-      // task2: <TriggerPot extends IPot>() => this.#task2<TriggerPot>(),
-      // task3: <
-      //   TriggerPot2 extends IPot,
-      //   TriggerPot3 extends IPot,
-      // >() => this.#task3<TriggerPot2, TriggerPot3>(),
-      // task4: <
-      //   TriggerPot2 extends IPot,
-      //   TriggerPot3 extends IPot,
-      //   TriggerPot4 extends IPot,
-      // >() => this.#task4<TriggerPot2, TriggerPot3, TriggerPot4>(),
-    };
+    this.workflow.firstTaskName = _cb({
+      task: <Pots extends Pot[]>(
+        ...potConstructors: { [K in keyof Pots]: Constructor<Pots[K]> }
+      ) => {
+        const builder = new TaskBuilder<Spicy, [CPot, ...Pots], CPot>(
+          this.ctxPotConstructor,
+          ...potConstructors,
+        ).belongsToWorkflow(this);
 
-    this.workflow.firstTaskName = fun(initArgs).task.name;
+        const length = builder.task.triggers[this.ctxPotConstructor.name]
+          ?.length;
+
+        if (!length || length == 0) {
+          builder.on(
+            this.ctxPotConstructor,
+            ({ ctx, allow, deny }) =>
+              ctx.to.task === builder.task.name ? allow() : deny(),
+          );
+        }
+
+        this.taskBuilders.push(builder);
+
+        return builder;
+      },
+
+      shared: (builder) => {
+        builder.belongsToWorkflow(this);
+
+        const length = builder.task.triggers[this.ctxPotConstructor.name]
+          ?.length;
+
+        if (!length || length == 0) {
+          builder.on(
+            this.ctxPotConstructor,
+            ({ ctx, allow, deny }) =>
+              ctx.to.task === builder.task.name ? allow() : deny(),
+          );
+        }
+
+        this.taskBuilders.push(builder);
+        return builder;
+      },
+    }).task.name;
     return this;
   }
 
-  build(): IWorkflow {
+  build() {
     this.taskBuilders.forEach((builder) => {
       this.workflow.tasks.push(builder.build());
     });
+
     return this.workflow;
   }
 }
-
-export const workflow = <ContextPot extends IPot>(
-  contextPotConstructor: Constructor<ContextPot>,
-) => new WorkflowBuilder<ContextPot>(contextPotConstructor);

@@ -10,10 +10,17 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { ShibuiCore } from "$core/components";
-import type { IPot, ITaskBuilder, IWorkflowBuilder } from "$core/types";
+import { Core } from "$core/components";
+import type {
+  TCore,
+  TCoreOptions,
+  TPot,
+  TSpicy,
+  TTaskBuilder,
+  TWorkflowBuilder,
+} from "$core/types";
 import type { Constructor } from "$helpers/types";
-import { TaskBuilder, WorkflowBuilder } from "$core/entities";
+import { Pot } from "$core/entities";
 import {
   TaskFailedEvent,
   TaskFinishedEvent,
@@ -21,16 +28,25 @@ import {
   WorkflowFinishedEvent,
 } from "$core/events";
 import { delay } from "$deps";
+import { TaskBuilder } from "./entities/TaskBuilder.ts";
+import { WorkflowBuilder } from "./entities/WorkflowBuilder.ts";
+import { ContextPot } from "$core/pots";
 
+/**
+ * Executes a task or workflow using the provided builder.
+ * @param {TTaskBuilder | TWorkflowBuilder} builder - The task or workflow builder.
+ * @param {Array<TPot>} [pots] - An array of IPot objects to send to the core.
+ * @returns {Promise<boolean>} - Returns true if execution is successful, otherwise false.
+ */
 export const execute = async (
-  builder: ITaskBuilder | IWorkflowBuilder,
-  pots?: Array<IPot>,
+  builder: TTaskBuilder | TWorkflowBuilder,
+  pots?: Array<TPot>,
 ): Promise<boolean> => {
   const startTime = new Date().getTime();
   let isComplete = false;
   let isOk = true;
 
-  const tmpCore = new ShibuiCore();
+  const tmpCore = new Core({ useDenoKV: false });
   tmpCore.register(builder);
 
   const finish = () => {
@@ -66,34 +82,25 @@ export const execute = async (
   return isOk;
 };
 
-export const task = <
-  P1 extends IPot,
-  P2 extends IPot,
-  P3 extends IPot,
-  P4 extends IPot,
-  P5 extends IPot,
->(
-  p1: Constructor<P1>,
-  p2?: Constructor<P2>,
-  p3?: Constructor<P3>,
-  p4?: Constructor<P4>,
-  p5?: Constructor<P5>,
-) =>
-  new TaskBuilder<P1, P2, P3, P4, P5>(
-    p1,
-    p2,
-    p3,
-    p4,
-    p5,
-  );
-
-export const workflow = <ContextPot extends IPot>(
-  contextPotConstructor: Constructor<ContextPot>,
-) => new WorkflowBuilder<ContextPot>(contextPotConstructor);
-
-export const core = () => {
-  return new ShibuiCore();
+export const task = <Pots extends Pot[]>(
+  ...constructors: { [K in keyof Pots]: Constructor<Pots[K]> }
+) => {
+  return new TaskBuilder<{}, Pots>(...constructors);
 };
 
-const defaultCore = new ShibuiCore();
-export default defaultCore;
+export const workflow = <CP extends ContextPot<{}>>(
+  contextPotConstructor: Constructor<CP>,
+) => new WorkflowBuilder<TSpicy, CP>(contextPotConstructor);
+
+/**
+ * Creates and returns a new instance of ShibuiCore.
+ * @param {TCoreOptions} [config={ useDenoKV: true }] - Configuration for ShibuiCore.
+ * @returns {TCore} - A new instance of ShibuiCore.
+ */
+export const core = <S extends TSpicy = {}>(
+  config: TCoreOptions<S> = { useDenoKV: true },
+): TCore<S> => {
+  return new Core<S>(config);
+};
+
+export default core;

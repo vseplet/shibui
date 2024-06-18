@@ -5,11 +5,10 @@ import { ContextPot, CoreStartPot } from "$core/pots";
 const simpleWorkflow = workflow(class CTX extends ContextPot<{}> {})
   .name("simple workflow")
   .on(CoreStartPot)
-  .sq(({ task1 }) =>
-    task1()
+  .sq(({ task }) =>
+    task()
       .name("single workflow task")
-      .do(async ({ pots, log, finish, fail }) => {
-        const [ctx] = pots;
+      .do(async ({ ctx, log, finish, fail }) => {
         if (Math.random() > 0.5) return fail("random!");
         log.dbg(`context data: ${JSON.stringify(ctx.data)}`);
         return finish();
