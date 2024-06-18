@@ -25,6 +25,7 @@ import type {
 } from "$core/constants";
 import type { Pot, WorkflowBuilder } from "$core/entities";
 import type { ContextPot } from "$core/pots";
+import { IPot } from "../../drafts/draft9-horde.ts";
 
 export type TPot = {
   toc: number;
@@ -73,7 +74,7 @@ export type TSEvent = {
 //   build(): TTask;
 // };
 
-export type TSpicy = Record<string | number | symbol, never>;
+export type TSpicy = {};
 
 // export type TTriggerHandlerContext<
 //   S extends TSpicy,
@@ -432,6 +433,7 @@ export type TNewDoHandlerResult = {
   reason?: string;
   taskBuilders?: Array<TTaskBuilder>;
   data?: Partial<TPot["data"]>;
+  afterMs?: number;
 };
 
 export type TDoHandlerContext<Spicy, CtxPot, Pots extends Pot[]> =
@@ -464,7 +466,7 @@ export type TTaskDoHandler<Spicy, CtxPot, Pots extends Pot[]> = (
   args: TDoHandlerContext<Spicy, CtxPot, Pots>,
 ) => Promise<TNewDoHandlerResult>;
 
-export type TAnyTaskDoHandler = TTaskDoHandler<any, any, any>;
+export type TAnyTaskDoHandler = TTaskDoHandler<any, IPot[], any>;
 
 export type TTask = {
   name: string;

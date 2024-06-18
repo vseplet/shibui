@@ -21,7 +21,5 @@ const mySimpleTask = task(SimplePot)
     return finish();
   });
 
-console.log(mySimpleTask.task.triggers);
-
 const res = await execute(mySimpleTask, [new SimplePot()]);
 Deno.exit(res ? 1 : -1);

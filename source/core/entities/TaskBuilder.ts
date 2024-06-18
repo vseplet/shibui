@@ -214,8 +214,6 @@ export class TaskBuilder<
       throw new TaskNameMissingError();
     }
 
-    console.log(this.task);
-
     if (Object.keys(this.task.triggers).length == 0) {
       throw new Error();
     }

@@ -12,15 +12,17 @@
 
 import type { Constructor } from "$helpers/types";
 import type {
+  TPot,
   TSpicy,
   TTaskBuilder,
   TWorkflow,
   TWorkflowBuilder,
 } from "$core/types";
-import type { Pot, TaskBuilder } from "$core/entities";
+import { type Pot, TaskBuilder } from "$core/entities";
 
 export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
   implements TWorkflowBuilder {
+  ctxPotConstructor: Constructor<CPot>;
   workflow: TWorkflow = {
     name: "unknown",
     firstTaskName: "",
@@ -28,9 +30,34 @@ export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
     tasks: [],
   };
 
+  taskBuilders: Array<
+    TTaskBuilder
+  > = [];
+
   constructor(
-    public ctxPotConstructor: Constructor<CPot>,
+    ctxPotConstructor: Constructor<CPot>,
   ) {
+    this.ctxPotConstructor = ctxPotConstructor;
+  }
+
+  on(potConstructor: Constructor<Pot>, handler?: (pot: TPot) => void) {
+    if (handler) {
+      this.workflow.triggers[potConstructor.name] = {
+        workflowName: this.workflow.name,
+        potConstructor,
+        handler,
+      };
+    } else {
+      this.workflow.triggers[potConstructor.name] = {
+        workflowName: this.workflow.name,
+        potConstructor,
+        handler: () => {
+          return new this.ctxPotConstructor();
+        },
+      };
+    }
+
+    return this;
   }
 
   name(name: string | TemplateStringsArray) {
@@ -61,29 +88,6 @@ export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
   //   return this;
   // }
 
-  // on<T extends TPot>(
-  //   potConstructor: Constructor<T>,
-  //   handler?: TWorkflowTriggerHandler<ContextPot, T, S>,
-  // ) {
-  //   if (handler) {
-  //     this.workflow.triggers[potConstructor.name] = {
-  //       workflowName: this.workflow.name,
-  //       potConstructor,
-  //       handler,
-  //     };
-  //   } else {
-  //     this.workflow.triggers[potConstructor.name] = {
-  //       workflowName: this.workflow.name,
-  //       potConstructor,
-  //       handler: () => {
-  //         return new this.contextPotConstructor();
-  //       },
-  //     };
-  //   }
-
-  //   return this;
-  // }
-
   sq(
     _cb: (args: {
       task: <Pots extends Pot[]>(
@@ -91,11 +95,39 @@ export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
       ) => TaskBuilder<Spicy, [CPot, ...Pots], CPot>;
     }) => TTaskBuilder,
   ) {
-    this.workflow.firstTaskName = _cb({} as any).task.name;
+    this.workflow.firstTaskName = _cb({
+      task: <Pots extends Pot[]>(
+        ...potConstructors: { [K in keyof Pots]: Constructor<Pots[K]> }
+      ) => {
+        const builder = new TaskBuilder<Spicy, [CPot, ...Pots], CPot>(
+          this.ctxPotConstructor,
+          ...potConstructors,
+        ).belongsToWorkflow(this);
+
+        const length = builder.task.triggers[this.ctxPotConstructor.name]
+          ?.length;
+
+        if (!length || length == 0) {
+          builder.on(
+            this.ctxPotConstructor,
+            ({ ctx, allow, deny }) =>
+              ctx.to.task === builder.task.name ? allow() : deny(),
+          );
+        }
+
+        this.taskBuilders.push(builder);
+
+        return builder;
+      },
+    }).task.name;
     return this;
   }
 
   build() {
+    this.taskBuilders.forEach((builder) => {
+      this.workflow.tasks.push(builder.build());
+    });
+
     return this.workflow;
   }
 }

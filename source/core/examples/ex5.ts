@@ -1,9 +1,8 @@
 // deno-lint-ignore-file require-await
 import { execute, task, workflow } from "$core";
 import { ContextPot, CoreStartPot } from "$core/pots";
-import type { TPot } from "$core/types";
 import { sh } from "https://deno.land/x/shelly@v0.1.1/mod.ts";
-import { TaskBuilder } from "$core/entities";
+import type { TaskBuilder } from "$core/entities";
 
 export const checkUpdateTypeByCommitMessage = <
   CTX extends ContextPot<{
@@ -46,24 +45,22 @@ class CTX extends ContextPot<{
 const simpleWorkflow = workflow(CTX)
   .name("simple workflow")
   .on(CoreStartPot)
-  .sq(({ task1, shared1 }) => {
-    const t2 = task1()
+  .sq(({ task, shared }) => {
+    const t2 = task()
       .name("task 2")
-      .do(async ({ pots, log, finish }) => {
-        const [ctx] = pots;
+      .do(async ({ ctx, log, finish }) => {
         log.dbg(`context data: ${ctx.data} 2`);
         return finish();
       });
 
-    const t1 = task1()
+    const t1 = task()
       .name("task 1")
-      .do(async ({ pots, log, next }) => {
-        const [ctx] = pots;
+      .do(async ({ ctx, log, next }) => {
         log.dbg(`context data: ${ctx.data} 1`);
         return next(t2);
       });
 
-    const t0 = shared1(checkUpdateTypeByCommitMessage(CTX, t1));
+    const t0 = shared(checkUpdateTypeByCommitMessage(CTX, t1));
 
     return t0;
   });

@@ -68,7 +68,6 @@ export default class Distributor<S extends TSpicy> {
   }
 
   register(builder: TTaskBuilder | TWorkflowBuilder) {
-    console.log(builder);
     if (builder instanceof WorkflowBuilder) {
       const workflow = builder.build();
       this.#tester.registerWorkflow(workflow);

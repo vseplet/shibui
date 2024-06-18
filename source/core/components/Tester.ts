@@ -47,7 +47,6 @@ export class Tester<S extends TSpicy> {
   }
 
   registerTask(task: TTask) {
-    console.log("registerTask!!!!");
     this.#filler.registerTask(task);
     this.#runner.registerTask(task);
 
@@ -99,7 +98,7 @@ export class Tester<S extends TSpicy> {
     }
   }
 
-  #createTriggerHandlerContext(
+  #createTaskTriggerHandlerContext(
     potName: string,
     taskName: string,
     slot: number,
@@ -120,6 +119,29 @@ export class Tester<S extends TSpicy> {
     };
   }
 
+  #createWorkflowTaskTriggerHandlerContext(
+    potName: string,
+    taskName: string,
+    slot: number,
+    ctx: IPot,
+    pot?: IPot,
+  ) {
+    return {
+      core: this.#core,
+      allow: (index?: number) => ({
+        op: TRIGGER_OP_ALLOW,
+        potIndex: index !== undefined ? index : slot,
+      }),
+      deny: () => ({ op: TRIGGER_OP_DENY }),
+      log: this.#core.createLogger({
+        sourceType: SourceType.TASK,
+        sourceName: `ON (${[potName]}): ${taskName}`,
+      }),
+      ctx,
+      pot,
+    };
+  }
+
   #testTaskTriggers(pot: Pot): boolean {
     const triggers = this.#taskTriggers[pot.name];
 
@@ -135,14 +157,12 @@ export class Tester<S extends TSpicy> {
         `trying to exec task trigger handler '${trigger.taskName}' by pot '${pot.name}'...`,
       );
 
-      const triggerContext = this.#createTriggerHandlerContext(
+      const result = trigger.handler(this.#createTaskTriggerHandlerContext(
         pot.name,
         trigger.taskName,
         trigger.slot,
         pot,
-      );
-
-      const result = trigger.handler(triggerContext);
+      ));
 
       if (result.op === TRIGGER_OP_ALLOW) {
         this.#log.inf(
@@ -170,7 +190,7 @@ export class Tester<S extends TSpicy> {
       this.#log.trc(
         `trying to exec depended task trigger handler '${trigger.taskName}' by pot '${pot.name}'...`,
       );
-      const triggerContext = this.#createTriggerHandlerContext(
+      const triggerContext = this.#createTaskTriggerHandlerContext(
         pot.name,
         trigger.taskName,
         trigger.slot,
@@ -245,39 +265,39 @@ export class Tester<S extends TSpicy> {
     }).includes(true);
   }
 
-  #testWorkflowTaskTriggers(pot: Pot): boolean {
-    const triggers = this.#workflowTaskTriggers[pot.name];
+  #testWorkflowTaskTriggers(ctx: Pot): boolean {
+    const triggers = this.#workflowTaskTriggers[ctx.name];
 
     if (!triggers) {
       this.#log.trc(
-        `not found workflow task triggers for pot '${pot.name}'`,
+        `not found workflow task triggers for pot '${ctx.name}'`,
       );
       return false;
     }
 
     return triggers.map((trigger) => {
       this.#log.trc(
-        `trying to exec workflow '${trigger.belongsToWorkflow}' task trigger handler '${trigger.taskName}' by pot '${pot.name}'...`,
+        `trying to exec workflow '${trigger.belongsToWorkflow}' task trigger handler '${trigger.taskName}' by ctx '${ctx.name}'...`,
       );
 
-      const triggerContext = this.#createTriggerHandlerContext(
-        pot.name,
-        trigger.taskName,
-        trigger.slot,
-        pot,
+      const result = trigger.handler(
+        this.#createWorkflowTaskTriggerHandlerContext(
+          ctx.name,
+          trigger.taskName,
+          trigger.slot,
+          ctx,
+        ),
       );
-
-      const result = trigger.handler(triggerContext);
 
       if (result.op === TRIGGER_OP_ALLOW) {
         this.#log.inf(
-          `allow run workflow '${trigger.belongsToWorkflow}' task '${trigger.taskName}' by pot '${pot.name}'`,
+          `allow run workflow '${trigger.belongsToWorkflow}' task '${trigger.taskName}' by ctx '${ctx.name}'`,
         );
-        this.#runner.run(trigger.taskName, [pot]);
+        this.#runner.run(trigger.taskName, [], ctx);
         return true;
       } else if (result.op === TRIGGER_OP_DENY) {
         this.#log.inf(
-          `deny run workflow '${trigger.belongsToWorkflow}' task '${trigger.taskName}' by pot '${pot.name}'`,
+          `deny run workflow '${trigger.belongsToWorkflow}' task '${trigger.taskName}' by ctx '${ctx.name}'`,
         );
         return false;
       }

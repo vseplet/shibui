@@ -50,12 +50,10 @@ export const execute = async (
   tmpCore.register(builder);
 
   const finish = () => {
-    console.log("finish");
     isComplete = true;
   };
 
   const fail = () => {
-    console.log("fail");
     isComplete = true;
     isOk = false;
   };

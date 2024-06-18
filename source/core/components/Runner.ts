@@ -54,11 +54,11 @@ export default class Runner {
     this.#log.inf(`registered task '${task.name}'`);
   }
 
-  async run(taskName: string, pots: Array<Pot>) {
+  async run(taskName: string, pots: Array<Pot>, ctx?: Pot) {
     const task = this.#tasks[taskName];
     this.#log.trc(
       `trying to exec do handler from task '${taskName}' by pot '${
-        pots[0].name
+        pots[0]?.name || ctx?.name
       }'...`,
     );
 
@@ -70,6 +70,7 @@ export default class Runner {
           sourceName: `DO: ${taskName}`,
         }),
         pots,
+        ctx,
         next: (
           taskBuilders: TTaskBuilder | Array<TTaskBuilder>,
           data?: Partial<TPot["data"]>,
@@ -89,18 +90,18 @@ export default class Runner {
           op: DO_OP_REPEAT,
         }),
       });
-      this.#processResult(pots, task, doResult);
+      this.#processResult(task, doResult, pots, ctx);
     } catch (err: unknown) {
       if (err instanceof Error) {
         this.#log.err(
           `trying to exec do handler from task '${taskName}' by pot '${
-            pots[0].name
+            pots[0]?.name || ctx?.name
           }' failed with error: '${err.stack}'`,
         );
       } else {
         this.#log.flt(
           `trying to exec do handler from task '${taskName}' by pot '${
-            pots[0].name
+            pots[0]?.name || ctx?.name
           }' failed with unknown error!`,
         );
       }
@@ -108,34 +109,59 @@ export default class Runner {
   }
 
   #processResult(
-    pots: Array<Pot>,
     task: TTask,
     result: TNewDoHandlerResult,
+    pots: Array<Pot>,
+    ctx?: Pot,
   ) {
     try {
-      console.log(result.op);
       switch (result.op) {
         case DO_OP_FINISH:
           this.#onFinish(task);
           break;
         case DO_OP_NEXT:
-          this.#onNext(pots, task, result?.taskBuilders || [], result.data);
+          this.#onNext({
+            pots,
+            ctx,
+            task,
+            nextTasks: result.taskBuilders || [],
+            data: result.data,
+          });
           break;
         case DO_OP_REPEAT:
-          this.#onRepeat(pots, task);
+          this.#onRepeat({
+            pots,
+            ctx,
+            task,
+            afterMs: result?.afterMs || 0,
+          });
           break;
         case DO_OP_FAIL:
-          this.#onFail(task, result?.reason || "");
+          this.#onFail({
+            task,
+            reason: result?.reason || "",
+          });
           break;
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
-        this.#onError(pots, task, err);
+        this.#onError({
+          ctx,
+          pots,
+          task,
+          err,
+        });
       }
     }
   }
 
-  #onFail(task: TTask, reason: string) {
+  #onFail({
+    task,
+    reason,
+  }: {
+    task: TTask;
+    reason: string;
+  }) {
     this.#log.err(`Task '${task.name}' failed due to reason: '${reason}'.`);
     this.#core.emitters.coreEventEmitter.emit(new TaskFailedEvent());
     if (task.belongsToWorkflow) {
@@ -146,12 +172,19 @@ export default class Runner {
     }
   }
 
-  #onNext(
-    pots: Array<Pot>,
-    task: TTask,
-    nextTasks: Array<TTaskBuilder>,
-    data?: Partial<unknown> | undefined,
-  ) {
+  #onNext({
+    pots,
+    ctx,
+    task,
+    nextTasks,
+    data,
+  }: {
+    pots: Array<Pot>;
+    ctx?: Pot;
+    task: TTask;
+    nextTasks: Array<TTaskBuilder>;
+    data?: Partial<unknown> | undefined;
+  }) {
     this.#core.emitters.coreEventEmitter.emit(new TaskFinishedEvent());
 
     nextTasks.forEach((builder) => {
@@ -164,12 +197,21 @@ export default class Runner {
           `calling the next task ${builder.task.name}`,
         );
       }
-      const newContextPot = pots[0].copy(data || pots[0].data);
-      newContextPot.from.task = task.name;
-      newContextPot.from.workflow = task.belongsToWorkflow;
-      newContextPot.to.task = builder.task.name;
-      newContextPot.to.workflow = builder.task.belongsToWorkflow;
-      this.#core.send(newContextPot);
+      if (ctx) {
+        const newContextPot = ctx.copy(data || ctx.data);
+        newContextPot.from.task = task.name;
+        newContextPot.from.workflow = task.belongsToWorkflow;
+        newContextPot.to.task = builder.task.name;
+        newContextPot.to.workflow = builder.task.belongsToWorkflow;
+        this.#core.send(newContextPot);
+      } else {
+        const newContextPot = pots[0].copy(data || pots[0].data);
+        newContextPot.from.task = task.name;
+        newContextPot.from.workflow = task.belongsToWorkflow;
+        newContextPot.to.task = builder.task.name;
+        newContextPot.to.workflow = builder.task.belongsToWorkflow;
+        this.#core.send(newContextPot);
+      }
     });
   }
 
@@ -189,7 +231,17 @@ export default class Runner {
     }
   }
 
-  async #onRepeat(pots: Array<Pot>, task: TTask, afterMs: number = 0) {
+  async #onRepeat({
+    pots,
+    ctx,
+    task,
+    afterMs,
+  }: {
+    pots: Array<Pot>;
+    ctx?: Pot;
+    task: TTask;
+    afterMs: number;
+  }) {
     await delay(afterMs);
 
     if (task.belongsToWorkflow) {
@@ -200,18 +252,28 @@ export default class Runner {
     this.run(task.name, pots);
   }
 
-  #onError(pots: Array<Pot>, task: TTask, err: Error) {
+  #onError({
+    ctx,
+    pots,
+    task,
+    err,
+  }: {
+    ctx?: Pot;
+    pots: Array<Pot>;
+    task: TTask;
+    err: Error;
+  }) {
     if (task.belongsToWorkflow) {
       this.#log.err(
-        `trying to process do handler result from workflow ${task.belongsToWorkflow} task '${task.name}' by context '${
-          pots[0].name
-        }' failed with error: '${err.message}'`,
+        `trying to process do handler result from workflow '${task.belongsToWorkflow}' task '${task.name}' by context '${
+          pots[0]?.name
+        }' failed with error: '${err.stack}'`,
       );
     } else {
       this.#log.err(
         `trying to process do handler result from task '${task.name}' by pot'${
-          pots[0].name
-        }' failed with error: '${err.message}'`,
+          pots[0]?.name
+        }' failed with error: '${err.stack}'`,
       );
     }
   }
