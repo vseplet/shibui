@@ -5,11 +5,11 @@ import type {
   TLogSource,
   TPotType,
   TTaskType,
-  TTriggerHandlerOp,
+  TTriggerOp,
 } from "$core/types";
 
-export const TRIGGER_OP_ALLOW: TTriggerHandlerOp = "ALLOW";
-export const TRIGGER_OP_DENY: TTriggerHandlerOp = "DENY";
+export const TRIGGER_OP_ALLOW: TTriggerOp = "ALLOW";
+export const TRIGGER_OP_DENY: TTriggerOp = "DENY";
 
 export const DO_OP_NEXT: TDoOp = "NEXT";
 export const DO_OP_FAIL: TDoOp = "FAIL";

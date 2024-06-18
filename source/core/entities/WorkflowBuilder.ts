@@ -70,23 +70,23 @@ export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
     return this;
   }
 
-  // triggers(
-  //   ...constructorList: Array<
-  //     Constructor<TPot>
-  //   >
-  // ) {
-  //   for (const constructor of constructorList) {
-  //     this.workflow.triggers[constructor.name] = {
-  //       workflowName: this.workflow.name,
-  //       potConstructor: constructor,
-  //       handler: () => {
-  //         return new this.contextPotConstructor();
-  //       },
-  //     };
-  //   }
+  triggers(
+    ...constructorList: Array<
+      Constructor<TPot>
+    >
+  ) {
+    for (const constructor of constructorList) {
+      this.workflow.triggers[constructor.name] = {
+        workflowName: this.workflow.name,
+        potConstructor: constructor,
+        handler: () => {
+          return new this.ctxPotConstructor();
+        },
+      };
+    }
 
-  //   return this;
-  // }
+    return this;
+  }
 
   sq(
     _cb: (args: {

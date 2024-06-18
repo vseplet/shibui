@@ -12,22 +12,22 @@ export const checkUpdateTypeByCommitMessage = <
   contextPot: new () => CTX,
   nextTask?: TaskBuilder<{}, [CTX], CTX>,
 ) =>
-  task(contextPot)
+  task<[CTX], CTX>(contextPot)
     .name("checkUpdateTypeByCommitMessage")
     .do(async ({ ctx, log, next, finish }) => {
       const lastCommitText = (await sh("git log -1 --pretty=%B")).stdout;
       if (lastCommitText.indexOf("[major]") != -1) {
-        ctx.updateType = "major";
+        ctx.data.updateType = "major";
       } else if (lastCommitText.indexOf("[minor]") != -1) {
-        ctx.updateType = "minor";
+        ctx.data.updateType = "minor";
       } else if (lastCommitText.indexOf("[patch]") != -1) {
-        ctx.updateType = "patch";
+        ctx.data.updateType = "patch";
       }
 
-      log.inf(ctx.updateType);
+      log.inf(ctx.data.updateType);
       if (nextTask) {
         return next(nextTask, {
-          updateType: ctx.updateType,
+          updateType: ctx.data.updateType,
         });
       } else {
         return finish();

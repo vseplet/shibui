@@ -20,7 +20,7 @@ import type {
   TWorkflowBuilder,
 } from "$core/types";
 import type { Constructor } from "$helpers/types";
-import { Pot } from "$core/entities";
+import type { Pot } from "$core/entities";
 import {
   TaskFailedEvent,
   TaskFinishedEvent,
@@ -30,7 +30,7 @@ import {
 import { delay } from "$deps";
 import { TaskBuilder } from "./entities/TaskBuilder.ts";
 import { WorkflowBuilder } from "./entities/WorkflowBuilder.ts";
-import { ContextPot } from "$core/pots";
+import type { ContextPot } from "$core/pots";
 
 /**
  * Executes a task or workflow using the provided builder.
@@ -82,10 +82,13 @@ export const execute = async (
   return isOk;
 };
 
-export const task = <Pots extends Pot[]>(
+export const task = <
+  Pots extends Pot[],
+  CPot extends ContextPot<{}> | undefined = undefined,
+>(
   ...constructors: { [K in keyof Pots]: Constructor<Pots[K]> }
 ) => {
-  return new TaskBuilder<{}, Pots>(...constructors);
+  return new TaskBuilder<{}, Pots, CPot>(...constructors);
 };
 
 export const workflow = <CP extends ContextPot<{}>>(
