@@ -14,9 +14,7 @@ export const checkUpdateTypeByCommitMessage = <
 ) =>
   task(contextPot)
     .name("checkUpdateTypeByCommitMessage")
-    .do(async ({ pots, log, next, finish }) => {
-      const ctx = pots[0].data;
-
+    .do(async ({ ctx, log, next, finish }) => {
       const lastCommitText = (await sh("git log -1 --pretty=%B")).stdout;
       if (lastCommitText.indexOf("[major]") != -1) {
         ctx.updateType = "major";

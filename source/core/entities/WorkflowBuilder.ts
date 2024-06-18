@@ -93,6 +93,9 @@ export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
       task: <Pots extends Pot[]>(
         ...potConstructors: { [K in keyof Pots]: Constructor<Pots[K]> }
       ) => TaskBuilder<Spicy, [CPot, ...Pots], CPot>;
+      shared: (
+        builder: TaskBuilder<any, any, any>,
+      ) => TaskBuilder<Spicy, [], CPot>;
     }) => TTaskBuilder,
   ) {
     this.workflow.firstTaskName = _cb({
@@ -117,6 +120,24 @@ export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
 
         this.taskBuilders.push(builder);
 
+        return builder;
+      },
+
+      shared: (builder) => {
+        builder.belongsToWorkflow(this);
+
+        const length = builder.task.triggers[this.ctxPotConstructor.name]
+          ?.length;
+
+        if (!length || length == 0) {
+          builder.on(
+            this.ctxPotConstructor,
+            ({ ctx, allow, deny }) =>
+              ctx.to.task === builder.task.name ? allow() : deny(),
+          );
+        }
+
+        this.taskBuilders.push(builder);
         return builder;
       },
     }).task.name;
