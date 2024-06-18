@@ -3,37 +3,40 @@ import { TRIGGER_OP_ALLOW, TRIGGER_OP_DENY } from "$core/constants";
 import type { Pot } from "$core/entities";
 import STRS from "$core/strings";
 import {
-  type IEventDrivenLogger,
-  type IPot,
-  type IShibuiCore,
-  type ITask,
-  type IWorkflow,
   PotType,
   SourceType,
+  type TAnyCore,
   type TasksStorage,
-  type TaskTriggerStorage,
+  type TEventDrivenLogger,
+  type TSpicy,
+  type TTask,
+  type TTaskTriggerStorage,
+  type TWorkflow,
+  type TWorkflowTriggersStorage,
   type WorkflowsStorage,
-  type WorkflowTriggersStorage,
 } from "$core/types";
 import { Filler, Runner } from "$core/components";
+import { IPot } from "../../../drafts/draft9-horde.ts";
 
 export class Tester {
-  #core: IShibuiCore;
+  #core: TAnyCore;
   #kv: Deno.Kv;
-  #log: IEventDrivenLogger;
+  #log: TEventDrivenLogger;
   #filler: Filler;
   #runner: Runner;
+  #spicy: TSpicy;
 
   #tasks: TasksStorage = {};
   #workflows: WorkflowsStorage = {};
 
-  #taskTriggers: TaskTriggerStorage = {}; // запускаются от одного пота
-  #dependentTaskTriggers: TaskTriggerStorage = {}; // запускаются от нескольких потов
-  #workflowTriggers: WorkflowTriggersStorage = {}; // запускаются от одного пота и генерирует контекст в очередь
-  #workflowTaskTriggers: TaskTriggerStorage = {}; // запускаются от одного контекстного пота
-  #workflowDependentTaskTriggers: TaskTriggerStorage = {}; // запускаются от нескольких потов, но при наличии контекста
+  #taskTriggers: TTaskTriggerStorage = {}; // запускаются от одного пота
+  #dependentTaskTriggers: TTaskTriggerStorage = {}; // запускаются от нескольких потов
+  #workflowTriggers: TWorkflowTriggersStorage = {}; // запускаются от одного пота и генерирует контекст в очередь
+  #workflowTaskTriggers: TTaskTriggerStorage = {}; // зап��скаются от одного контекстного пота
+  #workflowDependentTaskTriggers: TTaskTriggerStorage = {}; // запускаются от нескольких потов, но при наличии контекста
 
-  constructor(core: IShibuiCore, kv: Deno.Kv) {
+  constructor(core: TAnyCore, kv: Deno.Kv, spicy = {}) {
+    this.#spicy = spicy;
     this.#core = core;
     this.#kv = kv;
     this.#log = core.createLogger({
@@ -41,10 +44,10 @@ export class Tester {
       sourceName: "Tester",
     });
     this.#filler = new Filler(core, kv);
-    this.#runner = new Runner(core, kv);
+    this.#runner = new Runner(core, kv, this.#spicy);
   }
 
-  registerTask(task: ITask) {
+  registerTask(task: TTask) {
     this.#filler.registerTask(task);
     this.#runner.registerTask(task);
 
@@ -62,17 +65,18 @@ export class Tester {
       storage[potName] ||= [];
       storage[potName].push(...task.triggers[potName]);
     }
+
     this.#log.vrb(STRS.rtn$own(task));
   }
 
-  registerWorkflow(workflow: IWorkflow) {
+  registerWorkflow(workflow: TWorkflow) {
     this.#workflows[workflow.name] = workflow;
     workflow.tasks.forEach((task) => this.registerTask(task));
     for (const potName in workflow.triggers) {
       this.#workflowTriggers[potName] ||= [];
       this.#workflowTriggers[potName].push(workflow.triggers[potName]);
     }
-    this.#log.vrb(STRS.rwn(workflow));
+    // this.#log.vrb(STRS.rwn(workflow));
   }
 
   show() {
@@ -95,20 +99,15 @@ export class Tester {
     }
   }
 
-  #createTriggerHandlerContext(
+  #createTaskTriggerHandlerContext(
     potName: string,
     taskName: string,
     slot: number,
-    pots: [
-      IPot,
-      IPot | undefined,
-      IPot | undefined,
-      IPot | undefined,
-      IPot | undefined,
-    ],
+    pot: IPot,
   ) {
     return {
       core: this.#core,
+      ...this.#spicy,
       allow: (index?: number) => ({
         op: TRIGGER_OP_ALLOW,
         potIndex: index !== undefined ? index : slot,
@@ -118,7 +117,31 @@ export class Tester {
         sourceType: SourceType.TASK,
         sourceName: `ON (${[potName]}): ${taskName}`,
       }),
-      pots,
+      pot,
+    };
+  }
+
+  #createWorkflowTaskTriggerHandlerContext(
+    potName: string,
+    taskName: string,
+    slot: number,
+    ctx: IPot,
+    pot?: IPot,
+  ) {
+    return {
+      core: this.#core,
+      ...this.#spicy,
+      allow: (index?: number) => ({
+        op: TRIGGER_OP_ALLOW,
+        potIndex: index !== undefined ? index : slot,
+      }),
+      deny: () => ({ op: TRIGGER_OP_DENY }),
+      log: this.#core.createLogger({
+        sourceType: SourceType.TASK,
+        sourceName: `ON (${[potName]}): ${taskName}`,
+      }),
+      ctx,
+      pot,
     };
   }
 
@@ -137,14 +160,12 @@ export class Tester {
         `trying to exec task trigger handler '${trigger.taskName}' by pot '${pot.name}'...`,
       );
 
-      const triggerContext = this.#createTriggerHandlerContext(
+      const result = trigger.handler(this.#createTaskTriggerHandlerContext(
         pot.name,
         trigger.taskName,
         trigger.slot,
-        [pot, undefined, undefined, undefined, undefined],
-      );
-
-      const result = trigger.handler(triggerContext);
+        pot,
+      ));
 
       if (result.op === TRIGGER_OP_ALLOW) {
         this.#log.inf(
@@ -163,48 +184,43 @@ export class Tester {
 
   #testDependedTaskTriggers(pot: Pot): boolean {
     const triggers = this.#dependentTaskTriggers[pot.name];
-
     if (!triggers) {
-      this.#log.trc(
-        `not found depended task triggers for pot '${pot.name}'`,
-      );
+      this.#log.trc(`not found depended task triggers for pot '${pot.name}'`);
       return false;
     }
 
-    return triggers.map((trigger) => {
+    return triggers.some((trigger) => {
       this.#log.trc(
         `trying to exec depended task trigger handler '${trigger.taskName}' by pot '${pot.name}'...`,
       );
-
-      const triggerContext = this.#createTriggerHandlerContext(
+      const triggerContext = this.#createTaskTriggerHandlerContext(
         pot.name,
         trigger.taskName,
         trigger.slot,
-        [pot, undefined, undefined, undefined, undefined],
+        pot,
       );
 
       const result = trigger.handler(triggerContext);
-
       if (result.op === TRIGGER_OP_ALLOW) {
         this.#log.inf(
           `allow run depended task '${trigger.taskName}' by pot '${pot.name}'`,
         );
-
         const pack = this.#filler.fill(
           trigger.taskName,
           pot,
-          result.potIndex || 0,
+          result?.potIndex || 0,
         );
-
-        if (pack) this.#runner.run(pack.taskName, pack.pots);
+        if (pack) {
+          this.#runner.run(pack.taskName, pack.pots);
+        }
         return true;
       } else if (result.op === TRIGGER_OP_DENY) {
         this.#log.inf(
           `deny run depended task '${trigger.taskName}' by pot '${pot.name}'`,
         );
-        return false;
       }
-    }).includes(true);
+      return false;
+    });
   }
 
   #testWorkflowTriggers(pot: Pot): boolean {
@@ -252,39 +268,39 @@ export class Tester {
     }).includes(true);
   }
 
-  #testWorkflowTaskTriggers(pot: Pot): boolean {
-    const triggers = this.#workflowTaskTriggers[pot.name];
+  #testWorkflowTaskTriggers(ctx: Pot): boolean {
+    const triggers = this.#workflowTaskTriggers[ctx.name];
 
     if (!triggers) {
       this.#log.trc(
-        `not found workflow task triggers for pot '${pot.name}'`,
+        `not found workflow task triggers for pot '${ctx.name}'`,
       );
       return false;
     }
 
     return triggers.map((trigger) => {
       this.#log.trc(
-        `trying to exec workflow '${trigger.belongsToWorkflow}' task trigger handler '${trigger.taskName}' by pot '${pot.name}'...`,
+        `trying to exec workflow '${trigger.belongsToWorkflow}' task trigger handler '${trigger.taskName}' by ctx '${ctx.name}'...`,
       );
 
-      const triggerContext = this.#createTriggerHandlerContext(
-        pot.name,
-        trigger.taskName,
-        trigger.slot,
-        [pot, undefined, undefined, undefined, undefined],
+      const result = trigger.handler(
+        this.#createWorkflowTaskTriggerHandlerContext(
+          ctx.name,
+          trigger.taskName,
+          trigger.slot,
+          ctx,
+        ),
       );
-
-      const result = trigger.handler(triggerContext);
 
       if (result.op === TRIGGER_OP_ALLOW) {
         this.#log.inf(
-          `allow run workflow '${trigger.belongsToWorkflow}' task '${trigger.taskName}' by pot '${pot.name}'`,
+          `allow run workflow '${trigger.belongsToWorkflow}' task '${trigger.taskName}' by ctx '${ctx.name}'`,
         );
-        this.#runner.run(trigger.taskName, [pot]);
+        this.#runner.run(trigger.taskName, [], ctx);
         return true;
       } else if (result.op === TRIGGER_OP_DENY) {
         this.#log.inf(
-          `deny run workflow '${trigger.belongsToWorkflow}' task '${trigger.taskName}' by pot '${pot.name}'`,
+          `deny run workflow '${trigger.belongsToWorkflow}' task '${trigger.taskName}' by ctx '${ctx.name}'`,
         );
         return false;
       }

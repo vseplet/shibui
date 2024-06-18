@@ -10,11 +10,11 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { type IPot, PotType } from "$core/types";
+import { PotType, type TPot } from "$core/types";
 
 export class Pot<
   D extends { [key: string]: unknown } = { [key: string]: unknown },
-> implements IPot {
+> implements TPot {
   toc = new Date().getTime();
   uuid = crypto.randomUUID();
   name = this.constructor.name;
@@ -34,7 +34,7 @@ export class Pot<
   constructor(
     setupArgs?: Partial<
       Omit<
-        IPot,
+        TPot,
         "timeOfCreation" | "type" | "name" | "uuid" | "from" | "to" | "ttl"
       >
     >,
@@ -44,7 +44,7 @@ export class Pot<
   setup(
     initArgs: Partial<
       Omit<
-        IPot,
+        TPot,
         "timeOfCreation" | "type" | "name" | "uuid" | "from" | "to" | "ttl"
       >
     >,
@@ -52,7 +52,7 @@ export class Pot<
     return this;
   }
 
-  deserialize(jsonObj: IPot): Pot<D> {
+  deserialize(jsonObj: TPot): Pot<D> {
     this.toc = jsonObj.toc;
     this.uuid = jsonObj.uuid;
     this.name = jsonObj.name;

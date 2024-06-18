@@ -1,16 +1,4 @@
-/*
- * Copyright 2024 Vsevolod Plentev
- *
- * This program is licensed under the Creative Commons Attribution-NonCommercial 3.0 Unported License (CC BY-NC 3.0).
- * You may obtain a copy of the license at https://creativecommons.org/licenses/by-nc/3.0/legalcode.
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and limitations under the License.
- */
-
-import type { Pot } from "$core/entities";
+import { Pot } from "$core/entities";
 import { TaskNameMissingError } from "$core/errors";
 import type { Constructor } from "$helpers/types";
 import type {
@@ -22,7 +10,7 @@ import type {
   TWorkflowBuilder,
 } from "$core/types";
 
-export class TaskBuilder<
+export class NewTaskBuilder<
   Spicy extends TSpicy,
   Pots extends Pot[],
   CTX extends Pot | undefined = undefined,
@@ -155,36 +143,25 @@ export class TaskBuilder<
     }
 
     if (rule === "ForThisTask") {
-      handler = (args: TOnHandlerContext<Spicy, CTX, TP>) => {
-        if ("ctx" in args) {
-          return args.ctx.to.task === this.task.name
-            ? args.allow()
-            : args.deny();
-        } else {
-          return args.pot.to.task === this.task.name
-            ? args.allow()
-            : args.deny();
-        }
+      handler = (
+        { allow, deny, pot }: TOnHandlerContext<Spicy, CTX, TP>,
+      ) => {
+        return pot.to.task === this.task.name ? allow() : deny();
       };
     } else if (rule == "ForAnyTask") {
       handler = (
-        args: TOnHandlerContext<Spicy, CTX, TP>,
+        { allow, deny, pot }: TOnHandlerContext<Spicy, CTX, TP>,
       ) => {
-        if ("ctx" in args) {
-          return args.ctx.to.task !== "unknown" ? args.allow() : args.deny();
-        } else {
-          return args.pot.to.task !== "unknown" ? args.allow() : args.deny();
-        }
+        return pot.to.task !== this.task.name &&
+            pot.to.task !== "unknown"
+          ? allow()
+          : deny();
       };
     } else if (rule == "ForUnknown") {
       handler = (
-        args: TOnHandlerContext<Spicy, CTX, TP>,
+        { allow, deny, pot }: TOnHandlerContext<Spicy, CTX, TP>,
       ) => {
-        if ("ctx" in args) {
-          return args.ctx.to.task === "unknown" ? args.allow() : args.deny();
-        } else {
-          return args.pot.to.task === "unknown" ? args.allow() : args.deny();
-        }
+        return pot.to.task === "unknown" ? allow() : deny();
       };
     } else {
       handler = (

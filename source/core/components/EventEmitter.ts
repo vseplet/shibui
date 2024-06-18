@@ -11,10 +11,10 @@
  */
 
 import type { Constructor } from "$helpers/types";
-import type { ShibuiEvent } from "$core/entities";
+import type { SEvent } from "$core/entities";
 
 export class EventEmitter<
-  T extends ShibuiEvent,
+  T extends SEvent,
 > {
   readonly name: string;
   #channelA: BroadcastChannel;
@@ -71,7 +71,7 @@ export class EventEmitter<
   //   this.#channelB.close();
   // }
 
-  emit(event: ShibuiEvent) {
+  emit(event: SEvent) {
     this.#channelB.postMessage(event);
   }
 }
