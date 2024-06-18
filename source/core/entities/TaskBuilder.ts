@@ -155,25 +155,36 @@ export class TaskBuilder<
     }
 
     if (rule === "ForThisTask") {
-      handler = (
-        { allow, deny, pot }: TOnHandlerContext<Spicy, CTX, TP>,
-      ) => {
-        return pot.to.task === this.task.name ? allow() : deny();
+      handler = (args: TOnHandlerContext<Spicy, CTX, TP>) => {
+        if ("ctx" in args) {
+          return args.ctx.to.task === this.task.name
+            ? args.allow()
+            : args.deny();
+        } else {
+          return args.pot.to.task === this.task.name
+            ? args.allow()
+            : args.deny();
+        }
       };
     } else if (rule == "ForAnyTask") {
       handler = (
-        { allow, deny, pot }: TOnHandlerContext<Spicy, CTX, TP>,
+        args: TOnHandlerContext<Spicy, CTX, TP>,
       ) => {
-        return pot.to.task !== this.task.name &&
-            pot.to.task !== "unknown"
-          ? allow()
-          : deny();
+        if ("ctx" in args) {
+          return args.ctx.to.task !== "unknown" ? args.allow() : args.deny();
+        } else {
+          return args.pot.to.task !== "unknown" ? args.allow() : args.deny();
+        }
       };
     } else if (rule == "ForUnknown") {
       handler = (
-        { allow, deny, pot }: TOnHandlerContext<Spicy, CTX, TP>,
+        args: TOnHandlerContext<Spicy, CTX, TP>,
       ) => {
-        return pot.to.task === "unknown" ? allow() : deny();
+        if ("ctx" in args) {
+          return args.ctx.to.task === "unknown" ? args.allow() : args.deny();
+        } else {
+          return args.pot.to.task === "unknown" ? args.allow() : args.deny();
+        }
       };
     } else {
       handler = (

@@ -30,7 +30,7 @@ import type { ContextPot } from "$core/pots";
 export class Core<S extends TSpicy> implements TCore<S> {
   emitters = emitters;
 
-  #globalPotDistributor: Distributor<S>;
+  #globalPotDistributor: Distributor;
   settings = {
     DEFAULT_LOGGING_ENABLED: true,
     DEFAULT_LOGGING_LEVEL: 0,
@@ -44,8 +44,8 @@ export class Core<S extends TSpicy> implements TCore<S> {
     ],
   };
 
-  constructor(config: TCoreOptions<S>) {
-    this.#globalPotDistributor = new Distributor<S>(this);
+  constructor(config: TCoreOptions) {
+    this.#globalPotDistributor = new Distributor(this, config.spicy);
   }
 
   workflow<CP extends ContextPot<{}>>(

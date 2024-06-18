@@ -5,10 +5,9 @@ import STRS from "$core/strings";
 import {
   PotType,
   SourceType,
+  type TAnyCore,
   type TasksStorage,
-  type TCore,
   type TEventDrivenLogger,
-  TPot,
   type TSpicy,
   type TTask,
   type TTaskTriggerStorage,
@@ -19,12 +18,13 @@ import {
 import { Filler, Runner } from "$core/components";
 import { IPot } from "../../../drafts/draft9-horde.ts";
 
-export class Tester<S extends TSpicy> {
-  #core: TCore<S>;
+export class Tester {
+  #core: TAnyCore;
   #kv: Deno.Kv;
   #log: TEventDrivenLogger;
   #filler: Filler;
   #runner: Runner;
+  #spicy: TSpicy;
 
   #tasks: TasksStorage = {};
   #workflows: WorkflowsStorage = {};
@@ -35,7 +35,8 @@ export class Tester<S extends TSpicy> {
   #workflowTaskTriggers: TTaskTriggerStorage = {}; // зап��скаются от одного контекстного пота
   #workflowDependentTaskTriggers: TTaskTriggerStorage = {}; // запускаются от нескольких потов, но при наличии контекста
 
-  constructor(core: TCore<S>, kv: Deno.Kv) {
+  constructor(core: TAnyCore, kv: Deno.Kv, spicy = {}) {
+    this.#spicy = spicy;
     this.#core = core;
     this.#kv = kv;
     this.#log = core.createLogger({
@@ -43,7 +44,7 @@ export class Tester<S extends TSpicy> {
       sourceName: "Tester",
     });
     this.#filler = new Filler(core, kv);
-    this.#runner = new Runner(core, kv);
+    this.#runner = new Runner(core, kv, this.#spicy);
   }
 
   registerTask(task: TTask) {
@@ -106,6 +107,7 @@ export class Tester<S extends TSpicy> {
   ) {
     return {
       core: this.#core,
+      ...this.#spicy,
       allow: (index?: number) => ({
         op: TRIGGER_OP_ALLOW,
         potIndex: index !== undefined ? index : slot,
@@ -128,6 +130,7 @@ export class Tester<S extends TSpicy> {
   ) {
     return {
       core: this.#core,
+      ...this.#spicy,
       allow: (index?: number) => ({
         op: TRIGGER_OP_ALLOW,
         potIndex: index !== undefined ? index : slot,

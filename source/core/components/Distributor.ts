@@ -14,10 +14,9 @@ import { CoreStartPot } from "$core/pots";
 import { Pot } from "$core/entities";
 import {
   SourceType,
-  type TCore,
+  type TAnyCore,
   type TEventDrivenLogger,
   type TPot,
-  type TSpicy,
   type TTaskBuilder,
   type TWorkflowBuilder,
 } from "$core/types";
@@ -25,20 +24,20 @@ import { Tester } from "$core/components";
 import { TaskBuilder } from "../entities/TaskBuilder.ts";
 import { WorkflowBuilder } from "../entities/WorkflowBuilder.ts";
 
-export default class Distributor<S extends TSpicy> {
+export default class Distributor {
   #kv: Deno.Kv = undefined as unknown as Deno.Kv;
-  #core: TCore<S>;
+  #core: TAnyCore;
   #log: TEventDrivenLogger;
-  #tester: Tester<S>;
+  #tester: Tester;
 
-  constructor(core: TCore<S>) {
+  constructor(core: TAnyCore, spicy = {}) {
     this.#core = core;
     this.#log = core.createLogger({
       sourceType: SourceType.CORE,
       sourceName: "Distributor",
     });
 
-    this.#tester = new Tester(core, this.#kv);
+    this.#tester = new Tester(core, this.#kv, spicy);
   }
 
   #test(rawPotObj: TPot) {

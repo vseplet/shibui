@@ -17,6 +17,7 @@ import {
   type TEventDrivenLogger,
   type TNewDoHandlerResult,
   type TPot,
+  type TSpicy,
   type TTask,
   type TTaskBuilder,
 } from "$core/types";
@@ -38,9 +39,11 @@ export default class Runner {
   #core: TAnyCore;
   #kv: Deno.Kv;
   #log: TEventDrivenLogger;
+  #spicy: TSpicy;
   #tasks: { [name: string]: TTask } = {};
 
-  constructor(core: TAnyCore, kv: Deno.Kv) {
+  constructor(core: TAnyCore, kv: Deno.Kv, spicy: any = {}) {
+    this.#spicy = spicy;
     this.#core = core;
     this.#kv = kv;
     this.#log = core.createLogger({
@@ -65,6 +68,7 @@ export default class Runner {
     try {
       const doResult = await task.do({
         core: this.#core,
+        ...this.#spicy,
         log: this.#core.createLogger({
           sourceType: SourceType.TASK,
           sourceName: `DO: ${taskName}`,
