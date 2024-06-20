@@ -15,14 +15,14 @@
 import { SEvent } from "$core/entities";
 import {
   Level,
-  SEventType,
   SourceType,
   TLogEventArgs,
   TLogEventMetadata,
 } from "$core/types";
+import { EVENT_TYPE_LOG } from "$core/constants";
 
 export class LogEvent<T> extends SEvent {
-  type = SEventType.LOG;
+  type = EVENT_TYPE_LOG;
   level = Level.UNKNOWN;
   sourceName = "unknown";
   sourceType = SourceType.UNKNOWN;

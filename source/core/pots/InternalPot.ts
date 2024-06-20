@@ -11,8 +11,8 @@
  */
 
 import { Pot } from "$core/entities";
-import { PotType } from "$core/types";
+import { POT_TYPE_INTERNAL } from "$core/constants";
 
 export class InternalPot<T extends { [key: string]: unknown }> extends Pot<T> {
-  type = PotType.INTERNAL;
+  type = POT_TYPE_INTERNAL;
 }

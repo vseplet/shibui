@@ -11,8 +11,8 @@
  */
 
 import { Pot } from "$core/entities";
-import { PotType } from "$core/types";
+import { POT_TYPE_SYSTEM } from "$core/constants";
 
 export class CoreStartPot extends Pot<{}> {
-  type = PotType.SYSTEM;
+  type = POT_TYPE_SYSTEM;
 }

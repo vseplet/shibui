@@ -16,45 +16,36 @@ export const DO_OP_FAIL: TDoOp = "FAIL";
 export const DO_OP_FINISH: TDoOp = "FINISH";
 export const DO_OP_REPEAT: TDoOp = "REPEAT";
 
-export const POT_TYPE = {
-  UNKNOWN: "UNKNOWN" as TPotType,
-  EXTERNAL: "EXTERNAL" as TPotType,
-  INTERNAL: "INTERNAL" as TPotType,
-  SYSTEM: "SYSTEM" as TPotType,
-  CONTEXT: "CONTEXT" as TPotType,
-};
-export const LOG_LEVEL = {
-  UNKNOWN: "UNKNOWN" as TLogLevel,
-  TRACE: "TRACE" as TLogLevel,
-  DEBUG: "DEBUG" as TLogLevel,
-  VERBOSE: "VERBOSE" as TLogLevel,
-  INFO: "INFO" as TLogLevel,
-  WARN: "WARN" as TLogLevel,
-  ERROR: "ERROR" as TLogLevel,
-  FATAL: "FATAL" as TLogLevel,
-};
+export const POT_TYPE_UNKNOWN: TPotType = "UNKNOWN";
+export const POT_TYPE_EXTERNAL: TPotType = "EXTERNAL";
+export const POT_TYPE_INTERNAL: TPotType = "INTERNAL";
+export const POT_TYPE_SYSTEM: TPotType = "SYSTEM";
+export const POT_TYPE_CONTEXT: TPotType = "CONTEXT";
 
-export const LOG_SOURCE = {
-  UNKNOWN: "UNKNOWN" as TLogSource,
-  CORE: "CORE" as TLogSource,
-  TASK: "TASK" as TLogSource,
-  TASK_ON: "TASK.ON" as TLogSource,
-  TASK_DO: "TASK.DO" as TLogSource,
-  WORKFLOW: "WORKFLOW" as TLogSource,
-};
+export const LOG_LEVEL_UNKNOWN: TLogLevel = "UNKNOWN";
+export const LOG_LEVEL_TRACE: TLogLevel = "TRACE";
+export const LOG_LEVEL_DEBUG: TLogLevel = "DEBUG";
+export const LOG_LEVEL_VERBOSE: TLogLevel = "VERBOSE";
+export const LOG_LEVEL_INFO: TLogLevel = "INFO";
+export const LOG_LEVEL_WARN: TLogLevel = "WARN";
+export const LOG_LEVEL_ERROR: TLogLevel = "ERROR";
+export const LOG_LEVEL_FATAL: TLogLevel = "FATAL";
 
-export const TASK_TYPE = {
-  SINGLE: "single" as TTaskType,
-  DEPENDED: "depended" as TTaskType,
-  SINGLE_WORKFLOW: "singleWorkflow" as TTaskType,
-  DEPENDED_WORKFLOW: "dependedWorkflow" as TTaskType,
-};
+export const LOG_SOURCE_UNKNOWN: TLogSource = "UNKNOWN";
+export const LOG_SOURCE_CORE: TLogSource = "CORE";
+export const LOG_SOURCE_TASK: TLogSource = "TASK";
+export const LOG_SOURCE_TASK_ON: TLogSource = "TASK.ON";
+export const LOG_SOURCE_TASK_DO: TLogSource = "TASK.DO";
+export const LOG_SOURCE_WORKFLOW: TLogSource = "WORKFLOW";
 
-export const EVENT_TYPE = {
-  UNKNOWN: "UNKNOWN" as TEventType,
-  CORE: "CORE" as TEventType,
-  LOG: "LOG" as TEventType,
-  RUNNER: "RUNNER" as TEventType,
-  WORKFLOW: "WORKFLOW" as TEventType,
-  TASK: "TASK" as TEventType,
-};
+export const TASK_TYPE_SINGLE: TTaskType = "single";
+export const TASK_TYPE_DEPENDED: TTaskType = "depended";
+export const TASK_TYPE_SINGLE_WORKFLOW: TTaskType = "singleWorkflow";
+export const TASK_TYPE_DEPENDED_WORKFLOW: TTaskType = "dependedWorkflow";
+
+export const EVENT_TYPE_UNKNOWN: TEventType = "UNKNOWN";
+export const EVENT_TYPE_CORE: TEventType = "CORE";
+export const EVENT_TYPE_LOG: TEventType = "LOG";
+export const EVENT_TYPE_RUNNER: TEventType = "RUNNER";
+export const EVENT_TYPE_WORKFLOW: TEventType = "WORKFLOW";
+export const EVENT_TYPE_TASK: TEventType = "TASK";

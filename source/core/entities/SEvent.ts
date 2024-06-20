@@ -10,10 +10,11 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { SEventType } from "$core/types";
+import type { TSEvent } from "$core/types";
+import { EVENT_TYPE_UNKNOWN } from "$core/constants";
 
-export class SEvent {
-  type = SEventType.UNKNOWN;
+export class SEvent implements TSEvent {
+  type = EVENT_TYPE_UNKNOWN;
   name = this.constructor.name;
   timestamp = new Date().getTime();
 }

@@ -10,7 +10,8 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { PotType, type TPot } from "$core/types";
+import type { TPot } from "$core/types";
+import { POT_TYPE_UNKNOWN } from "$core/constants";
 
 export class Pot<
   D extends { [key: string]: unknown } = { [key: string]: unknown },
@@ -19,7 +20,7 @@ export class Pot<
   uuid = crypto.randomUUID();
   name = this.constructor.name;
 
-  type: PotType = PotType.UNKNOWN;
+  type = POT_TYPE_UNKNOWN;
   from = {
     workflow: "unknown",
     task: "unknown",

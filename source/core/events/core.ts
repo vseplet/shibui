@@ -11,10 +11,10 @@
  */
 
 import { SEvent } from "$core/entities";
-import { SEventType } from "$core/types";
+import { EVENT_TYPE_CORE } from "$core/constants";
 
 export class CoreEvent extends SEvent {
-  type = SEventType.CORE;
+  type = EVENT_TYPE_CORE;
 
   constructor() {
     super();

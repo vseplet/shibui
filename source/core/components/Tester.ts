@@ -11,11 +11,14 @@
  */
 
 // deno-lint-ignore-file no-unused-vars
-import { TRIGGER_OP_ALLOW, TRIGGER_OP_DENY } from "$core/constants";
+import {
+  POT_TYPE_CONTEXT,
+  TRIGGER_OP_ALLOW,
+  TRIGGER_OP_DENY,
+} from "$core/constants";
 import type { Pot } from "$core/entities";
 import STRS from "$core/strings";
 import {
-  PotType,
   SourceType,
   type TAnyCore,
   type TasksStorage,
@@ -98,7 +101,7 @@ export class Tester {
   }
 
   test(pot: Pot): boolean {
-    if (pot.type == PotType.CONTEXT) {
+    if (pot.type == POT_TYPE_CONTEXT) {
       return this.#testWorkflowTaskTriggers(pot) ||
         this.#testWorkflowDependedTaskTriggers(pot);
     } else {
