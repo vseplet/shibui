@@ -11,7 +11,7 @@
  */
 
 // import { IMiddleware } from "./Middleware.ts";
-import type { IWorkflowBuildTWorkflowBuilder } from "$core/types";
+import type { TTaskBuilder, TWorkflowBuilder } from "$core/types";
 import type { IPlugin } from "./Plugin.ts";
 
 export interface IManifest {

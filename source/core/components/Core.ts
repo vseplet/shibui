@@ -16,13 +16,13 @@ import {
   type TCore,
   type TCoreOptions,
   type TLoggerOptions,
-  TPot,
+  type TPot,
   type TSpicy,
   type TTaskBuilder,
   type TWorkflowBuilder,
 } from "$core/types";
 import { Distributor, EventDrivenLogger } from "$core/components";
-import { Pot, WorkflowBuilder } from "$core/entities";
+import { type Pot, WorkflowBuilder } from "$core/entities";
 import type { Constructor } from "$helpers/types";
 import { TaskBuilder } from "../entities/TaskBuilder.ts";
 import type { ContextPot } from "$core/pots";

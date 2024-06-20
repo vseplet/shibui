@@ -102,7 +102,8 @@ export const workflow = <CP extends ContextPot<{}>>(
  */
 export const core = <S extends TSpicy = {}>(
   config: TCoreOptions<S> = { useDenoKV: true },
-): TCore<S> => {
+  // TODO: fix TCore type, add settings
+): Core<S> => {
   return new Core<S>(config);
 };
 

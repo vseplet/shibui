@@ -10,12 +10,12 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import type { IEventDTEventDrivenLogger } from "$core/types";
+import type { TAnyCore, TEventDrivenLogger } from "$core/types";
 
-export type TPlugin = (core: TCore) => void;
+export type TPlugin = (core: TAnyCore) => void;
 
 export type TPluginInit = (
-  args: { core: TCore; log: TEventDrivenLogger },
+  args: { core: TAnyCore; log: TEventDrivenLogger },
 ) => void;
 
 export interface IPlugin {

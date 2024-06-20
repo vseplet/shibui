@@ -2,7 +2,9 @@
 import { execute, workflow } from "$core";
 import { ContextPot, CoreStartPot } from "$core/pots";
 
-const simpleWorkflow = workflow(class CTX extends ContextPot<{}> {})
+class CTX extends ContextPot<{}> {}
+
+const simpleWorkflow = workflow(CTX)
   .name("simple workflow")
   .on(CoreStartPot)
   .sq(({ task }) =>

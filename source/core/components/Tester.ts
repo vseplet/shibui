@@ -1,3 +1,15 @@
+/*
+ * Copyright 2023 Vsevolod Plentev
+ *
+ * This program is licensed under the Creative Commons Attribution-NonCommercial 3.0 Unported License (CC BY-NC 3.0).
+ * You may obtain a copy of the license at https://creativecommons.org/licenses/by-nc/3.0/legalcode.
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
+ */
+
 // deno-lint-ignore-file no-unused-vars
 import { TRIGGER_OP_ALLOW, TRIGGER_OP_DENY } from "$core/constants";
 import type { Pot } from "$core/entities";
@@ -16,7 +28,6 @@ import {
   type WorkflowsStorage,
 } from "$core/types";
 import { Filler, Runner } from "$core/components";
-import { IPot } from "../../../drafts/draft9-horde.ts";
 
 export class Tester {
   #core: TAnyCore;
@@ -103,7 +114,7 @@ export class Tester {
     potName: string,
     taskName: string,
     slot: number,
-    pot: IPot,
+    pot: Pot,
   ) {
     return {
       core: this.#core,
@@ -125,8 +136,8 @@ export class Tester {
     potName: string,
     taskName: string,
     slot: number,
-    ctx: IPot,
-    pot?: IPot,
+    ctx: Pot,
+    pot?: Pot,
   ) {
     return {
       core: this.#core,

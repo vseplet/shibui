@@ -19,6 +19,10 @@
     "./framework/scripts/update": "./source/framework/scripts/update.ts"
   },
   "publish": {
+    "exclude": [
+      "drafts",
+      "shibui-project"
+    ],
     "include": [
       "LICENSE",
       "README.md",

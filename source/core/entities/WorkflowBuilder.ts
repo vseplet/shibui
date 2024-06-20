@@ -12,7 +12,6 @@
 
 import type { Constructor } from "$helpers/types";
 import type {
-  TPot,
   TSpicy,
   TTaskBuilder,
   TWorkflow,
@@ -40,107 +39,81 @@ export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
     this.ctxPotConstructor = ctxPotConstructor;
   }
 
-  on(potConstructor: Constructor<Pot>, handler?: (pot: TPot) => void) {
-    if (handler) {
-      this.workflow.triggers[potConstructor.name] = {
-        workflowName: this.workflow.name,
-        potConstructor,
-        handler,
-      };
-    } else {
-      this.workflow.triggers[potConstructor.name] = {
-        workflowName: this.workflow.name,
-        potConstructor,
-        handler: () => {
-          return new this.ctxPotConstructor();
-        },
-      };
-    }
+  private addTrigger(
+    potConstructor: Constructor<Pot>,
+    handler?: (pot: Pot) => void,
+  ) {
+    this.workflow.triggers[potConstructor.name] = {
+      workflowName: this.workflow.name,
+      potConstructor,
+      handler: handler || (() => new this.ctxPotConstructor()),
+    };
+  }
 
+  on(potConstructor: Constructor<Pot>, handler?: (pot: Pot) => void) {
+    this.addTrigger(potConstructor, handler);
     return this;
   }
 
   name(name: string | TemplateStringsArray) {
-    if (name instanceof Array) {
-      this.workflow.name = name[0];
-    } else {
-      this.workflow.name = name;
-    }
-
+    this.workflow.name = name instanceof Array ? name[0] : name;
     return this;
   }
 
-  triggers(
-    ...constructorList: Array<
-      Constructor<TPot>
-    >
-  ) {
-    for (const constructor of constructorList) {
-      this.workflow.triggers[constructor.name] = {
-        workflowName: this.workflow.name,
-        potConstructor: constructor,
-        handler: () => {
-          return new this.ctxPotConstructor();
-        },
-      };
-    }
-
+  triggers(...constructorList: Array<Constructor<Pot>>) {
+    constructorList.forEach((constructor) => this.addTrigger(constructor));
     return this;
   }
 
   sq(
-    _cb: (args: {
+    sequence: (args: {
       task: <Pots extends Pot[]>(
         ...potConstructors: { [K in keyof Pots]: Constructor<Pots[K]> }
       ) => TaskBuilder<Spicy, [CPot, ...Pots], CPot>;
       shared: (
-        builder: TaskBuilder<any, any, any>,
-      ) => TaskBuilder<Spicy, [], CPot>;
+        builder: TaskBuilder<Spicy, [CPot], CPot>,
+      ) => TaskBuilder<Spicy, [CPot], CPot>;
     }) => TTaskBuilder,
   ) {
-    this.workflow.firstTaskName = _cb({
-      task: <Pots extends Pot[]>(
-        ...potConstructors: { [K in keyof Pots]: Constructor<Pots[K]> }
-      ) => {
-        const builder = new TaskBuilder<Spicy, [CPot, ...Pots], CPot>(
+    const createBuilder = <Pots extends Pot[]>(
+      ...potConstructors: { [K in keyof Pots]: Constructor<Pots[K]> }
+    ) => {
+      const builder = new TaskBuilder<Spicy, [CPot, ...Pots], CPot>(
+        this.ctxPotConstructor,
+        ...potConstructors,
+      );
+
+      builder.belongsToWorkflow(this);
+      const length = builder.task.triggers[this.ctxPotConstructor.name]?.length;
+      if (!length || length === 0) {
+        builder.on(
           this.ctxPotConstructor,
-          ...potConstructors,
-        ).belongsToWorkflow(this);
+          ({ ctx, allow, deny }) =>
+            ctx.to.task === builder.task.name ? allow() : deny(),
+        );
+      }
+      this.taskBuilders.push(builder);
+      return builder;
+    };
 
-        const length = builder.task.triggers[this.ctxPotConstructor.name]
-          ?.length;
-
-        if (!length || length == 0) {
-          builder.on(
-            this.ctxPotConstructor,
-            ({ ctx, allow, deny }) =>
-              ctx.to.task === builder.task.name ? allow() : deny(),
-          );
-        }
-
-        this.taskBuilders.push(builder);
-
-        return builder;
-      },
-
+    this.workflow.firstTaskName = sequence({
+      task: createBuilder,
       shared: (builder) => {
         builder.belongsToWorkflow(this);
-
         const length = builder.task.triggers[this.ctxPotConstructor.name]
           ?.length;
-
-        if (!length || length == 0) {
+        if (!length || length === 0) {
           builder.on(
             this.ctxPotConstructor,
             ({ ctx, allow, deny }) =>
               ctx.to.task === builder.task.name ? allow() : deny(),
           );
         }
-
         this.taskBuilders.push(builder);
         return builder;
       },
     }).task.name;
+
     return this;
   }
 
