@@ -21,17 +21,17 @@ import { type Pot, TaskBuilder } from "$core/entities";
 
 export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
   implements TWorkflowBuilder {
-  ctxPotConstructor: Constructor<CPot>;
+  private ctxPotConstructor: Constructor<CPot>;
+  private taskBuilders: Array<
+    TTaskBuilder
+  > = [];
+
   workflow: TWorkflow = {
     name: "unknown",
     firstTaskName: "",
     triggers: {},
     tasks: [],
   };
-
-  taskBuilders: Array<
-    TTaskBuilder
-  > = [];
 
   constructor(
     ctxPotConstructor: Constructor<CPot>,

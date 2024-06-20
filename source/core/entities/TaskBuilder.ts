@@ -11,7 +11,7 @@
  */
 
 import type { Pot } from "$core/entities";
-import { TaskNameMissingError } from "$core/errors";
+import { TaskNameMissingError, TaskTriggersMissingError } from "$core/errors";
 import type { Constructor } from "$helpers/types";
 import type {
   TOnHandlerContext,
@@ -39,6 +39,46 @@ export class TaskBuilder<
     },
   };
 
+  private createTrigger<TP extends Pots[number]>(
+    pot: Constructor<TP>,
+    handler?: TTaskTriggerHandler<Spicy, CTX, TP>,
+    slot?: number,
+  ) {
+    return {
+      taskName: this.task.name,
+      potConstructor: pot,
+      slot: slot || Object.keys(this.task.triggers).length - 1,
+      handler: handler || (({ allow }) => allow()),
+      belongsToWorkflow: this.task.belongsToWorkflow,
+    };
+  }
+
+  private createRuleHandler<TP extends Pots[number]>(
+    rule: "ForThisTask" | "ForAnyTask" | "ForUnknown",
+    potConstructor: Constructor<TP>,
+  ) {
+    switch (rule) {
+      case "ForThisTask":
+        return (args: TOnHandlerContext<Spicy, CTX, TP>) =>
+          ("ctx" in args ? args.ctx.to.task : args.pot.to.task) ===
+              this.task.name
+            ? args.allow()
+            : args.deny();
+      case "ForAnyTask":
+        return (args: TOnHandlerContext<Spicy, CTX, TP>) =>
+          ("ctx" in args ? args.ctx.to.task : args.pot.to.task) !== "unknown"
+            ? args.allow()
+            : args.deny();
+      case "ForUnknown":
+        return (args: TOnHandlerContext<Spicy, CTX, TP>) =>
+          ("ctx" in args ? args.ctx.to.task : args.pot.to.task) === "unknown"
+            ? args.allow()
+            : args.deny();
+      default:
+        return ({ deny }: TOnHandlerContext<Spicy, CTX, TP>) => deny();
+    }
+  }
+
   constructor(
     ..._constructors: { [K in keyof Pots]: Constructor<Pots[K]> }
   ) {
@@ -56,16 +96,12 @@ export class TaskBuilder<
     const workflowPrefix = this.task.belongsToWorkflow
       ? `[${this.task.belongsToWorkflow}] `
       : "";
-    if (name instanceof Array) {
-      this.task.name = workflowPrefix + name[0];
-    } else {
-      this.task.name = workflowPrefix + name;
-    }
+    this.task.name = workflowPrefix + (name instanceof Array ? name[0] : name);
 
     for (const potName in this.task.triggers) {
-      this.task.triggers[potName].forEach((trigger) =>
-        trigger.taskName = this.task.name
-      );
+      this.task.triggers[potName].forEach((
+        trigger,
+      ) => (trigger.taskName = this.task.name));
     }
 
     return this;
@@ -81,25 +117,15 @@ export class TaskBuilder<
     return this;
   }
 
-  triggers(
-    ..._constructors: Pots
-  ) {
+  triggers(..._constructors: Pots) {
     for (const constructor of arguments) {
-      if (
-        !this.task
-          .triggers[constructor.name]
-      ) {
-        this.task
-          .triggers[constructor.name] = [];
+      if (!this.task.triggers[constructor.name]) {
+        this.task.triggers[constructor.name] = [];
       }
 
-      this.task.triggers[constructor.name].push({
-        taskName: this.task.name,
-        potConstructor: constructor,
-        slot: Object.keys(this.task.triggers).length - 1,
-        handler: ({ allow }) => allow(),
-        belongsToWorkflow: this.task.belongsToWorkflow,
-      });
+      this.task.triggers[constructor.name].push(
+        this.createTrigger(constructor),
+      );
     }
 
     return this;
@@ -110,32 +136,8 @@ export class TaskBuilder<
     handler?: TTaskTriggerHandler<Spicy, CTX, TP>,
     slot?: number,
   ) {
-    if (
-      !this.task
-        .triggers[pot.name]
-    ) {
-      this.task
-        .triggers[pot.name] = [];
-    }
-
-    if (handler) {
-      this.task.triggers[pot.name].push({
-        taskName: this.task.name,
-        potConstructor: pot,
-        slot: Object.keys(this.task.triggers).length - 1,
-        handler,
-        belongsToWorkflow: this.task.belongsToWorkflow,
-      });
-    } else {
-      this.task.triggers[pot.name].push({
-        taskName: this.task.name,
-        potConstructor: pot,
-        slot: slot || Object.keys(this.task.triggers).length - 1,
-        handler: ({ allow }) => allow(),
-        belongsToWorkflow: this.task.belongsToWorkflow,
-      });
-    }
-
+    if (!this.task.triggers[pot.name]) this.task.triggers[pot.name] = [];
+    this.task.triggers[pot.name].push(this.createTrigger(pot, handler, slot));
     return this;
   }
 
@@ -144,64 +146,14 @@ export class TaskBuilder<
     potConstructor: Constructor<TP>,
     slot?: number,
   ) {
-    let handler;
-
-    if (
-      !this.task
-        .triggers[potConstructor.name]
-    ) {
-      this.task
-        .triggers[potConstructor.name] = [];
+    const handler = this.createRuleHandler(rule, potConstructor);
+    if (!this.task.triggers[potConstructor.name]) {
+      this.task.triggers[potConstructor.name] = [];
     }
 
-    if (rule === "ForThisTask") {
-      handler = (args: TOnHandlerContext<Spicy, CTX, TP>) => {
-        if ("ctx" in args) {
-          return args.ctx.to.task === this.task.name
-            ? args.allow()
-            : args.deny();
-        } else {
-          return args.pot.to.task === this.task.name
-            ? args.allow()
-            : args.deny();
-        }
-      };
-    } else if (rule == "ForAnyTask") {
-      handler = (
-        args: TOnHandlerContext<Spicy, CTX, TP>,
-      ) => {
-        if ("ctx" in args) {
-          return args.ctx.to.task !== "unknown" ? args.allow() : args.deny();
-        } else {
-          return args.pot.to.task !== "unknown" ? args.allow() : args.deny();
-        }
-      };
-    } else if (rule == "ForUnknown") {
-      handler = (
-        args: TOnHandlerContext<Spicy, CTX, TP>,
-      ) => {
-        if ("ctx" in args) {
-          return args.ctx.to.task === "unknown" ? args.allow() : args.deny();
-        } else {
-          return args.pot.to.task === "unknown" ? args.allow() : args.deny();
-        }
-      };
-    } else {
-      handler = (
-        { deny }: TOnHandlerContext<Spicy, CTX, TP>,
-      ) => {
-        return deny();
-      };
-    }
-
-    this.task.triggers[potConstructor.name].push({
-      taskName: this.task.name,
-      potConstructor,
-      slot: slot || this.task.triggers[potConstructor.name].length,
-      handler,
-      belongsToWorkflow: this.task.belongsToWorkflow,
-    });
-
+    this.task.triggers[potConstructor.name].push(
+      this.createTrigger(potConstructor, handler, slot),
+    );
     return this;
   }
 
@@ -226,7 +178,7 @@ export class TaskBuilder<
     }
 
     if (Object.keys(this.task.triggers).length == 0) {
-      throw new Error();
+      throw new TaskTriggersMissingError();
     }
 
     return this.task;

@@ -11,3 +11,4 @@
  */
 
 export { TaskNameMissingError } from "./TaskNameMissingError.ts";
+export { TaskTriggersMissingError } from "./TaskTriggersMissingError.ts";
