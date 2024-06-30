@@ -46,7 +46,8 @@
   },
   "fmt": {
     "exclude": [
-      "./source/core/versions.ts"
+      "./source/versions.ts",
+      "./deno.json"
     ]
   },
   "imports": {

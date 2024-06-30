@@ -34,3 +34,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           deno run --allow-all --unstable-broadcast-channel --unstable-kv https://deno.land/x/automation_scripts@0.0.6/ci-cd/scripts/UpdateSemverDeployJsr.ts
+
+      - uses: actions/checkout@v4
+      - name: Publish package
+        run: npx jsr publish

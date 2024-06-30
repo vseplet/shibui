@@ -240,7 +240,7 @@ export type TTaskTrigger<Spicy, CTX, TP> = {
 
 export type TAnyTaskTrigger = TTaskTrigger<any, any, any>;
 
-export type TNewDoHandlerResult = {
+export type TDoHandlerResult = {
   op: TDoOp;
   reason?: string;
   taskBuilders?: Array<TTaskBuilder>;
@@ -276,7 +276,7 @@ export type TDoHandlerContext<Spicy, CtxPot, Pots extends Pot[]> =
 
 export type TTaskDoHandler<Spicy, CtxPot, Pots extends Pot[]> = (
   args: TDoHandlerContext<Spicy, CtxPot, Pots>,
-) => Promise<TNewDoHandlerResult>;
+) => Promise<TDoHandlerResult>;
 
 export type TAnyTaskDoHandler = TTaskDoHandler<any, Pot[], any>;
 

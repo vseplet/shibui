@@ -14,8 +14,8 @@ import type { Pot } from "$core/entities";
 import {
   SourceType,
   type TAnyCore,
+  type TDoHandlerResult,
   type TEventDrivenLogger,
-  type TNewDoHandlerResult,
   type TPot,
   type TSpicy,
   type TTask,
@@ -114,7 +114,7 @@ export default class Runner {
 
   #processResult(
     task: TTask,
-    result: TNewDoHandlerResult,
+    result: TDoHandlerResult,
     pots: Array<Pot>,
     ctx?: Pot,
   ) {
