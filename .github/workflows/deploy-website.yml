@@ -77,5 +77,6 @@ jobs:
         uses: denoland/deployctl@v1
         with:
           project: shibui
-          import-map: "./website/deno.json"
-          entrypoint: ./website/serve.ts
+          import-map: "./deno.json"
+          entrypoint: ./serve.ts
+          root: "./website"
