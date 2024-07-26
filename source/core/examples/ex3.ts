@@ -6,7 +6,7 @@ class CTX extends ContextPot<{}> {}
 
 const simpleWorkflow = workflow(CTX)
   .name("simple workflow")
-  .on(CoreStartPot)
+  .on(CoreStartPot, (_pot) => new CTX())
   .sq(({ task }) =>
     task()
       .name("single workflow task")

@@ -50,7 +50,7 @@ export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
     };
   }
 
-  on(potConstructor: Constructor<Pot>, handler?: (pot: Pot) => void) {
+  on(potConstructor: Constructor<Pot>, handler?: (pot: Pot) => CPot | null) {
     this.addTrigger(potConstructor, handler);
     return this;
   }
