@@ -44,8 +44,8 @@ export class Core<S extends TSpicy> implements TCore<S> {
     ],
   };
 
-  constructor(config: TCoreOptions) {
-    this.#globalPotDistributor = new Distributor(this, config.spicy);
+  constructor(options: TCoreOptions) {
+    this.#globalPotDistributor = new Distributor(options, this, options.spicy);
   }
 
   workflow<CP extends ContextPot<{}>>(

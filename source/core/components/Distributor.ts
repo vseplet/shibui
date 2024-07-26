@@ -15,6 +15,7 @@ import { Pot } from "$core/entities";
 import {
   SourceType,
   type TAnyCore,
+  type TCoreOptions,
   type TEventDrivenLogger,
   type TPot,
   type TTaskBuilder,
@@ -27,10 +28,12 @@ import { WorkflowBuilder } from "../entities/WorkflowBuilder.ts";
 export default class Distributor {
   #kv: Deno.Kv = undefined as unknown as Deno.Kv;
   #core: TAnyCore;
+  #coreOptions: TCoreOptions = {};
   #log: TEventDrivenLogger;
   #tester: Tester;
 
-  constructor(core: TAnyCore, spicy = {}) {
+  constructor(coreOptions: TCoreOptions, core: TAnyCore, spicy = {}) {
+    this.#coreOptions = coreOptions;
     this.#core = core;
     this.#log = core.createLogger({
       sourceType: SourceType.CORE,
@@ -61,7 +64,7 @@ export default class Distributor {
 
   async start() {
     this.#log.inf(`starting update cycle...`);
-    this.#kv = await Deno.openKv();
+    this.#kv = await Deno.openKv(this.#coreOptions.denoKvPath || ":memory:");
     this.#kv.listenQueue((rawPotObj: TPot) => this.#test(rawPotObj));
     this.send(new CoreStartPot());
   }

@@ -46,7 +46,7 @@ export const execute = async (
   let isComplete = false;
   let isOk = true;
 
-  const tmpCore = new Core({ useDenoKV: false });
+  const tmpCore = new Core({});
   tmpCore.register(builder);
 
   const finish = () => {
@@ -97,11 +97,11 @@ export const workflow = <CP extends ContextPot<{}>>(
 
 /**
  * Creates and returns a new instance of ShibuiCore.
- * @param {TCoreOptions} [config={ useDenoKV: true }] - Configuration for ShibuiCore.
+ * @param {TCoreOptions} [config={ }] - Configuration for ShibuiCore.
  * @returns {TCore} - A new instance of ShibuiCore.
  */
 export const core = <S extends TSpicy = {}>(
-  config: TCoreOptions<S> = { useDenoKV: true },
+  config: TCoreOptions<S> = {},
   // TODO: fix TCore type, add settings
 ): Core<S> => {
   return new Core<S>(config);

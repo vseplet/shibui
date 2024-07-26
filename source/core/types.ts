@@ -135,7 +135,8 @@ export type TLogEventMetadata = {
 };
 
 export type TCoreOptions<S = TSpicy> = {
-  useDenoKV?: boolean;
+  // useDenoKv?: boolean;
+  denoKvPath?: "";
   spicy?: S;
 };
 
