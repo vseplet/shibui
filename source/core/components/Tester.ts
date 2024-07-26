@@ -252,15 +252,7 @@ export class Tester {
         `trying to exec trigger handler from workflow '${trigger.workflowName}' by pot '${pot.name}'...`,
       );
 
-      // TODO: переделать
-      const contextPot = trigger.handler({
-        core: this.#core,
-        log: this.#core.createLogger({
-          sourceType: SourceType.WORKFLOW,
-          sourceName: `ON (${[pot.name]}): ${trigger.workflowName}`,
-        }),
-        pot,
-      });
+      const contextPot = trigger.handler(pot);
 
       if (!contextPot) {
         this.#log.trc(
