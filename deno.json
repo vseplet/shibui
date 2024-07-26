@@ -44,10 +44,16 @@
     "dev": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./shibui-project/dev.ts",
     "prod": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./shibui-project/prod.ts"
   },
+  "lint": {
+    "exclude": [
+      "./source/framework/examples"
+    ]
+  },
   "fmt": {
     "exclude": [
       "./source/versions.ts",
-      "./deno.json"
+      "./deno.json",
+      "./source/framework/examples"
     ]
   },
   "imports": {
