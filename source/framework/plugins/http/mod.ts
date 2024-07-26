@@ -13,11 +13,11 @@
 import { HttpRequestPot } from "./HttpRequestPot.ts";
 import shibui from "../../mod.ts";
 
-export default shibui.plugin("http", ({ api }) => {
+export default shibui.plugin("http", ({ core }) => {
   const handler = async (request: Request): Promise<Response> => {
     const body = await request.json();
     const url = new URL(request.url);
-    api.send(new HttpRequestPot().init({
+    core.send(new HttpRequestPot().init({
       path: url.pathname,
       body,
     }));
