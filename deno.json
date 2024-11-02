@@ -10,7 +10,6 @@
     "./core/events": "./source/core/events/mod.ts",
     "./core/errors": "./source/core/errors/mod.ts",
     "./core/types": "./source/core/types.ts",
-    "./cli": "./source/cli/mod.ts",
     "./framework": "./source/framework/mod.ts",
     "./framework/runtime/dev": "./source/framework/runtime/dev.ts",
     "./framework/runtime/prod": "./source/framework/runtime/prod.ts",
