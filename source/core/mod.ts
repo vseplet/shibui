@@ -30,7 +30,8 @@ import {
 import { delay } from "$deps";
 import { TaskBuilder } from "./entities/TaskBuilder.ts";
 import { WorkflowBuilder } from "./entities/WorkflowBuilder.ts";
-import type { ContextPot } from "$core/pots";
+import { ContextPot } from "$core/pots";
+import { createRandomContext } from "../helpers/createRandomContext.ts";
 
 /**
  * Executes a task or workflow using the provided builder.
@@ -92,8 +93,11 @@ export const task = <
 };
 
 export const workflow = <CP extends ContextPot<{}>>(
-  contextPotConstructor: Constructor<CP>,
-) => new WorkflowBuilder<TSpicy, CP>(contextPotConstructor);
+  contextPotConstructor?: Constructor<CP>,
+) =>
+  new WorkflowBuilder<TSpicy, CP>(
+    contextPotConstructor || createRandomContext(ContextPot),
+  );
 
 /**
  * Creates and returns a new instance of ShibuiCore.

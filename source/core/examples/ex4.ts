@@ -1,12 +1,8 @@
 // deno-lint-ignore-file require-await
 import { execute, workflow } from "$core";
-import { ContextPot, CoreStartPot } from "$core/pots";
 
-class CTX extends ContextPot<{}> {}
-
-const simpleWorkflow = workflow(CTX)
+const simpleWorkflow = workflow()
   .name("simple workflow")
-  .on(CoreStartPot)
   .sq(({ task }) => {
     const t1 = task()
       .name("task 1")

@@ -18,6 +18,7 @@ import type {
   TWorkflowBuilder,
 } from "$core/types";
 import { type Pot, TaskBuilder } from "$core/entities";
+import { CoreStartPot } from "$core/pots";
 
 export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
   implements TWorkflowBuilder {
@@ -118,6 +119,10 @@ export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
   }
 
   build() {
+    if (Object.keys(this.workflow.triggers).length == 0) {
+      this.on(CoreStartPot, (_pot) => new this.ctxPotConstructor());
+    }
+
     this.taskBuilders.forEach((builder) => {
       this.workflow.tasks.push(builder.build());
     });
