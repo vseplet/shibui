@@ -9,8 +9,8 @@ const core = shibuiCore<{ x: number }>({
 });
 
 class SimplePot extends InternalPot<{ value: number }> {
-  ttl = 1;
-  data = {
+  override ttl = 1;
+  override data = {
     value: 0,
   };
 }

@@ -5,8 +5,8 @@ import { InternalPot } from "$core/pots";
 const c = core();
 
 class SimplePot extends InternalPot<{ value: number }> {
-  ttl = 1;
-  data = {
+  override ttl = 1;
+  override data = {
     value: 0,
   };
 }

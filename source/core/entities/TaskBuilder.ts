@@ -21,6 +21,7 @@ import type {
   TTaskTriggerHandler,
   TWorkflowBuilder,
 } from "$core/types";
+import { CoreStartPot } from "$core/pots";
 
 export class TaskBuilder<
   Spicy extends TSpicy,
@@ -178,7 +179,8 @@ export class TaskBuilder<
     }
 
     if (Object.keys(this.task.triggers).length == 0) {
-      throw new TaskTriggersMissingError();
+      this.on(CoreStartPot);
+      // throw new TaskTriggersMissingError();
     }
 
     return this.task;

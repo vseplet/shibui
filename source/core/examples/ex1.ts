@@ -3,8 +3,8 @@ import { InternalPot } from "$core/pots";
 import { execute, task } from "$core";
 
 class SimplePot extends InternalPot<{ value: number }> {
-  ttl = 100;
-  data = {
+  override ttl = 100;
+  override data = {
     value: Math.random(),
   };
 }
