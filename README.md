@@ -7,7 +7,7 @@
 > understanding 😊
 
 ```sh
-deno run --allow-all jsr:@vseplet/shibui@0.4.39/framework/scripts/init
+deno run --allow-all jsr:@vseplet/shibui@0.4.40/framework/scripts/init
 ```
 
 ```sh
