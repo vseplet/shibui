@@ -67,6 +67,13 @@ export class Tester {
 
     this.#tasks[task.name] = task;
     const triggersCount = Object.keys(task.triggers).length;
+
+    if (triggersCount > 1 && task.belongsToWorkflow) {
+      throw new Error(
+        "Current implementation does not support multiple triggers for a task with workflow!",
+      );
+    }
+
     const storage = task.belongsToWorkflow
       ? triggersCount > 1
         ? this.#workflowDependentTaskTriggers
@@ -185,7 +192,9 @@ export class Tester {
         this.#log.inf(
           `allow run task '${trigger.taskName}' by pot '${pot.name}'`,
         );
+
         this.#runner.run(trigger.taskName, [pot]);
+
         return true;
       } else if (result.op === TRIGGER_OP_DENY) {
         this.#log.inf(
@@ -198,6 +207,7 @@ export class Tester {
 
   #testDependedTaskTriggers(pot: Pot): boolean {
     const triggers = this.#dependentTaskTriggers[pot.name];
+
     if (!triggers) {
       this.#log.trc(`not found depended task triggers for pot '${pot.name}'`);
       return false;
@@ -207,6 +217,7 @@ export class Tester {
       this.#log.trc(
         `trying to exec depended task trigger handler '${trigger.taskName}' by pot '${pot.name}'...`,
       );
+
       const triggerContext = this.#createTaskTriggerHandlerContext(
         pot.name,
         trigger.taskName,
@@ -215,18 +226,22 @@ export class Tester {
       );
 
       const result = trigger.handler(triggerContext);
+
       if (result.op === TRIGGER_OP_ALLOW) {
         this.#log.inf(
           `allow run depended task '${trigger.taskName}' by pot '${pot.name}'`,
         );
+
         const pack = this.#filler.fill(
           trigger.taskName,
           pot,
           result?.potIndex || 0,
         );
+
         if (pack) {
           this.#runner.run(pack.taskName, pack.pots);
         }
+
         return true;
       } else if (result.op === TRIGGER_OP_DENY) {
         this.#log.inf(

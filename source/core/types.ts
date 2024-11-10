@@ -135,8 +135,10 @@ export type TLogEventMetadata = {
 };
 
 export type TCoreOptions<S = TSpicy> = {
-  // useDenoKv?: boolean;
+  useDenoKv?: boolean;
   denoKvPath?: "";
+  kv?: {};
+  logger?: {};
   spicy?: S;
 };
 
@@ -307,3 +309,5 @@ export type TWorkflowBuilder = {
   workflow: TWorkflow;
   build: () => TWorkflow;
 };
+
+export type TPotsConstructorsList = Array<Constructor<Pot>>;

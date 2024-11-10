@@ -12,7 +12,6 @@
 
 import { Core } from "$core/components";
 import type {
-  TCore,
   TCoreOptions,
   TPot,
   TSpicy,
@@ -37,11 +36,13 @@ import { createRandomContext } from "../helpers/createRandomContext.ts";
  * Executes a task or workflow using the provided builder.
  * @param {TTaskBuilder | TWorkflowBuilder} builder - The task or workflow builder.
  * @param {Array<TPot>} [pots] - An array of IPot objects to send to the core.
+ * @param {TCoreOptions<S>} [_options] - Core options.
  * @returns {Promise<boolean>} - Returns true if execution is successful, otherwise false.
  */
-export const execute = async (
+export const execute = async <S extends TSpicy>(
   builder: TTaskBuilder | TWorkflowBuilder,
   pots?: Array<TPot>,
+  _options?: TCoreOptions<S>,
 ): Promise<boolean> => {
   const startTime = new Date().getTime();
   let isComplete = false;

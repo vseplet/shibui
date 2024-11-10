@@ -11,10 +11,11 @@
  */
 
 import type { Pot } from "$core/entities";
-import { TaskNameMissingError, TaskTriggersMissingError } from "$core/errors";
+import { TaskNameMissingError } from "$core/errors";
 import type { Constructor } from "$helpers/types";
 import type {
   TOnHandlerContext,
+  TPotsConstructorsList,
   TSpicy,
   TTask,
   TTaskDoHandler,
@@ -28,6 +29,8 @@ export class TaskBuilder<
   Pots extends Pot[],
   CTX extends Pot | undefined = undefined,
 > {
+  private potsConstructors: TPotsConstructorsList = [];
+
   task: TTask = {
     name: "unknown",
     attempts: 1,
@@ -81,9 +84,11 @@ export class TaskBuilder<
   }
 
   constructor(
-    ..._constructors: { [K in keyof Pots]: Constructor<Pots[K]> }
+    ...constructors: { [K in keyof Pots]: Constructor<Pots[K]> | null }
   ) {
     if (arguments.length > 5) throw new Error("over 5 pots!");
+    this.potsConstructors = arguments as unknown as TPotsConstructorsList;
+
     this.task.slotsCount =
       Array.from(arguments).filter((arg) => arg !== undefined).length;
   }
@@ -178,9 +183,12 @@ export class TaskBuilder<
       throw new TaskNameMissingError();
     }
 
-    if (Object.keys(this.task.triggers).length == 0) {
+    if (this.potsConstructors.length == 0) {
       this.on(CoreStartPot);
-      // throw new TaskTriggersMissingError();
+    } else if (Object.keys(this.task.triggers).length == 0) {
+      for (const constructor of this.potsConstructors) {
+        this.on(constructor);
+      }
     }
 
     return this.task;
