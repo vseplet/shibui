@@ -40,7 +40,7 @@ const colorizeByLevel = {
   [Level.FATAL]: colors.bgBrightRed,
 };
 
-const levelName = [
+export const levelName = [
   "UKN",
   "TRC",
   "DBG",

@@ -55,7 +55,7 @@ export default class Runner {
 
   registerTask(task: TTask) {
     this.#tasks[task.name] = task;
-    this.#log.inf(`registered task '${task.name}'`);
+    this.#log.trc(`registered task '${task.name}'`);
   }
 
   async run(taskName: string, pots: Array<Pot>, ctx?: Pot) {

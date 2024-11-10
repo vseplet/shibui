@@ -138,9 +138,11 @@ export type TCoreOptions<S = TSpicy> = {
   mode?: "simple" | "default";
   kv?: {
     inMemory?: boolean;
-    path: string;
+    path?: string;
   };
-  logger?: {};
+  logger?: {
+    enable: boolean;
+  };
   spicy?: S;
 };
 

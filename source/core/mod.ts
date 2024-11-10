@@ -10,17 +10,19 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { Core } from "$core/components";
-import type {
-  TCoreOptions,
-  TPot,
-  TSpicy,
-  TTaskBuilder,
-  TWorkflowBuilder,
+import { Core, EventEmitter } from "$core/components";
+import {
+  Level,
+  type TCoreOptions,
+  type TPot,
+  type TSpicy,
+  type TTaskBuilder,
+  type TWorkflowBuilder,
 } from "$core/types";
 import type { Constructor } from "$helpers/types";
 import type { Pot } from "$core/entities";
 import {
+  LogEvent,
   TaskFailedEvent,
   TaskFinishedEvent,
   WorkflowFailedEvent,
@@ -31,6 +33,8 @@ import { TaskBuilder } from "./entities/TaskBuilder.ts";
 import { WorkflowBuilder } from "./entities/WorkflowBuilder.ts";
 import { ContextPot } from "$core/pots";
 import { createRandomContext } from "../helpers/createRandomContext.ts";
+import { emitters } from "$core/emitters";
+import { levelName } from "./components/EventDrivenLogger.ts";
 
 /**
  * Executes a task or workflow using the provided builder.
@@ -42,13 +46,13 @@ import { createRandomContext } from "../helpers/createRandomContext.ts";
 export const execute = async <S extends TSpicy>(
   builder: TTaskBuilder | TWorkflowBuilder,
   pots?: Array<TPot>,
-  _options?: TCoreOptions<S>,
+  options?: TCoreOptions<S>,
 ): Promise<boolean> => {
   const startTime = new Date().getTime();
   let isComplete = false;
   let isOk = true;
 
-  const tmpCore = new Core({});
+  const tmpCore = new Core(options || {});
   tmpCore.register(builder);
 
   const finish = () => {
@@ -88,7 +92,26 @@ export const runCI = <S extends TSpicy>(
   builder: TTaskBuilder | TWorkflowBuilder,
   pots?: Array<TPot>,
 ) => {
-  execute(builder, pots).then((value) => {
+  emitters.logEventEmitter.addListener((event) => {
+    if (event.level > 3) {
+      if (event.sourceType === "TASK") {
+        console.log(
+          `${levelName[event.level]} (${event.sourceName}): ${event.msg}`,
+        );
+      } else if (event.sourceType === "CORE") {
+        console.log(`${levelName[event.level]} (SYSTEM): ${event.msg}`);
+      }
+    }
+  });
+
+  execute(builder, pots, {
+    kv: {
+      inMemory: true,
+    },
+    logger: {
+      enable: false,
+    },
+  }).then((value) => {
     Deno.exit(value ? 0 : -1);
   });
 };

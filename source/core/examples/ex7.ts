@@ -7,7 +7,8 @@ runCI(
     .attempts(3)
     .interval(3000)
     .timeout(1000)
-    .do(async ({ finish }) => {
+    .do(async ({ finish, log }) => {
+      log.inf(`Hello!`);
       await new Promise((resolve) => setTimeout(resolve, 1000 * 10));
       return finish();
     })

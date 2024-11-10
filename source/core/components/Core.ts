@@ -46,6 +46,9 @@ export class Core<S extends TSpicy> implements TCore<S> {
 
   constructor(options: TCoreOptions) {
     this.#globalPotDistributor = new Distributor(options, this, options.spicy);
+    if (options.logger?.enable === false) {
+      this.settings.DEFAULT_LOGGING_ENABLED = false;
+    }
   }
 
   workflow<CP extends ContextPot<{}>>(
