@@ -135,9 +135,11 @@ export type TLogEventMetadata = {
 };
 
 export type TCoreOptions<S = TSpicy> = {
-  useDenoKv?: boolean;
-  denoKvPath?: "";
-  kv?: {};
+  mode?: "simple" | "default";
+  kv?: {
+    inMemory?: boolean;
+    path: string;
+  };
   logger?: {};
   spicy?: S;
 };
@@ -286,11 +288,13 @@ export type TAnyTaskDoHandler = TTaskDoHandler<any, Pot[], any>;
 export type TTask = {
   name: string;
   attempts: number;
+  interval: number;
   timeout: number;
   slotsCount: number;
   belongsToWorkflow: string | undefined;
   triggers: { [key: string]: Array<TAnyTaskTrigger> };
   do: TAnyTaskDoHandler;
+  fail: (error: Error) => Promise<void>;
 };
 
 export type TTaskBuilder = {

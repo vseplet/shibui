@@ -35,12 +35,14 @@ export class TaskBuilder<
     name: "unknown",
     attempts: 1,
     timeout: 0,
+    interval: 0,
     slotsCount: 0,
     belongsToWorkflow: undefined,
     triggers: {},
     do: async () => {
       throw new Error("not implemented");
     },
+    fail: async () => {},
   };
 
   private createTrigger<TP extends Pots[number]>(
@@ -118,6 +120,11 @@ export class TaskBuilder<
     return this;
   }
 
+  interval(ms: number) {
+    this.task.interval = ms;
+    return this;
+  }
+
   timeout(ms: number) {
     this.task.timeout = ms;
     return this;
@@ -174,7 +181,8 @@ export class TaskBuilder<
     return this;
   }
 
-  onFail(_handler: (error: Error) => void) {
+  fail(handler: (error: Error) => Promise<void>) {
+    this.task.fail = handler;
     return this;
   }
 

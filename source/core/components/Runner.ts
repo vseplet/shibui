@@ -34,6 +34,7 @@ import {
   DO_OP_REPEAT,
 } from "$core/constants";
 import { delay } from "$deps";
+import { promiseWithTimeout } from "$helpers";
 
 export default class Runner {
   #core: TAnyCore;
@@ -66,35 +67,52 @@ export default class Runner {
     );
 
     try {
-      const doResult = await task.do({
-        core: this.#core,
-        ...this.#spicy,
-        log: this.#core.createLogger({
-          sourceType: SourceType.TASK,
-          sourceName: `DO: ${taskName}`,
-        }),
-        pots,
-        ctx,
-        next: (
-          taskBuilders: TTaskBuilder | Array<TTaskBuilder>,
-          data?: Partial<TPot["data"]>,
-        ) => ({
-          op: DO_OP_NEXT,
-          taskBuilders: taskBuilders instanceof Array
-            ? taskBuilders
-            : [taskBuilders],
-          data,
-        }),
-        fail: (reason?: string) => ({
-          op: DO_OP_FAIL,
-          reason: reason || "",
-        }),
-        finish: () => ({ op: DO_OP_FINISH }),
-        repeat: (_data?: Partial<TPot["data"]>) => ({
-          op: DO_OP_REPEAT,
-        }),
-      });
-      this.#processResult(task, doResult, pots, ctx);
+      if (task.attempts > 0) task.attempts--;
+
+      const doPromise = () =>
+        task.do({
+          core: this.#core,
+          ...this.#spicy,
+          log: this.#core.createLogger({
+            sourceType: SourceType.TASK,
+            sourceName: `DO: ${taskName}`,
+          }),
+          pots,
+          ctx,
+          next: (
+            taskBuilders: TTaskBuilder | Array<TTaskBuilder>,
+            data?: Partial<TPot["data"]>,
+          ) => ({
+            op: DO_OP_NEXT,
+            taskBuilders: taskBuilders instanceof Array
+              ? taskBuilders
+              : [taskBuilders],
+            data,
+          }),
+          fail: (reason?: string) => ({
+            op: DO_OP_FAIL,
+            reason: reason || "",
+          }),
+          finish: () => ({ op: DO_OP_FINISH }),
+          repeat: (_data?: Partial<TPot["data"]>) => ({
+            op: DO_OP_REPEAT,
+          }),
+        });
+
+      const doResult = task.timeout > 0
+        ? await promiseWithTimeout(doPromise(), task.timeout)
+        : await doPromise();
+
+      if (doResult == null) {
+        this.#onError({
+          ctx,
+          pots,
+          task,
+          err: new Error(`task '${task.name}' timeout`),
+        });
+      } else {
+        this.#processResult(task, doResult, pots, ctx);
+      }
     } catch (err: unknown) {
       if (err instanceof Error) {
         this.#log.err(
@@ -109,6 +127,13 @@ export default class Runner {
           }' failed with unknown error!`,
         );
       }
+
+      this.#onError({
+        ctx,
+        pots,
+        task,
+        err: err as Error,
+      });
     }
   }
 
@@ -174,6 +199,8 @@ export default class Runner {
       );
       this.#core.emitters.coreEventEmitter.emit(new WorkflowFailedEvent());
     }
+
+    task.fail(new Error(reason));
   }
 
   #onNext({
@@ -249,14 +276,19 @@ export default class Runner {
     await delay(afterMs);
 
     if (task.belongsToWorkflow) {
-      // это task из workflow скрипта
+      this.#log.inf(
+        `repeat the task ${task.name} within the workflow '${task.belongsToWorkflow}'.`,
+      );
     } else {
-      // это одиночный task
+      this.#log.inf(
+        `repeat the task ${task.name}`,
+      );
     }
+
     this.run(task.name, pots);
   }
 
-  #onError({
+  async #onError({
     ctx,
     pots,
     task,
@@ -279,6 +311,24 @@ export default class Runner {
           pots[0]?.name
         }' failed with error: '${err.stack}'`,
       );
+    }
+
+    if (task.attempts > 0) {
+      if (task.interval > 0) await delay(task.interval);
+
+      if (task.belongsToWorkflow) {
+        this.#log.inf(
+          `retrying task '${task.name}' in workflow '${task.belongsToWorkflow}'.`,
+        );
+      } else {
+        this.#log.inf(
+          `retrying task '${task.name}'`,
+        );
+      }
+
+      this.run(task.name, pots);
+    } else {
+      task.fail(err);
     }
   }
 }

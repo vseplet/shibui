@@ -27,7 +27,7 @@ export async function promiseWithTimeout<T>(
       (resolve) => {
         timeoutId = setTimeout(() => {
           resolve(null);
-        }, timeout * 1000);
+        }, timeout);
       },
     );
 
@@ -35,6 +35,7 @@ export async function promiseWithTimeout<T>(
       promise,
       timeoutPromise,
     ]);
+
     clearTimeout(timeoutId);
 
     return result;
