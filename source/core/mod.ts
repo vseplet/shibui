@@ -84,6 +84,15 @@ export const execute = async <S extends TSpicy>(
   return isOk;
 };
 
+export const runCI = <S extends TSpicy>(
+  builder: TTaskBuilder | TWorkflowBuilder,
+  pots?: Array<TPot>,
+) => {
+  execute(builder, pots).then((value) => {
+    Deno.exit(value ? 0 : -1);
+  });
+};
+
 export const task = <
   Pots extends Pot[],
   CPot extends ContextPot<{}> | undefined = undefined,

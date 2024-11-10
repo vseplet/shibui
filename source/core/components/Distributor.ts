@@ -64,7 +64,11 @@ export default class Distributor {
 
   async start() {
     this.#log.inf(`starting update cycle...`);
-    this.#kv = await Deno.openKv(this.#coreOptions.denoKvPath || ":memory:");
+    this.#kv = await Deno.openKv(
+      this.#coreOptions.kv?.path || this.#coreOptions.kv?.inMemory
+        ? ":memory:"
+        : undefined,
+    );
     this.#kv.listenQueue((rawPotObj: TPot) => this.#test(rawPotObj));
     this.send(new CoreStartPot());
   }

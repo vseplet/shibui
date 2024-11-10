@@ -328,6 +328,12 @@ export default class Runner {
 
       this.run(task.name, pots);
     } else {
+      this.#core.emitters.coreEventEmitter.emit(new TaskFinishedEvent());
+
+      if (task.belongsToWorkflow) {
+        this.#core.emitters.coreEventEmitter.emit(new WorkflowFinishedEvent());
+      }
+
       task.fail(err);
     }
   }
