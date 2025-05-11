@@ -25,21 +25,24 @@
     "include": [
       "LICENSE",
       "README.md",
-      "source/**/*.ts"
+      "docs/**/*.md",
+      "source/**/*.ts",
+      "examples/**/*.ts"
     ]
   },
   "tasks": {
     "pub-dry": "deno publish --dry-run --allow-slow-types",
     "serve": "deno run --allow-all --unstable-broadcast-channel ./source/moduleServe.ts",
-    "ex1": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./source/core/examples/ex1.ts",
-    "ex2": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./source/core/examples/ex2.ts",
-    "ex3": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./source/core/examples/ex3.ts",
-    "ex4": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./source/core/examples/ex4.ts",
-    "ex5": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./source/core/examples/ex5.ts",
-    "ex6": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./source/core/examples/ex6.ts",
-    "ex7": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./source/core/examples/ex7.ts",
-    "ex8": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./source/core/examples/ex8.ts",
-    "add-spicy": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./source/core/examples/add-spicy.ts",
+    "ex1": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/ex1.ts",
+    "ex2": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/ex2.ts",
+    "ex3": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/ex3.ts",
+    "ex4": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/ex4.ts",
+    "ex5": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/ex5.ts",
+    "ex6": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/ex6.ts",
+    "ex7": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/ex7.ts",
+    "ex8": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/ex8.ts",
+    "add-spicy": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/add-spicy.ts",
+
     "dev": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./shibui-project/dev.ts",
     "prod": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./shibui-project/prod.ts"
   },
