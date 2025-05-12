@@ -14,7 +14,7 @@ import { SEvent } from "$core/entities";
 import { EVENT_TYPE_CORE } from "$core/constants";
 
 export class CoreEvent extends SEvent {
-  type = EVENT_TYPE_CORE;
+  override type = EVENT_TYPE_CORE;
 
   constructor() {
     super();

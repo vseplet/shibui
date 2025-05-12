@@ -22,7 +22,7 @@ import {
 import { EVENT_TYPE_LOG } from "$core/constants";
 
 export class LogEvent<T> extends SEvent {
-  type = EVENT_TYPE_LOG;
+  override type = EVENT_TYPE_LOG;
   level = Level.UNKNOWN;
   sourceName = "unknown";
   sourceType = SourceType.UNKNOWN;
@@ -39,29 +39,29 @@ export class LogEvent<T> extends SEvent {
 }
 
 export class DebugLogEvent extends LogEvent<TLogEventMetadata> {
-  level = Level.DEBUG;
+  override level = Level.DEBUG;
 }
 
 export class TraceLogEvent extends LogEvent<TLogEventMetadata> {
-  level = Level.TRACE;
+  override level = Level.TRACE;
 }
 
 export class VerboseLogEvent extends LogEvent<TLogEventMetadata> {
-  level = Level.TRACE;
+  override level = Level.TRACE;
 }
 
 export class InfoLogEvent extends LogEvent<TLogEventMetadata> {
-  level = Level.INFO;
+  override level = Level.INFO;
 }
 
 export class WarnLogEvent extends LogEvent<TLogEventMetadata> {
-  level = Level.WARN;
+  override level = Level.WARN;
 }
 
 export class ErrorLogEvent extends LogEvent<TLogEventMetadata> {
-  level = Level.ERROR;
+  override level = Level.ERROR;
 }
 
 export class FatalLogEvent extends LogEvent<TLogEventMetadata> {
-  level = Level.FATAL;
+  override level = Level.FATAL;
 }
