@@ -15,14 +15,6 @@ import type { Constructor, Equal, Tail } from "$helpers/types";
 import type { emitters } from "$core/emitters";
 import type { EventDrivenLogger } from "$core/components";
 import type { TaskBuilder } from "./entities/TaskBuilder.ts";
-import type {
-  DO_OP_FAIL,
-  DO_OP_FINISH,
-  DO_OP_NEXT,
-  DO_OP_REPEAT,
-  TRIGGER_OP_ALLOW,
-  TRIGGER_OP_DENY,
-} from "$core/constants";
 import type { Pot, WorkflowBuilder } from "$core/entities";
 import type { ContextPot } from "$core/pots";
 
@@ -293,11 +285,11 @@ export type TOnHandlerContext<Spicy, CtxPot, TriggerPot> =
   & {
     log: EventDrivenLogger;
     allow: (index?: number) => {
-      op: typeof TRIGGER_OP_ALLOW;
+      op: TriggerOperation.Allow;
       potIndex?: number;
     };
     deny: () => {
-      op: typeof TRIGGER_OP_DENY;
+      op: TriggerOperation.Deny;
     };
   };
 
@@ -333,19 +325,19 @@ export type TDoHandlerContext<Spicy, CtxPot, Pots extends Pot[]> =
       builders: Array<TTaskBuilder> | TTaskBuilder,
       data?: Partial<Pots[0]["data"]>,
     ) => {
-      op: typeof DO_OP_NEXT;
+      op: DoOperation.Next;
       taskBuilders: Array<TTaskBuilder>;
       data?: Partial<Pots[0]["data"]>;
     };
     finish: () => {
-      op: typeof DO_OP_FINISH;
+      op: DoOperation.Finish;
     };
     fail: (reason?: string) => {
-      op: typeof DO_OP_FAIL;
+      op: DoOperation.Fail;
       reason?: string;
     };
     repeat: () => {
-      op: typeof DO_OP_REPEAT;
+      op: DoOperation.Repeat;
     };
   };
 
