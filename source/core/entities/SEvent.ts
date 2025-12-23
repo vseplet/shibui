@@ -11,10 +11,10 @@
  */
 
 import type { TSEvent } from "$core/types";
-import { EVENT_TYPE_UNKNOWN } from "$core/constants";
+import { EventType } from "$core/constants";
 
 export class SEvent implements TSEvent {
-  type = EVENT_TYPE_UNKNOWN;
+  type = EventType.Unknown;
   name = this.constructor.name;
   timestamp = new Date().getTime();
 }

@@ -27,12 +27,7 @@ import {
   WorkflowFailedEvent,
   WorkflowFinishedEvent,
 } from "$core/events";
-import {
-  DO_OP_FAIL,
-  DO_OP_FINISH,
-  DO_OP_NEXT,
-  DO_OP_REPEAT,
-} from "$core/constants";
+import { DoOperation } from "$core/constants";
 import { delay } from "$deps";
 import { promiseWithTimeout } from "$helpers";
 
@@ -48,7 +43,7 @@ export default class Runner {
     this.#core = core;
     this.#kv = kv;
     this.#log = core.createLogger({
-      sourceType: SourceType.CORE,
+      sourceType: SourceType.Core,
       sourceName: "Runner",
     });
   }
@@ -74,7 +69,7 @@ export default class Runner {
           core: this.#core,
           ...this.#spicy,
           log: this.#core.createLogger({
-            sourceType: SourceType.TASK,
+            sourceType: SourceType.Task,
             sourceName: `DO: ${taskName}`,
           }),
           pots,
@@ -83,19 +78,19 @@ export default class Runner {
             taskBuilders: TTaskBuilder | Array<TTaskBuilder>,
             data?: Partial<TPot["data"]>,
           ) => ({
-            op: DO_OP_NEXT,
+            op: DoOperation.Next,
             taskBuilders: taskBuilders instanceof Array
               ? taskBuilders
               : [taskBuilders],
             data,
           }),
           fail: (reason?: string) => ({
-            op: DO_OP_FAIL,
+            op: DoOperation.Fail,
             reason: reason || "",
           }),
-          finish: () => ({ op: DO_OP_FINISH }),
+          finish: () => ({ op: DoOperation.Finish }),
           repeat: (_data?: Partial<TPot["data"]>) => ({
-            op: DO_OP_REPEAT,
+            op: DoOperation.Repeat,
           }),
         });
 
@@ -145,10 +140,10 @@ export default class Runner {
   ) {
     try {
       switch (result.op) {
-        case DO_OP_FINISH:
+        case DoOperation.Finish:
           this.#onFinish(task);
           break;
-        case DO_OP_NEXT:
+        case DoOperation.Next:
           this.#onNext({
             pots,
             ctx,
@@ -157,7 +152,7 @@ export default class Runner {
             data: result.data,
           });
           break;
-        case DO_OP_REPEAT:
+        case DoOperation.Repeat:
           this.#onRepeat({
             pots,
             ctx,
@@ -165,7 +160,7 @@ export default class Runner {
             afterMs: result?.afterMs || 0,
           });
           break;
-        case DO_OP_FAIL:
+        case DoOperation.Fail:
           this.#onFail({
             task,
             reason: result?.reason || "",

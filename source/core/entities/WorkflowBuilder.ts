@@ -17,6 +17,7 @@ import type {
   TWorkflow,
   TWorkflowBuilder,
 } from "$core/types";
+import { UNKNOWN_TARGET } from "$core/types";
 import { type Pot, TaskBuilder } from "$core/entities";
 import { CoreStartPot } from "$core/pots";
 
@@ -28,7 +29,7 @@ export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
   > = [];
 
   workflow: TWorkflow = {
-    name: "unknown",
+    name: UNKNOWN_TARGET,
     firstTaskName: "",
     triggers: {},
     tasks: [],

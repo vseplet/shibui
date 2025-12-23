@@ -35,12 +35,12 @@ export class Core<S extends TSpicy> implements TCore<S> {
     DEFAULT_LOGGING_ENABLED: true,
     DEFAULT_LOGGING_LEVEL: 0,
     ALLOWED_LOGGING_SOURCE_TYPES: [
-      SourceType.CORE,
-      SourceType.TASK,
-      SourceType.WORKFLOW,
-      SourceType.FRAMEWORK,
-      SourceType.UNKNOWN,
-      SourceType.PLUGIN,
+      SourceType.Core,
+      SourceType.Task,
+      SourceType.Workflow,
+      SourceType.Framework,
+      SourceType.Unknown,
+      SourceType.Plugin,
     ],
   };
 

@@ -22,6 +22,7 @@ import type {
   TTaskTriggerHandler,
   TWorkflowBuilder,
 } from "$core/types";
+import { TriggerRule, UNKNOWN_TARGET } from "$core/types";
 import { CoreStartPot } from "$core/pots";
 
 export class TaskBuilder<
@@ -32,7 +33,7 @@ export class TaskBuilder<
   private potsConstructors: TPotsConstructorsList = [];
 
   task: TTask = {
-    name: "unknown",
+    name: UNKNOWN_TARGET,
     attempts: 1,
     timeout: 0,
     interval: 0,
@@ -60,24 +61,26 @@ export class TaskBuilder<
   }
 
   private createRuleHandler<TP extends Pots[number]>(
-    rule: "ForThisTask" | "ForAnyTask" | "ForUnknown",
+    rule: TriggerRule,
     potConstructor: Constructor<TP>,
   ) {
     switch (rule) {
-      case "ForThisTask":
+      case TriggerRule.ForThisTask:
         return (args: TOnHandlerContext<Spicy, CTX, TP>) =>
           ("ctx" in args ? args.ctx.to.task : args.pot.to.task) ===
               this.task.name
             ? args.allow()
             : args.deny();
-      case "ForAnyTask":
+      case TriggerRule.ForAnyTask:
         return (args: TOnHandlerContext<Spicy, CTX, TP>) =>
-          ("ctx" in args ? args.ctx.to.task : args.pot.to.task) !== "unknown"
+          ("ctx" in args ? args.ctx.to.task : args.pot.to.task) !==
+              UNKNOWN_TARGET
             ? args.allow()
             : args.deny();
-      case "ForUnknown":
+      case TriggerRule.ForUnknown:
         return (args: TOnHandlerContext<Spicy, CTX, TP>) =>
-          ("ctx" in args ? args.ctx.to.task : args.pot.to.task) === "unknown"
+          ("ctx" in args ? args.ctx.to.task : args.pot.to.task) ===
+              UNKNOWN_TARGET
             ? args.allow()
             : args.deny();
       default:
@@ -155,7 +158,7 @@ export class TaskBuilder<
   }
 
   onRule<TP extends Pots[number]>(
-    rule: "ForThisTask" | "ForAnyTask" | "ForUnknown",
+    rule: TriggerRule,
     potConstructor: Constructor<TP>,
     slot?: number,
   ) {
@@ -187,7 +190,7 @@ export class TaskBuilder<
   }
 
   build(): TTask {
-    if (this.task.name == "unknown") {
+    if (this.task.name == UNKNOWN_TARGET) {
       throw new TaskNameMissingError();
     }
 

@@ -22,22 +22,24 @@ import {
 } from "$core/events";
 import {
   Level,
+  LogLevel,
   SourceType,
   type TEventDrivenLogger,
   type TLoggerOptions,
+  UNKNOWN_TARGET,
 } from "$core/types";
 import { colors } from "$deps";
 import type { EventEmitter } from "$core/components";
 
 const colorizeByLevel = {
-  [Level.UNKNOWN]: colors.dim,
-  [Level.DEBUG]: colors.blue,
-  [Level.TRACE]: colors.gray,
-  [Level.VERBOSE]: colors.cyan,
-  [Level.INFO]: colors.green,
-  [Level.WARN]: colors.yellow,
-  [Level.ERROR]: colors.red,
-  [Level.FATAL]: colors.bgBrightRed,
+  [Level.Unknown]: colors.dim,
+  [Level.Debug]: colors.blue,
+  [Level.Trace]: colors.gray,
+  [Level.Verbose]: colors.cyan,
+  [Level.Info]: colors.green,
+  [Level.Warn]: colors.yellow,
+  [Level.Error]: colors.red,
+  [Level.Fatal]: colors.bgBrightRed,
 };
 
 export const levelName = [
@@ -52,9 +54,12 @@ export const levelName = [
 ];
 
 export class EventDrivenLogger implements TEventDrivenLogger {
-  #options = {
-    sourceType: SourceType.UNKNOWN,
-    sourceName: "unknown",
+  #options: {
+    sourceType: SourceType;
+    sourceName: string;
+  } = {
+    sourceType: SourceType.Unknown,
+    sourceName: UNKNOWN_TARGET,
   };
 
   #emitter: EventEmitter<LogEvent<unknown>>;
@@ -72,7 +77,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
     if (args?.sourceType) this.#options.sourceType = args.sourceType;
   }
 
-  private log(level: Level, msg: string) {
+  private log(level: LogLevel, msg: string) {
     if (
       !this.#settings.ALLOWED_LOGGING_SOURCE_TYPES.includes(
         this.#options.sourceType,
@@ -96,7 +101,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   }
 
   dbg(msg: string) {
-    this.log(Level.DEBUG, msg);
+    this.log(Level.Debug, msg);
     this.#emitter.emit(
       new DebugLogEvent(
         {
@@ -109,7 +114,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   }
 
   dbgm({ msg, meta }: { msg: string; meta: {} }) {
-    this.log(Level.DEBUG, msg);
+    this.log(Level.Debug, msg);
     this.#emitter.emit(
       new DebugLogEvent(
         {
@@ -123,7 +128,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   }
 
   trc(msg: string) {
-    this.log(Level.TRACE, msg);
+    this.log(Level.Trace, msg);
     this.#emitter.emit(
       new TraceLogEvent(
         {
@@ -136,7 +141,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   }
 
   trcm({ msg, meta }: { msg: string; meta: {} }) {
-    this.log(Level.TRACE, msg);
+    this.log(Level.Trace, msg);
     this.#emitter.emit(
       new TraceLogEvent(
         {
@@ -150,7 +155,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   }
 
   vrb(msg: string) {
-    this.log(Level.VERBOSE, msg);
+    this.log(Level.Verbose, msg);
     this.#emitter.emit(
       new VerboseLogEvent(
         {
@@ -163,7 +168,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   }
 
   vrbm({ msg, meta }: { msg: string; meta: {} }) {
-    this.log(Level.VERBOSE, msg);
+    this.log(Level.Verbose, msg);
     this.#emitter.emit(
       new VerboseLogEvent(
         {
@@ -177,7 +182,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   }
 
   inf(msg: string) {
-    this.log(Level.INFO, msg);
+    this.log(Level.Info, msg);
     this.#emitter.emit(
       new InfoLogEvent(
         {
@@ -190,7 +195,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   }
 
   err(msg: string) {
-    this.log(Level.ERROR, msg);
+    this.log(Level.Error, msg);
     this.#emitter.emit(
       new ErrorLogEvent(
         {
@@ -203,7 +208,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   }
 
   wrn(msg: string) {
-    this.log(Level.WARN, msg);
+    this.log(Level.Warn, msg);
     this.#emitter.emit(
       new WarnLogEvent(
         {
@@ -216,7 +221,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   }
 
   flt(msg: string) {
-    this.log(Level.FATAL, msg);
+    this.log(Level.Fatal, msg);
     this.#emitter.emit(
       new FatalLogEvent(
         {

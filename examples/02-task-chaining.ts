@@ -4,13 +4,14 @@
  * Demonstrates:
  * - Creating multiple tasks
  * - Using next() to chain tasks
- * - Using onRule("ForThisTask") to target specific tasks
+ * - Using onRule(TriggerRule.TriggerRule.ForThisTask) to target specific tasks
  * - Passing data between tasks
  * - Manual task registration
  */
 
 import core from "$core";
 import { InternalPot } from "$core/pots";
+import { TriggerRule } from "$core/constants";
 
 const c = core();
 
@@ -25,7 +26,7 @@ class SimplePot extends InternalPot<{ value: number }> {
 // Task 3: Final task in chain
 const task3 = c.task(SimplePot)
   .name("Task 3")
-  .onRule("ForThisTask", SimplePot)  // Only accept pots sent to this task
+  .onRule("TriggerRule.ForThisTask", SimplePot)  // Only accept pots sent to this task
   .do(async ({ log, pots, finish }) => {
     log.dbg(`Task 3 received value: ${pots[0].data.value}`);
     return finish();  // End of chain
@@ -34,7 +35,7 @@ const task3 = c.task(SimplePot)
 // Task 2: Middle task in chain
 const task2 = c.task(SimplePot)
   .name("Task 2")
-  .onRule("ForThisTask", SimplePot)
+  .onRule("TriggerRule.ForThisTask", SimplePot)
   .do(async ({ log, pots, next }) => {
     const value = pots[0].data.value;
     log.dbg(`Task 2 received value: ${value}`);
@@ -48,7 +49,7 @@ const task2 = c.task(SimplePot)
 // Task 1: First task in chain
 const task1 = c.task(SimplePot)
   .name("Task 1")
-  .onRule("ForThisTask", SimplePot)
+  .onRule("TriggerRule.ForThisTask", SimplePot)
   .do(async ({ log, pots, next }) => {
     const value = pots[0].data.value;
     log.dbg(`Task 1 received value: ${value}`);

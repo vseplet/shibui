@@ -11,10 +11,10 @@
  */
 
 import { SEvent } from "$core/entities";
-import { EVENT_TYPE_CORE } from "$core/constants";
+import { EventType } from "$core/constants";
 
 export class CoreEvent extends SEvent {
-  override type = EVENT_TYPE_CORE;
+  override type = EventType.Core;
 
   constructor() {
     super();

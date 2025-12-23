@@ -26,6 +26,112 @@ import type {
 import type { Pot, WorkflowBuilder } from "$core/entities";
 import type { ContextPot } from "$core/pots";
 
+// ============================================================================
+// Enums
+// ============================================================================
+
+/**
+ * Pot types categorize data containers by their origin and purpose
+ */
+export enum PotType {
+  Unknown = "UNKNOWN",
+  External = "EXTERNAL",
+  Internal = "INTERNAL",
+  System = "SYSTEM",
+  Context = "CONTEXT",
+}
+
+/**
+ * Result operations returned from task do() handlers
+ */
+export enum DoOperation {
+  Next = "NEXT",
+  Fail = "FAIL",
+  Finish = "FINISH",
+  Repeat = "REPEAT",
+}
+
+/**
+ * Trigger operations returned from trigger handlers
+ */
+export enum TriggerOperation {
+  Allow = "ALLOW",
+  Deny = "DENY",
+}
+
+/**
+ * Built-in trigger rules for task activation
+ */
+export enum TriggerRule {
+  /** Accept only pots explicitly targeted to this task */
+  ForThisTask = "FOR_THIS_TASK",
+  /** Accept pots targeted to any known task */
+  ForAnyTask = "FOR_ANY_TASK",
+  /** Accept pots with unknown destination */
+  ForUnknown = "FOR_UNKNOWN",
+}
+
+/**
+ * Log levels for event-driven logger
+ */
+export enum LogLevel {
+  Unknown = 0,
+  Trace = 1,
+  Debug = 2,
+  Verbose = 3,
+  Info = 4,
+  Warn = 5,
+  Error = 6,
+  Fatal = 7,
+}
+
+/**
+ * Source types for logging
+ */
+export enum SourceType {
+  Unknown = "UNKNOWN",
+  Core = "CORE",
+  Task = "TASK",
+  TaskTest = "TASK.ON",
+  TaskDo = "TASK.DO",
+  Workflow = "WORKFLOW",
+  WorkflowTest = "WORKFLOW.TEST",
+  WorkflowFail = "WORKFLOW.FAIL",
+  Framework = "FRAMEWORK",
+  Plugin = "PLUGIN",
+}
+
+/**
+ * Task types categorize tasks by dependencies and context
+ */
+export enum TaskType {
+  Single = "SINGLE",
+  Dependent = "DEPENDENT",
+  SingleWorkflow = "SINGLE_WORKFLOW",
+  DependentWorkflow = "DEPENDENT_WORKFLOW",
+}
+
+/**
+ * Event types for core event emitter
+ */
+export enum EventType {
+  Unknown = "UNKNOWN",
+  Core = "CORE",
+  Log = "LOG",
+  Runner = "RUNNER",
+  Workflow = "WORKFLOW",
+  Task = "TASK",
+}
+
+/**
+ * Special constant for unknown targets
+ */
+export const UNKNOWN_TARGET = "unknown" as const;
+
+// ============================================================================
+// Types
+// ============================================================================
+
 export type TPot = {
   toc: number;
   uuid: `${string}-${string}-${string}-${string}-${string}`;
@@ -146,71 +252,33 @@ export type TCoreOptions<S = TSpicy> = {
   spicy?: S;
 };
 
-export type TTriggerOp = "ALLOW" | "DENY";
-export type TPotType =
-  | "UNKNOWN"
-  | "EXTERNAL"
-  | "INTERNAL"
-  | "SYSTEM"
-  | "CONTEXT";
+// ============================================================================
+// Type Aliases (for backward compatibility and convenience)
+// ============================================================================
 
-export type TDoOp = "NEXT" | "FAIL" | "FINISH" | "REPEAT";
+/** @deprecated Use PotType enum instead */
+export type TPotType = PotType;
 
-export type TLogLevel =
-  | "UNKNOWN"
-  | "TRACE"
-  | "DEBUG"
-  | "VERBOSE"
-  | "INFO"
-  | "WARN"
-  | "ERROR"
-  | "FATAL";
+/** @deprecated Use DoOperation enum instead */
+export type TDoOp = DoOperation;
 
-export type TLogSource =
-  | "UNKNOWN"
-  | "CORE"
-  | "TASK"
-  | "TASK.ON"
-  | "TASK.DO"
-  | "WORKFLOW";
+/** @deprecated Use TriggerOperation enum instead */
+export type TTriggerOp = TriggerOperation;
 
-export type TTaskType =
-  | "single"
-  | "depended"
-  | "singleWorkflow"
-  | "dependedWorkflow";
+/** @deprecated Use LogLevel enum instead */
+export type TLogLevel = LogLevel;
 
-export type TEventType =
-  | "UNKNOWN"
-  | "CORE"
-  | "LOG"
-  | "RUNNER"
-  | "WORKFLOW"
-  | "TASK";
+/** @deprecated Use SourceType enum instead */
+export type TLogSource = SourceType;
 
-export enum Level {
-  UNKNOWN = 0,
-  TRACE = 1,
-  DEBUG = 2,
-  VERBOSE = 3,
-  INFO = 4,
-  WARN = 5,
-  ERROR = 6,
-  FATAL = 7,
-}
+/** @deprecated Use TaskType enum instead */
+export type TTaskType = TaskType;
 
-export enum SourceType {
-  UNKNOWN = "UNKNOWN",
-  CORE = "CORE",
-  TASK = "TASK",
-  TASK_TEST = "TASK.ON",
-  TASK_DO = "TASK.DO",
-  WORKFLOW = "WORKFLOW",
-  WORKFLOW_TEST = "WORKFLOW.TEST",
-  WORKFLOW_FAIL = "WORKFLOW.FAIL",
-  FRAMEWORK = "FRAMEWORK",
-  PLUGIN = "PLUGIN",
-}
+/** @deprecated Use EventType enum instead */
+export type TEventType = EventType;
+
+/** @deprecated Use LogLevel enum instead */
+export const Level = LogLevel;
 
 export type TOnHandlerResult = {
   op: TTriggerOp;

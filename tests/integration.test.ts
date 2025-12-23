@@ -1,6 +1,7 @@
 import { assertEquals } from "jsr:@std/assert";
 import { task, workflow, execute, core } from "$core";
 import { InternalPot, ContextPot } from "$core/pots";
+import { TriggerRule } from "$core/constants";
 
 // Based on ex1.ts - simple task with trigger
 Deno.test("Integration - simple task with conditional trigger", async () => {
@@ -51,7 +52,7 @@ Deno.test("Integration - task chain with data passing", async () => {
 
   const task3 = c.task(SimplePot)
     .name("Task 3")
-    .onRule("ForThisTask", SimplePot)
+    .onRule("TriggerRule.ForThisTask", SimplePot)
     .do(async ({ pots, finish }) => {
       results.push(pots[0].data.value);
       return finish();
@@ -59,7 +60,7 @@ Deno.test("Integration - task chain with data passing", async () => {
 
   const task2 = c.task(SimplePot)
     .name("Task 2")
-    .onRule("ForThisTask", SimplePot)
+    .onRule("TriggerRule.ForThisTask", SimplePot)
     .do(async ({ pots, next }) => {
       results.push(pots[0].data.value);
       return next(task3, {
@@ -69,7 +70,7 @@ Deno.test("Integration - task chain with data passing", async () => {
 
   const task1 = c.task(SimplePot)
     .name("Task 1")
-    .onRule("ForThisTask", SimplePot)
+    .onRule("TriggerRule.ForThisTask", SimplePot)
     .do(async ({ pots, next }) => {
       results.push(pots[0].data.value);
       return next(task2, {
@@ -267,7 +268,7 @@ Deno.test("Integration - parallel task execution", async () => {
 
   const taskA = c.task(DataPot)
     .name("Task A")
-    .onRule("ForThisTask", DataPot)
+    .onRule("TriggerRule.ForThisTask", DataPot)
     .do(async ({ finish }) => {
       results.push("A");
       return finish();
@@ -275,7 +276,7 @@ Deno.test("Integration - parallel task execution", async () => {
 
   const taskB = c.task(DataPot)
     .name("Task B")
-    .onRule("ForThisTask", DataPot)
+    .onRule("TriggerRule.ForThisTask", DataPot)
     .do(async ({ finish }) => {
       results.push("B");
       return finish();
@@ -283,7 +284,7 @@ Deno.test("Integration - parallel task execution", async () => {
 
   const starter = c.task(DataPot)
     .name("Starter")
-    .onRule("ForThisTask", DataPot)
+    .onRule("TriggerRule.ForThisTask", DataPot)
     .do(async ({ next }) => {
       results.push("Start");
       return next([taskA, taskB], { value: 10 });

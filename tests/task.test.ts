@@ -1,6 +1,7 @@
 import { assertEquals } from "jsr:@std/assert";
 import { task, execute } from "$core";
 import { InternalPot, CoreStartPot } from "$core/pots";
+import { TriggerRule } from "$core/constants";
 
 Deno.test("Task - simple task creation", () => {
   class TestPot extends InternalPot<{ value: number }> {
@@ -79,7 +80,7 @@ Deno.test("Task - trigger with custom handler", async () => {
   assertEquals(result2, true);
 });
 
-Deno.test("Task - onRule ForThisTask", async () => {
+Deno.test("Task - onRule TriggerRule.ForThisTask", async () => {
   class TestPot extends InternalPot<{ value: number }> {
     data = { value: 0 };
   }
@@ -88,7 +89,7 @@ Deno.test("Task - onRule ForThisTask", async () => {
 
   const t = task(TestPot)
     .name("Target Task")
-    .onRule("ForThisTask", TestPot)
+    .onRule("TriggerRule.ForThisTask", TestPot)
     .do(async ({ finish }) => {
       executed = true;
       return finish();
@@ -106,7 +107,7 @@ Deno.test("Task - onRule ForThisTask", async () => {
   assertEquals(executed, true);
 });
 
-Deno.test("Task - onRule ForUnknown", async () => {
+Deno.test("Task - onRule TriggerRule.ForUnknown", async () => {
   class TestPot extends InternalPot<{ value: number }> {
     data = { value: 0 };
   }
@@ -115,7 +116,7 @@ Deno.test("Task - onRule ForUnknown", async () => {
 
   const t = task(TestPot)
     .name("Catch All")
-    .onRule("ForUnknown", TestPot)
+    .onRule("TriggerRule.ForUnknown", TestPot)
     .do(async ({ finish }) => {
       executed = true;
       return finish();

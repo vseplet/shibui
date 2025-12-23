@@ -36,7 +36,7 @@ export default class Distributor {
     this.#coreOptions = coreOptions;
     this.#core = core;
     this.#log = core.createLogger({
-      sourceType: SourceType.CORE,
+      sourceType: SourceType.Core,
       sourceName: "Distributor",
     });
 

@@ -21,7 +21,7 @@ import {
 
 export class FillerInMemory {
   // #log = new EventDrivenLogger({
-  //   sourceType: SourceType.CORE,
+  //   sourceType: SourceType.Core,
   //   sourceName: "SlotFiller",
   // });
 
@@ -138,7 +138,7 @@ export class Filler {
     this.#core = core;
     this.#kv = kv;
     this.#log = core.createLogger({
-      sourceType: SourceType.CORE,
+      sourceType: SourceType.Core,
       sourceName: "Filler",
     });
   }

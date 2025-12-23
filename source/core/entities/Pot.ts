@@ -11,7 +11,7 @@
  */
 
 import type { TPot } from "$core/types";
-import { POT_TYPE_UNKNOWN } from "$core/constants";
+import { PotType, UNKNOWN_TARGET } from "$core/constants";
 
 export class Pot<
   D extends { [key: string]: unknown } = { [key: string]: unknown },
@@ -20,14 +20,14 @@ export class Pot<
   uuid = crypto.randomUUID();
   name = this.constructor.name;
 
-  type = POT_TYPE_UNKNOWN;
-  from = {
-    workflow: "unknown",
-    task: "unknown",
+  type = PotType.Unknown;
+  from: { workflow: string; task: string } = {
+    workflow: UNKNOWN_TARGET,
+    task: UNKNOWN_TARGET,
   };
-  to = {
-    workflow: "unknown",
-    task: "unknown",
+  to: { workflow: string; task: string } = {
+    workflow: UNKNOWN_TARGET,
+    task: UNKNOWN_TARGET,
   };
   ttl = 0;
   data: D = {} as D; // late init

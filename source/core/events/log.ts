@@ -18,14 +18,15 @@ import {
   SourceType,
   TLogEventArgs,
   TLogEventMetadata,
+  UNKNOWN_TARGET,
 } from "$core/types";
-import { EVENT_TYPE_LOG } from "$core/constants";
+import { EventType } from "$core/constants";
 
 export class LogEvent<T> extends SEvent {
-  override type = EVENT_TYPE_LOG;
-  level = Level.UNKNOWN;
-  sourceName = "unknown";
-  sourceType = SourceType.UNKNOWN;
+  override type = EventType.Log;
+  level = Level.Unknown;
+  sourceName = UNKNOWN_TARGET;
+  sourceType = SourceType.Unknown;
   msg: string;
   metadata: T = {} as T; // late init
 
@@ -39,29 +40,29 @@ export class LogEvent<T> extends SEvent {
 }
 
 export class DebugLogEvent extends LogEvent<TLogEventMetadata> {
-  override level = Level.DEBUG;
+  override level = Level.Debug;
 }
 
 export class TraceLogEvent extends LogEvent<TLogEventMetadata> {
-  override level = Level.TRACE;
+  override level = Level.Trace;
 }
 
 export class VerboseLogEvent extends LogEvent<TLogEventMetadata> {
-  override level = Level.TRACE;
+  override level = Level.Verbose;
 }
 
 export class InfoLogEvent extends LogEvent<TLogEventMetadata> {
-  override level = Level.INFO;
+  override level = Level.Info;
 }
 
 export class WarnLogEvent extends LogEvent<TLogEventMetadata> {
-  override level = Level.WARN;
+  override level = Level.Warn;
 }
 
 export class ErrorLogEvent extends LogEvent<TLogEventMetadata> {
-  override level = Level.ERROR;
+  override level = Level.Error;
 }
 
 export class FatalLogEvent extends LogEvent<TLogEventMetadata> {
-  override level = Level.FATAL;
+  override level = Level.Fatal;
 }

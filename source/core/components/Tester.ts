@@ -11,11 +11,7 @@
  */
 
 // deno-lint-ignore-file no-unused-vars
-import {
-  POT_TYPE_CONTEXT,
-  TRIGGER_OP_ALLOW,
-  TRIGGER_OP_DENY,
-} from "$core/constants";
+import { PotType, TriggerOperation } from "$core/constants";
 import type { Pot } from "$core/entities";
 import STRS from "$core/strings";
 import {
@@ -54,7 +50,7 @@ export class Tester {
     this.#core = core;
     this.#kv = kv;
     this.#log = core.createLogger({
-      sourceType: SourceType.CORE,
+      sourceType: SourceType.Core,
       sourceName: "Tester",
     });
     this.#filler = new Filler(core, kv);
@@ -108,7 +104,7 @@ export class Tester {
   }
 
   test(pot: Pot): boolean {
-    if (pot.type == POT_TYPE_CONTEXT) {
+    if (pot.type == PotType.Context) {
       return this.#testWorkflowTaskTriggers(pot) ||
         this.#testWorkflowDependedTaskTriggers(pot);
     } else {
@@ -130,12 +126,12 @@ export class Tester {
       core: this.#core,
       ...this.#spicy,
       allow: (index?: number) => ({
-        op: TRIGGER_OP_ALLOW,
+        op: TriggerOperation.Allow,
         potIndex: index !== undefined ? index : slot,
       }),
-      deny: () => ({ op: TRIGGER_OP_DENY }),
+      deny: () => ({ op: TriggerOperation.Deny }),
       log: this.#core.createLogger({
-        sourceType: SourceType.TASK,
+        sourceType: SourceType.Task,
         sourceName: `ON (${[potName]}): ${taskName}`,
       }),
       pot,
@@ -153,12 +149,12 @@ export class Tester {
       core: this.#core,
       ...this.#spicy,
       allow: (index?: number) => ({
-        op: TRIGGER_OP_ALLOW,
+        op: TriggerOperation.Allow,
         potIndex: index !== undefined ? index : slot,
       }),
-      deny: () => ({ op: TRIGGER_OP_DENY }),
+      deny: () => ({ op: TriggerOperation.Deny }),
       log: this.#core.createLogger({
-        sourceType: SourceType.TASK,
+        sourceType: SourceType.Task,
         sourceName: `ON (${[potName]}): ${taskName}`,
       }),
       ctx,
@@ -188,7 +184,7 @@ export class Tester {
         pot,
       ));
 
-      if (result.op === TRIGGER_OP_ALLOW) {
+      if (result.op === TriggerOperation.Allow) {
         this.#log.inf(
           `allow run task '${trigger.taskName}' by pot '${pot.name}'`,
         );
@@ -196,7 +192,7 @@ export class Tester {
         this.#runner.run(trigger.taskName, [pot]);
 
         return true;
-      } else if (result.op === TRIGGER_OP_DENY) {
+      } else if (result.op === TriggerOperation.Deny) {
         this.#log.inf(
           `deny run task '${trigger.taskName}' by pot '${pot.name}'`,
         );
@@ -227,7 +223,7 @@ export class Tester {
 
       const result = trigger.handler(triggerContext);
 
-      if (result.op === TRIGGER_OP_ALLOW) {
+      if (result.op === TriggerOperation.Allow) {
         this.#log.inf(
           `allow run depended task '${trigger.taskName}' by pot '${pot.name}'`,
         );
@@ -243,7 +239,7 @@ export class Tester {
         }
 
         return true;
-      } else if (result.op === TRIGGER_OP_DENY) {
+      } else if (result.op === TriggerOperation.Deny) {
         this.#log.inf(
           `deny run depended task '${trigger.taskName}' by pot '${pot.name}'`,
         );
@@ -313,13 +309,13 @@ export class Tester {
         ),
       );
 
-      if (result.op === TRIGGER_OP_ALLOW) {
+      if (result.op === TriggerOperation.Allow) {
         this.#log.inf(
           `allow run workflow '${trigger.belongsToWorkflow}' task '${trigger.taskName}' by ctx '${ctx.name}'`,
         );
         this.#runner.run(trigger.taskName, [], ctx);
         return true;
-      } else if (result.op === TRIGGER_OP_DENY) {
+      } else if (result.op === TriggerOperation.Deny) {
         this.#log.inf(
           `deny run workflow '${trigger.belongsToWorkflow}' task '${trigger.taskName}' by ctx '${ctx.name}'`,
         );

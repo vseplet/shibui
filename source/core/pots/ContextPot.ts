@@ -11,8 +11,8 @@
  */
 
 import { Pot } from "$core/entities";
-import { POT_TYPE_CONTEXT } from "$core/constants";
+import { PotType } from "$core/constants";
 
 export class ContextPot<T extends { [key: string]: unknown }> extends Pot<T> {
-  override type = POT_TYPE_CONTEXT;
+  override type = PotType.Context;
 }
