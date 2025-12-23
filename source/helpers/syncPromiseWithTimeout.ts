@@ -22,7 +22,7 @@ export function syncPromiseWithTimeout<T>(
     try {
       result = await asyncFunc();
     } catch (e) {
-      error = e;
+      error = e instanceof Error ? e : new Error(String(e));
     } finally {
       finished = true;
     }

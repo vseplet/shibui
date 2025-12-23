@@ -25,7 +25,7 @@ import { EventType } from "$shibui/constants";
 export class LogEvent<T> extends SEvent {
   override type = EventType.Log;
   level = LogLevel.Unknown;
-  sourceName = UNKNOWN_TARGET;
+  sourceName: string = UNKNOWN_TARGET;
   sourceType = SourceType.Unknown;
   msg: string;
   metadata: T = {} as T; // late init
