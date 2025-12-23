@@ -9,7 +9,7 @@
  * - Parsing commit messages for versioning
  */
 
-import { execute, task, workflow, ContextPot, CoreStartPot } from "$shibui";
+import { ContextPot, CoreStartPot, execute, task, workflow } from "$shibui";
 import { sh } from "https://deno.land/x/shelly@v0.1.1/mod.ts";
 import type { TaskBuilder } from "$shibui";
 

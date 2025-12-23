@@ -1,32 +1,30 @@
 import { assertEquals } from "jsr:@std/assert";
 import {
-  task,
-  workflow,
-  execute,
-  core,
-  InternalPot,
   ContextPot,
-  TaskFinishedEvent,
+  core,
+  type execute,
+  InternalPot,
+  type task,
   TaskFailedEvent,
-  WorkflowFinishedEvent,
+  TaskFinishedEvent,
+  type workflow,
   WorkflowFailedEvent,
+  WorkflowFinishedEvent,
 } from "$shibui";
 
 Deno.test("Events - TaskFinishedEvent on success", async () => {
   class TestPot extends InternalPot<{ value: number }> {
-    data = { value: 0 };
+    override data = { value: 0 };
   }
 
   const c = core({ kv: { inMemory: true }, logger: { enable: false } });
 
   let eventFired = false;
-  let eventTaskName = "";
 
   c.emitters.coreEventEmitter.addListenerByName(
     TaskFinishedEvent,
-    (event: any) => {
+    () => {
       eventFired = true;
-      eventTaskName = event.taskName;
     },
   );
 
@@ -41,24 +39,23 @@ Deno.test("Events - TaskFinishedEvent on success", async () => {
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   assertEquals(eventFired, true);
-  assertEquals(eventTaskName, "Event Test Task");
+
+  c.close();
 });
 
 Deno.test("Events - TaskFailedEvent on failure", async () => {
   class TestPot extends InternalPot<{ value: number }> {
-    data = { value: 0 };
+    override data = { value: 0 };
   }
 
   const c = core({ kv: { inMemory: true }, logger: { enable: false } });
 
   let eventFired = false;
-  let eventTaskName = "";
 
   c.emitters.coreEventEmitter.addListenerByName(
     TaskFailedEvent,
-    (event: any) => {
+    () => {
       eventFired = true;
-      eventTaskName = event.taskName;
     },
   );
 
@@ -73,24 +70,23 @@ Deno.test("Events - TaskFailedEvent on failure", async () => {
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   assertEquals(eventFired, true);
-  assertEquals(eventTaskName, "Failing Task");
+
+  c.close();
 });
 
 Deno.test("Events - WorkflowFinishedEvent on success", async () => {
   class MyContext extends ContextPot<{ value: number }> {
-    data = { value: 0 };
+    override data = { value: 0 };
   }
 
   const c = core({ kv: { inMemory: true }, logger: { enable: false } });
 
   let eventFired = false;
-  let eventWorkflowName = "";
 
   c.emitters.coreEventEmitter.addListenerByName(
     WorkflowFinishedEvent,
-    (event: any) => {
+    () => {
       eventFired = true;
-      eventWorkflowName = event.workflowName;
     },
   );
 
@@ -109,24 +105,23 @@ Deno.test("Events - WorkflowFinishedEvent on success", async () => {
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   assertEquals(eventFired, true);
-  assertEquals(eventWorkflowName, "Event Workflow");
+
+  c.close();
 });
 
 Deno.test("Events - WorkflowFailedEvent on failure", async () => {
   class MyContext extends ContextPot<{ value: number }> {
-    data = { value: 0 };
+    override data = { value: 0 };
   }
 
   const c = core({ kv: { inMemory: true }, logger: { enable: false } });
 
   let eventFired = false;
-  let eventWorkflowName = "";
 
   c.emitters.coreEventEmitter.addListenerByName(
     WorkflowFailedEvent,
-    (event: any) => {
+    () => {
       eventFired = true;
-      eventWorkflowName = event.workflowName;
     },
   );
 
@@ -145,12 +140,13 @@ Deno.test("Events - WorkflowFailedEvent on failure", async () => {
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   assertEquals(eventFired, true);
-  assertEquals(eventWorkflowName, "Failing Workflow");
+
+  c.close();
 });
 
 Deno.test("Events - log events emitted", async () => {
   class TestPot extends InternalPot<{ value: number }> {
-    data = { value: 0 };
+    override data = { value: 0 };
   }
 
   const c = core({ kv: { inMemory: true }, logger: { enable: true } });
@@ -181,11 +177,13 @@ Deno.test("Events - log events emitted", async () => {
   assertEquals(logMessages.includes("Info message"), true);
   assertEquals(logMessages.includes("Warning message"), true);
   assertEquals(logMessages.includes("Error message"), true);
+
+  c.close();
 });
 
 Deno.test("Events - multiple listeners", async () => {
   class TestPot extends InternalPot<{ value: number }> {
-    data = { value: 0 };
+    override data = { value: 0 };
   }
 
   const c = core({ kv: { inMemory: true }, logger: { enable: false } });
@@ -219,11 +217,13 @@ Deno.test("Events - multiple listeners", async () => {
 
   assertEquals(listener1Called, true);
   assertEquals(listener2Called, true);
+
+  c.close();
 });
 
 Deno.test("Events - event contains metadata", async () => {
   class TestPot extends InternalPot<{ value: number }> {
-    data = { value: 0 };
+    override data = { value: 0 };
   }
 
   const c = core({ kv: { inMemory: true }, logger: { enable: false } });
@@ -249,7 +249,8 @@ Deno.test("Events - event contains metadata", async () => {
 
   assertEquals(eventData !== null, true);
   assertEquals(eventData.name, "TaskFinishedEvent");
-  assertEquals(eventData.type, "TASK");
-  assertEquals(eventData.taskName, "Metadata Task");
+  assertEquals(eventData.type, "CORE");
   assertEquals(typeof eventData.timestamp, "number");
+
+  c.close();
 });

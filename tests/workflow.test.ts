@@ -1,9 +1,15 @@
 import { assertEquals } from "jsr:@std/assert";
-import { workflow, execute, ContextPot, InternalPot, CoreStartPot } from "$shibui";
+import {
+  ContextPot,
+  type CoreStartPot,
+  execute,
+  InternalPot,
+  workflow,
+} from "$shibui";
 
 Deno.test("Workflow - simple workflow creation", () => {
   class MyContext extends ContextPot<{ count: number }> {
-    data = { count: 0 };
+    override data = { count: 0 };
   }
 
   const wf = workflow(MyContext)
@@ -15,6 +21,8 @@ Deno.test("Workflow - simple workflow creation", () => {
       return t1;
     });
 
+  wf.build(); // Build the workflow to populate tasks array
+
   assertEquals(wf.workflow.name, "Test Workflow");
   assertEquals(wf.workflow.tasks.length, 1);
   assertEquals(wf.workflow.firstTaskName, "[Test Workflow] Task 1");
@@ -22,7 +30,7 @@ Deno.test("Workflow - simple workflow creation", () => {
 
 Deno.test("Workflow - two task sequence", async () => {
   class MyContext extends ContextPot<{ step: number }> {
-    data = { step: 0 };
+    override data = { step: 0 };
   }
 
   const wf = workflow(MyContext)
@@ -55,7 +63,7 @@ Deno.test("Workflow - two task sequence", async () => {
 
 Deno.test("Workflow - context shared across tasks", async () => {
   class MyContext extends ContextPot<{ values: number[] }> {
-    data = { values: [] };
+    override data = { values: [] as number[] };
   }
 
   const wf = workflow(MyContext)
@@ -96,17 +104,18 @@ Deno.test("Workflow - context shared across tasks", async () => {
 
 Deno.test("Workflow - custom trigger handler", async () => {
   class MyContext extends ContextPot<{ initial: number }> {
-    data = { initial: 0 };
+    override data = { initial: 0 };
   }
 
   class TriggerPot extends InternalPot<{ value: number }> {
-    data = { value: 0 };
+    override data = { value: 0 };
   }
 
   const wf = workflow(MyContext)
     .name("Custom Trigger")
-    .on(TriggerPot, ({ pot }) => {
-      return new MyContext().init({ initial: pot.data.value * 2 });
+    .on(TriggerPot, (pot) => {
+      const triggerPot = pot as TriggerPot;
+      return new MyContext().init({ initial: triggerPot.data.value * 2 });
     })
     .sq(({ task }) => {
       const t1 = task()
@@ -132,14 +141,14 @@ Deno.test("Workflow - custom trigger handler", async () => {
 
 Deno.test("Workflow - multiple triggers", () => {
   class MyContext extends ContextPot<{ source: string }> {
-    data = { source: "" };
+    override data = { source: "" };
   }
 
   class PotA extends InternalPot<{ a: number }> {
-    data = { a: 0 };
+    override data = { a: 0 };
   }
   class PotB extends InternalPot<{ b: number }> {
-    data = { b: 0 };
+    override data = { b: 0 };
   }
 
   const wf = workflow(MyContext)
@@ -159,11 +168,11 @@ Deno.test("Workflow - multiple triggers", () => {
 
 Deno.test("Workflow - workflow task with additional pot", async () => {
   class MyContext extends ContextPot<{ count: number }> {
-    data = { count: 0 };
+    override data = { count: 0 };
   }
 
   class DataPot extends InternalPot<{ value: number }> {
-    data = { value: 0 };
+    override data = { value: 0 };
   }
 
   const wf = workflow(MyContext)
@@ -180,6 +189,8 @@ Deno.test("Workflow - workflow task with additional pot", async () => {
       return t1;
     });
 
+  wf.build(); // Build the workflow to populate tasks array
+
   // Note: This test shows structure but won't execute properly
   // as workflow tasks with additional pots need special handling
   assertEquals(wf.workflow.tasks[0].slotsCount, 2); // Context + DataPot
@@ -187,7 +198,7 @@ Deno.test("Workflow - workflow task with additional pot", async () => {
 
 Deno.test("Workflow - default trigger on CoreStartPot", () => {
   class MyContext extends ContextPot<{ value: number }> {
-    data = { value: 0 };
+    override data = { value: 0 };
   }
 
   const wf = workflow(MyContext)
@@ -198,6 +209,8 @@ Deno.test("Workflow - default trigger on CoreStartPot", () => {
         .do(async ({ finish }) => finish());
       return t1;
     });
+
+  wf.build(); // Build the workflow to add default trigger
 
   // Should have CoreStartPot trigger by default
   assertEquals(wf.workflow.triggers["CoreStartPot"] !== undefined, true);
@@ -227,7 +240,7 @@ Deno.test("Workflow - workflow without explicit context", async () => {
 
 Deno.test("Workflow - task names include workflow prefix", () => {
   class MyContext extends ContextPot<{ value: number }> {
-    data = { value: 0 };
+    override data = { value: 0 };
   }
 
   const wf = workflow(MyContext)
@@ -238,6 +251,8 @@ Deno.test("Workflow - task names include workflow prefix", () => {
         .do(async ({ finish }) => finish());
       return t1;
     });
+
+  wf.build(); // Build the workflow to populate tasks array
 
   assertEquals(wf.workflow.tasks[0].name, "[MyWorkflow] Step1");
 });

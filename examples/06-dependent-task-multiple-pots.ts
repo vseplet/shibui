@@ -55,7 +55,7 @@ const mySimpleTask = core()
 
     // Calculate sum
     const sum = pots.reduce((acc, pot) => acc + pot.data.value, 0);
-    log.dbg(`Total sum: ${sum}`);  // Should be 15
+    log.dbg(`Total sum: ${sum}`); // Should be 15
 
     return finish();
   });

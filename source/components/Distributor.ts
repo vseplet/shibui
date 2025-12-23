@@ -85,13 +85,17 @@ export default class Distributor {
 
   disable(builder: TTaskBuilder | TWorkflowBuilder) {
     if (builder instanceof WorkflowBuilder) {
+      // TODO: implement workflow disable
     } else if (builder instanceof TaskBuilder) {
+      // TODO: implement task disable
     }
   }
 
   enable(builder: TTaskBuilder | TWorkflowBuilder) {
     if (builder instanceof WorkflowBuilder) {
+      // TODO: implement workflow enable
     } else if (builder instanceof TaskBuilder) {
+      // TODO: implement task enable
     }
   }
 
@@ -112,6 +116,10 @@ export default class Distributor {
   send(pot: TPot) {
     this.#log.trc(`sending pot '${pot.name} to queue'`);
     this.#kv.enqueue(pot);
+  }
+
+  close(): void {
+    this.#kv?.close();
   }
 }
 

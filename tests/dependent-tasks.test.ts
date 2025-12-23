@@ -1,12 +1,12 @@
 import { assertEquals } from "jsr:@std/assert";
-import { task, core, InternalPot } from "$shibui";
+import { core, InternalPot, type task } from "$shibui";
 
 Deno.test("Dependent Tasks - two slots", async () => {
   class PotA extends InternalPot<{ a: number }> {
-    data = { a: 0 };
+    override data = { a: 0 };
   }
   class PotB extends InternalPot<{ b: number }> {
-    data = { b: 0 };
+    override data = { b: 0 };
   }
 
   const c = core({ kv: { inMemory: true }, logger: { enable: false } });
@@ -32,17 +32,19 @@ Deno.test("Dependent Tasks - two slots", async () => {
 
   assertEquals(executed, true);
   assertEquals(sumResult, 30);
+
+  c.close();
 });
 
 Deno.test("Dependent Tasks - three slots", async () => {
   class PotA extends InternalPot<{ a: number }> {
-    data = { a: 0 };
+    override data = { a: 0 };
   }
   class PotB extends InternalPot<{ b: number }> {
-    data = { b: 0 };
+    override data = { b: 0 };
   }
   class PotC extends InternalPot<{ c: number }> {
-    data = { c: 0 };
+    override data = { c: 0 };
   }
 
   const c = core({ kv: { inMemory: true }, logger: { enable: false } });
@@ -69,23 +71,25 @@ Deno.test("Dependent Tasks - three slots", async () => {
 
   assertEquals(executed, true);
   assertEquals(result, 6);
+
+  c.close();
 });
 
 Deno.test("Dependent Tasks - five slots (maximum)", async () => {
   class Pot1 extends InternalPot<{ v: number }> {
-    data = { v: 1 };
+    override data = { v: 1 };
   }
   class Pot2 extends InternalPot<{ v: number }> {
-    data = { v: 2 };
+    override data = { v: 2 };
   }
   class Pot3 extends InternalPot<{ v: number }> {
-    data = { v: 3 };
+    override data = { v: 3 };
   }
   class Pot4 extends InternalPot<{ v: number }> {
-    data = { v: 4 };
+    override data = { v: 4 };
   }
   class Pot5 extends InternalPot<{ v: number }> {
-    data = { v: 5 };
+    override data = { v: 5 };
   }
 
   const c = core({ kv: { inMemory: true }, logger: { enable: false } });
@@ -114,14 +118,16 @@ Deno.test("Dependent Tasks - five slots (maximum)", async () => {
 
   assertEquals(executed, true);
   assertEquals(result, 15);
+
+  c.close();
 });
 
 Deno.test("Dependent Tasks - waits for all pots", async () => {
   class PotA extends InternalPot<{ a: number }> {
-    data = { a: 0 };
+    override data = { a: 0 };
   }
   class PotB extends InternalPot<{ b: number }> {
-    data = { b: 0 };
+    override data = { b: 0 };
   }
 
   const c = core({ kv: { inMemory: true }, logger: { enable: false } });
@@ -153,17 +159,19 @@ Deno.test("Dependent Tasks - waits for all pots", async () => {
 
   // Now should have executed
   assertEquals(executionCount, 1);
+
+  c.close();
 });
 
 Deno.test("Dependent Tasks - order of pots matches declaration", async () => {
   class PotA extends InternalPot<{ type: string }> {
-    data = { type: "A" };
+    override data = { type: "A" };
   }
   class PotB extends InternalPot<{ type: string }> {
-    data = { type: "B" };
+    override data = { type: "B" };
   }
   class PotC extends InternalPot<{ type: string }> {
-    data = { type: "C" };
+    override data = { type: "C" };
   }
 
   const c = core({ kv: { inMemory: true }, logger: { enable: false } });
@@ -189,14 +197,16 @@ Deno.test("Dependent Tasks - order of pots matches declaration", async () => {
 
   // Should receive in declaration order
   assertEquals(receivedOrder, ["A", "B", "C"]);
+
+  c.close();
 });
 
 Deno.test("Dependent Tasks - custom triggers per slot", async () => {
   class PotA extends InternalPot<{ value: number }> {
-    data = { value: 0 };
+    override data = { value: 0 };
   }
   class PotB extends InternalPot<{ value: number }> {
-    data = { value: 0 };
+    override data = { value: 0 };
   }
 
   const c = core({ kv: { inMemory: true }, logger: { enable: false } });
@@ -227,14 +237,16 @@ Deno.test("Dependent Tasks - custom triggers per slot", async () => {
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   assertEquals(executed, true);
+
+  c.close();
 });
 
 Deno.test("Dependent Tasks - rejects if trigger denies", async () => {
   class PotA extends InternalPot<{ value: number }> {
-    data = { value: 0 };
+    override data = { value: 0 };
   }
   class PotB extends InternalPot<{ value: number }> {
-    data = { value: 0 };
+    override data = { value: 0 };
   }
 
   const c = core({ kv: { inMemory: true }, logger: { enable: false } });
@@ -261,17 +273,19 @@ Deno.test("Dependent Tasks - rejects if trigger denies", async () => {
 
   // Should not execute because PotA was denied
   assertEquals(executed, false);
+
+  c.close();
 });
 
 Deno.test("Dependent Tasks - different pot types", async () => {
   class StringPot extends InternalPot<{ text: string }> {
-    data = { text: "" };
+    override data = { text: "" };
   }
   class NumberPot extends InternalPot<{ num: number }> {
-    data = { num: 0 };
+    override data = { num: 0 };
   }
   class BooleanPot extends InternalPot<{ flag: boolean }> {
-    data = { flag: false };
+    override data = { flag: false };
   }
 
   const c = core({ kv: { inMemory: true }, logger: { enable: false } });
@@ -295,4 +309,6 @@ Deno.test("Dependent Tasks - different pot types", async () => {
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   assertEquals(result, "hello:42:true");
+
+  c.close();
 });

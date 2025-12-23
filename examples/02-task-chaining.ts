@@ -9,7 +9,7 @@
  * - Manual task registration
  */
 
-import core, { InternalPot, TriggerRule } from "$shibui";
+import core, { InternalPot, type TriggerRule } from "$shibui";
 
 const c = core();
 
@@ -24,10 +24,10 @@ class SimplePot extends InternalPot<{ value: number }> {
 // Task 3: Final task in chain
 const task3 = c.task(SimplePot)
   .name("Task 3")
-  .onRule("TriggerRule.ForThisTask", SimplePot)  // Only accept pots sent to this task
+  .onRule("TriggerRule.ForThisTask", SimplePot) // Only accept pots sent to this task
   .do(async ({ log, pots, finish }) => {
     log.dbg(`Task 3 received value: ${pots[0].data.value}`);
-    return finish();  // End of chain
+    return finish(); // End of chain
   });
 
 // Task 2: Middle task in chain

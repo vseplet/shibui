@@ -27,7 +27,7 @@ import {
   WorkflowFailedEvent,
   WorkflowFinishedEvent,
 } from "$shibui/events";
-import { DoOperation } from "$shibui/constants";
+import { DoOperation, UNKNOWN_TARGET } from "$shibui/constants";
 import { delay } from "@std/async";
 import { promiseWithTimeout } from "$helpers";
 
@@ -226,16 +226,18 @@ export default class Runner {
       if (ctx) {
         const newContextPot = ctx.copy(data || ctx.data);
         newContextPot.from.task = task.name;
-        newContextPot.from.workflow = task.belongsToWorkflow;
+        newContextPot.from.workflow = task.belongsToWorkflow || UNKNOWN_TARGET;
         newContextPot.to.task = builder.task.name;
-        newContextPot.to.workflow = builder.task.belongsToWorkflow;
+        newContextPot.to.workflow = builder.task.belongsToWorkflow ||
+          UNKNOWN_TARGET;
         this.#core.send(newContextPot);
       } else {
         const newContextPot = pots[0].copy(data || pots[0].data);
         newContextPot.from.task = task.name;
-        newContextPot.from.workflow = task.belongsToWorkflow;
+        newContextPot.from.workflow = task.belongsToWorkflow || UNKNOWN_TARGET;
         newContextPot.to.task = builder.task.name;
-        newContextPot.to.workflow = builder.task.belongsToWorkflow;
+        newContextPot.to.workflow = builder.task.belongsToWorkflow ||
+          UNKNOWN_TARGET;
         this.#core.send(newContextPot);
       }
     });
@@ -259,7 +261,7 @@ export default class Runner {
 
   async #onRepeat({
     pots,
-    ctx,
+    ctx: _ctx,
     task,
     afterMs,
   }: {
@@ -284,7 +286,7 @@ export default class Runner {
   }
 
   async #onError({
-    ctx,
+    ctx: _ctx,
     pots,
     task,
     err,

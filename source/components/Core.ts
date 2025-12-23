@@ -59,11 +59,11 @@ export class Core<S extends TSpicy> implements TCore<S> {
 
   task<Pots extends Pot[]>(
     ...constructors: { [K in keyof Pots]: Constructor<Pots[K]> }
-  ) {
+  ): TaskBuilder<S, Pots> {
     return new TaskBuilder<S, Pots>(...constructors);
   }
 
-  createLogger = (options: TLoggerOptions) => {
+  createLogger = (options: TLoggerOptions): EventDrivenLogger => {
     return new EventDrivenLogger(
       emitters.logEventEmitter,
       this.settings,
@@ -90,5 +90,9 @@ export class Core<S extends TSpicy> implements TCore<S> {
   send(pot: TPot, builder?: TTaskBuilder) {
     if (builder) pot.to.task = builder.task.name;
     this.#globalPotDistributor.send(pot);
+  }
+
+  close(): void {
+    this.#globalPotDistributor.close();
   }
 }

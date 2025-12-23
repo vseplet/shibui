@@ -40,7 +40,7 @@ export class TaskBuilder<
     slotsCount: 0,
     belongsToWorkflow: undefined,
     triggers: {},
-    do: async () => {
+    do: () => {
       throw new Error("not implemented");
     },
     fail: async () => {},
@@ -62,7 +62,7 @@ export class TaskBuilder<
 
   private createRuleHandler<TP extends Pots[number]>(
     rule: TriggerRule,
-    potConstructor: Constructor<TP>,
+    _potConstructor: Constructor<TP>,
   ) {
     switch (rule) {
       case TriggerRule.ForThisTask:
@@ -89,7 +89,7 @@ export class TaskBuilder<
   }
 
   constructor(
-    ...constructors: { [K in keyof Pots]: Constructor<Pots[K]> | null }
+    ..._constructors: { [K in keyof Pots]: Constructor<Pots[K]> | null }
   ) {
     if (arguments.length > 5) throw new Error("over 5 pots!");
     this.potsConstructors = arguments as unknown as TPotsConstructorsList;
@@ -98,12 +98,12 @@ export class TaskBuilder<
       Array.from(arguments).filter((arg) => arg !== undefined).length;
   }
 
-  belongsToWorkflow(builder: TWorkflowBuilder) {
+  belongsToWorkflow(builder: TWorkflowBuilder): this {
     this.task.belongsToWorkflow = builder.workflow.name;
     return this;
   }
 
-  name(name: string | TemplateStringsArray) {
+  name(name: string | TemplateStringsArray): this {
     const workflowPrefix = this.task.belongsToWorkflow
       ? `[${this.task.belongsToWorkflow}] `
       : "";
@@ -118,22 +118,22 @@ export class TaskBuilder<
     return this;
   }
 
-  attempts(count: number) {
+  attempts(count: number): this {
     this.task.attempts = count;
     return this;
   }
 
-  interval(ms: number) {
+  interval(ms: number): this {
     this.task.interval = ms;
     return this;
   }
 
-  timeout(ms: number) {
+  timeout(ms: number): this {
     this.task.timeout = ms;
     return this;
   }
 
-  triggers(..._constructors: Pots) {
+  triggers(..._constructors: Pots): this {
     for (const constructor of arguments) {
       if (!this.task.triggers[constructor.name]) {
         this.task.triggers[constructor.name] = [];
@@ -151,7 +151,7 @@ export class TaskBuilder<
     pot: Constructor<TP>,
     handler?: TTaskTriggerHandler<Spicy, CTX, TP>,
     slot?: number,
-  ) {
+  ): this {
     if (!this.task.triggers[pot.name]) this.task.triggers[pot.name] = [];
     this.task.triggers[pot.name].push(this.createTrigger(pot, handler, slot));
     return this;
@@ -161,7 +161,7 @@ export class TaskBuilder<
     rule: TriggerRule,
     potConstructor: Constructor<TP>,
     slot?: number,
-  ) {
+  ): this {
     const handler = this.createRuleHandler(rule, potConstructor);
     if (!this.task.triggers[potConstructor.name]) {
       this.task.triggers[potConstructor.name] = [];
@@ -175,16 +175,16 @@ export class TaskBuilder<
 
   do(
     handler: TTaskDoHandler<Spicy, CTX, Pots>,
-  ) {
+  ): this {
     this.task.do = handler;
     return this;
   }
 
-  strategy() {
+  strategy(): this {
     return this;
   }
 
-  fail(handler: (error: Error) => Promise<void>) {
+  fail(handler: (error: Error) => Promise<void>): this {
     this.task.fail = handler;
     return this;
   }

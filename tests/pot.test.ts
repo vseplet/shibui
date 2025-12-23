@@ -1,9 +1,9 @@
 import { assertEquals, assertExists } from "jsr:@std/assert";
-import { InternalPot, ExternalPot, ContextPot } from "$shibui";
+import { ContextPot, ExternalPot, InternalPot, PotType } from "$shibui";
 
 Deno.test("Pot - InternalPot creation", () => {
   class TestPot extends InternalPot<{ value: number }> {
-    data = { value: 0 };
+    override data = { value: 0 };
   }
 
   const pot = new TestPot();
@@ -17,7 +17,7 @@ Deno.test("Pot - InternalPot creation", () => {
 
 Deno.test("Pot - ExternalPot creation", () => {
   class WebhookPot extends ExternalPot<{ payload: string }> {
-    data = { payload: "" };
+    override data = { payload: "" };
   }
 
   const pot = new WebhookPot();
@@ -29,7 +29,7 @@ Deno.test("Pot - ExternalPot creation", () => {
 
 Deno.test("Pot - ContextPot creation", () => {
   class MyContext extends ContextPot<{ count: number }> {
-    data = { count: 0 };
+    override data = { count: 0 };
   }
 
   const pot = new MyContext();
@@ -41,7 +41,7 @@ Deno.test("Pot - ContextPot creation", () => {
 
 Deno.test("Pot - init() method", () => {
   class TestPot extends InternalPot<{ a: number; b: string; c: boolean }> {
-    data = { a: 0, b: "", c: false };
+    override data = { a: 0, b: "", c: false };
   }
 
   const pot = new TestPot().init({ a: 42, b: "hello" });
@@ -53,7 +53,7 @@ Deno.test("Pot - init() method", () => {
 
 Deno.test("Pot - copy() method", () => {
   class TestPot extends InternalPot<{ value: number }> {
-    data = { value: 10 };
+    override data = { value: 10 };
   }
 
   const original = new TestPot().init({ value: 42 });
@@ -66,7 +66,7 @@ Deno.test("Pot - copy() method", () => {
 
 Deno.test("Pot - copy() with partial data", () => {
   class TestPot extends InternalPot<{ x: number; y: number }> {
-    data = { x: 0, y: 0 };
+    override data = { x: 0, y: 0 };
   }
 
   const original = new TestPot().init({ x: 10, y: 20 });
@@ -78,14 +78,15 @@ Deno.test("Pot - copy() with partial data", () => {
 
 Deno.test("Pot - deserialize() method", () => {
   class TestPot extends InternalPot<{ value: number }> {
-    data = { value: 0 };
+    override data = { value: 0 };
   }
 
   const jsonObj = {
     toc: Date.now(),
-    uuid: crypto.randomUUID() as `${string}-${string}-${string}-${string}-${string}`,
+    uuid: crypto
+      .randomUUID() as `${string}-${string}-${string}-${string}-${string}`,
     name: "TestPot",
-    type: "INTERNAL" as const,
+    type: PotType.Internal,
     from: { workflow: "wf1", task: "t1" },
     to: { workflow: "wf2", task: "t2" },
     ttl: 5,
@@ -105,7 +106,7 @@ Deno.test("Pot - deserialize() method", () => {
 Deno.test("Pot - TTL override", () => {
   class TestPot extends InternalPot<{ value: number }> {
     override ttl = 10;
-    data = { value: 0 };
+    override data = { value: 0 };
   }
 
   const pot = new TestPot();
@@ -114,7 +115,7 @@ Deno.test("Pot - TTL override", () => {
 
 Deno.test("Pot - from/to metadata", () => {
   class TestPot extends InternalPot<{ value: number }> {
-    data = { value: 0 };
+    override data = { value: 0 };
   }
 
   const pot = new TestPot();

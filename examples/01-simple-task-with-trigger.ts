@@ -8,7 +8,7 @@
  * - Logging inside triggers and handlers
  */
 
-import { execute, task, InternalPot } from "$shibui";
+import { execute, InternalPot, task } from "$shibui";
 
 // Define a pot with random value
 class SimplePot extends InternalPot<{ value: number }> {

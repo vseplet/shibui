@@ -13,5 +13,5 @@
 import type { TSError } from "$shibui/types";
 
 export class SError extends Error implements TSError {
-  createdAt = new Date().getTime();
+  createdAt: number = new Date().getTime();
 }

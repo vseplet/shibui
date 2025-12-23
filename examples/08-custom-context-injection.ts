@@ -8,7 +8,7 @@
  * - Type-safe custom context
  */
 
-import shibuiCore, { InternalPot, TriggerRule } from "$shibui";
+import shibuiCore, { InternalPot, type TriggerRule } from "$shibui";
 
 /**
  * Create core with custom "spicy" context
@@ -16,7 +16,7 @@ import shibuiCore, { InternalPot, TriggerRule } from "$shibui";
  */
 const core = shibuiCore<{ x: number }>({
   spicy: {
-    x: 100,  // This value will be accessible in all task handlers
+    x: 100, // This value will be accessible in all task handlers
   },
 });
 
@@ -60,7 +60,7 @@ const task1 = core.task(SimplePot)
 
     // Can use spicy value in logic
     return next(task2, {
-      value: x + 1,  // Use custom context value
+      value: x + 1, // Use custom context value
     });
   });
 

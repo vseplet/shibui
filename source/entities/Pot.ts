@@ -16,8 +16,9 @@ import { PotType, UNKNOWN_TARGET } from "$shibui/constants";
 export class Pot<
   D extends { [key: string]: unknown } = { [key: string]: unknown },
 > implements TPot {
-  toc = new Date().getTime();
-  uuid = crypto.randomUUID();
+  toc: number = new Date().getTime();
+  uuid: `${string}-${string}-${string}-${string}-${string}` = crypto
+    .randomUUID();
   name = this.constructor.name;
 
   type = PotType.Unknown;
@@ -33,7 +34,7 @@ export class Pot<
   data: D = {} as D; // late init
 
   constructor(
-    setupArgs?: Partial<
+    _setupArgs?: Partial<
       Omit<
         TPot,
         "timeOfCreation" | "type" | "name" | "uuid" | "from" | "to" | "ttl"
@@ -43,13 +44,13 @@ export class Pot<
   }
 
   setup(
-    initArgs: Partial<
+    _initArgs: Partial<
       Omit<
         TPot,
         "timeOfCreation" | "type" | "name" | "uuid" | "from" | "to" | "ttl"
       >
     >,
-  ) {
+  ): this {
     return this;
   }
 
@@ -68,8 +69,8 @@ export class Pot<
     return this;
   }
 
-  copy(partialData?: Partial<D>) {
-    // @ts-ignore
+  copy(partialData?: Partial<D>): Pot<D> {
+    // @ts-ignore: constructor type is correct at runtime but TS can't infer it
     const copy = new this.constructor();
     copy.name = this.name;
     copy.type = this.type;
@@ -81,7 +82,7 @@ export class Pot<
     return copy;
   }
 
-  init(partialData: Partial<D>) {
+  init(partialData: Partial<D>): this {
     Object.keys(partialData).forEach((key) => {
       const typedKey = key as keyof D;
       if (partialData[typedKey] !== undefined) {

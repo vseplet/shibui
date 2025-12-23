@@ -16,5 +16,5 @@ import { EventType } from "$shibui/constants";
 export class SEvent implements TSEvent {
   type = EventType.Unknown;
   name = this.constructor.name;
-  timestamp = new Date().getTime();
+  timestamp: number = new Date().getTime();
 }

@@ -29,7 +29,9 @@ export function syncPromiseWithTimeout<T>(
   })();
 
   const startTime = Date.now();
-  while (!finished && Date.now() - startTime < timeoutMs) {}
+  while (!finished && Date.now() - startTime < timeoutMs) {
+    // Busy-wait loop until promise completes or timeout
+  }
 
   if (!finished) {
     throw new Error("Timeout!");

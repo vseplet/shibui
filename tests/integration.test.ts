@@ -1,11 +1,19 @@
 import { assertEquals } from "jsr:@std/assert";
-import { task, workflow, execute, core, InternalPot, ContextPot, TriggerRule } from "$shibui";
+import {
+  ContextPot,
+  core,
+  execute,
+  InternalPot,
+  task,
+  TriggerRule,
+  workflow,
+} from "$shibui";
 
 // Based on ex1.ts - simple task with trigger
 Deno.test("Integration - simple task with conditional trigger", async () => {
   class SimplePot extends InternalPot<{ value: number }> {
     override ttl = 100;
-    data = { value: 0 };
+    override data = { value: 0 };
   }
 
   let executed = false;
@@ -41,7 +49,7 @@ Deno.test("Integration - simple task with conditional trigger", async () => {
 Deno.test("Integration - task chain with data passing", async () => {
   class SimplePot extends InternalPot<{ value: number }> {
     override ttl = 1;
-    data = { value: 0 };
+    override data = { value: 0 };
   }
 
   const c = core({ kv: { inMemory: true }, logger: { enable: false } });
@@ -50,7 +58,7 @@ Deno.test("Integration - task chain with data passing", async () => {
 
   const task3 = c.task(SimplePot)
     .name("Task 3")
-    .onRule("TriggerRule.ForThisTask", SimplePot)
+    .onRule(TriggerRule.ForThisTask, SimplePot)
     .do(async ({ pots, finish }) => {
       results.push(pots[0].data.value);
       return finish();
@@ -58,7 +66,7 @@ Deno.test("Integration - task chain with data passing", async () => {
 
   const task2 = c.task(SimplePot)
     .name("Task 2")
-    .onRule("TriggerRule.ForThisTask", SimplePot)
+    .onRule(TriggerRule.ForThisTask, SimplePot)
     .do(async ({ pots, next }) => {
       results.push(pots[0].data.value);
       return next(task3, {
@@ -68,7 +76,7 @@ Deno.test("Integration - task chain with data passing", async () => {
 
   const task1 = c.task(SimplePot)
     .name("Task 1")
-    .onRule("TriggerRule.ForThisTask", SimplePot)
+    .onRule(TriggerRule.ForThisTask, SimplePot)
     .do(async ({ pots, next }) => {
       results.push(pots[0].data.value);
       return next(task2, {
@@ -86,6 +94,8 @@ Deno.test("Integration - task chain with data passing", async () => {
   await new Promise((resolve) => setTimeout(resolve, 1500));
 
   assertEquals(results, [0, 1, 2]);
+
+  c.close();
 });
 
 // Based on ex4.ts - simple workflow
@@ -124,19 +134,19 @@ Deno.test("Integration - simple workflow execution", async () => {
 // Based on ex6.ts - dependent task with 5 pots
 Deno.test("Integration - five slot dependent task", async () => {
   class PotA extends InternalPot<{ value: number }> {
-    data = { value: 1 };
+    override data = { value: 1 };
   }
   class PotB extends InternalPot<{ value: number }> {
-    data = { value: 2 };
+    override data = { value: 2 };
   }
   class PotC extends InternalPot<{ value: number }> {
-    data = { value: 3 };
+    override data = { value: 3 };
   }
   class PotD extends InternalPot<{ value: number }> {
-    data = { value: 4 };
+    override data = { value: 4 };
   }
   class PotE extends InternalPot<{ value: number }> {
-    data = { value: 5 };
+    override data = { value: 5 };
   }
 
   const c = core({ kv: { inMemory: true }, logger: { enable: false } });
@@ -162,6 +172,8 @@ Deno.test("Integration - five slot dependent task", async () => {
   await new Promise((resolve) => setTimeout(resolve, 1500));
 
   assertEquals(sum, 15);
+
+  c.close();
 });
 
 // Complex workflow with context mutation
@@ -170,8 +182,8 @@ Deno.test("Integration - workflow with context mutation", async () => {
     steps: string[];
     status: string;
   }> {
-    data = {
-      steps: [],
+    override data = {
+      steps: [] as string[],
       status: "pending",
     };
   }
@@ -219,7 +231,7 @@ Deno.test("Integration - workflow with context mutation", async () => {
 // Error handling and fail propagation
 Deno.test("Integration - error handling in workflow", async () => {
   class MyContext extends ContextPot<{ error: string }> {
-    data = { error: "" };
+    override data = { error: "" };
   }
 
   let failHandlerCalled = false;
@@ -257,7 +269,7 @@ Deno.test("Integration - error handling in workflow", async () => {
 // Parallel next() to multiple tasks
 Deno.test("Integration - parallel task execution", async () => {
   class DataPot extends InternalPot<{ value: number }> {
-    data = { value: 0 };
+    override data = { value: 0 };
   }
 
   const c = core({ kv: { inMemory: true }, logger: { enable: false } });
@@ -266,7 +278,7 @@ Deno.test("Integration - parallel task execution", async () => {
 
   const taskA = c.task(DataPot)
     .name("Task A")
-    .onRule("TriggerRule.ForThisTask", DataPot)
+    .onRule(TriggerRule.ForThisTask, DataPot)
     .do(async ({ finish }) => {
       results.push("A");
       return finish();
@@ -274,7 +286,7 @@ Deno.test("Integration - parallel task execution", async () => {
 
   const taskB = c.task(DataPot)
     .name("Task B")
-    .onRule("TriggerRule.ForThisTask", DataPot)
+    .onRule(TriggerRule.ForThisTask, DataPot)
     .do(async ({ finish }) => {
       results.push("B");
       return finish();
@@ -282,7 +294,7 @@ Deno.test("Integration - parallel task execution", async () => {
 
   const starter = c.task(DataPot)
     .name("Starter")
-    .onRule("TriggerRule.ForThisTask", DataPot)
+    .onRule(TriggerRule.ForThisTask, DataPot)
     .do(async ({ next }) => {
       results.push("Start");
       return next([taskA, taskB], { value: 10 });
@@ -303,13 +315,15 @@ Deno.test("Integration - parallel task execution", async () => {
   assertEquals(results.includes("Start"), true);
   assertEquals(results.includes("A"), true);
   assertEquals(results.includes("B"), true);
+
+  c.close();
 });
 
 // Timeout and retry
 Deno.test("Integration - retry mechanism", async () => {
   class TestPot extends InternalPot<{ attempt: number }> {
     override ttl = 5;
-    data = { attempt: 0 };
+    override data = { attempt: 0 };
   }
 
   let attemptCount = 0;

@@ -52,17 +52,20 @@ export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
     };
   }
 
-  on(potConstructor: Constructor<Pot>, handler?: (pot: Pot) => CPot | null) {
+  on(
+    potConstructor: Constructor<Pot>,
+    handler?: (pot: Pot) => CPot | null,
+  ): this {
     this.addTrigger(potConstructor, handler);
     return this;
   }
 
-  name(name: string | TemplateStringsArray) {
+  name(name: string | TemplateStringsArray): this {
     this.workflow.name = name instanceof Array ? name[0] : name;
     return this;
   }
 
-  triggers(...constructorList: Array<Constructor<Pot>>) {
+  triggers(...constructorList: Array<Constructor<Pot>>): this {
     constructorList.forEach((constructor) => this.addTrigger(constructor));
     return this;
   }
@@ -76,7 +79,7 @@ export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
         builder: TaskBuilder<Spicy, [CPot], CPot>,
       ) => TaskBuilder<Spicy, [CPot], CPot>;
     }) => TTaskBuilder,
-  ) {
+  ): this {
     const createBuilder = <Pots extends Pot[]>(
       ...potConstructors: { [K in keyof Pots]: Constructor<Pots[K]> }
     ) => {
@@ -119,7 +122,7 @@ export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
     return this;
   }
 
-  build() {
+  build(): TWorkflow {
     if (Object.keys(this.workflow.triggers).length == 0) {
       this.on(CoreStartPot, (_pot) => new this.ctxPotConstructor());
     }

@@ -10,18 +10,17 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { Core, EventEmitter } from "$shibui/components";
-import {
-  type TCoreOptions,
-  type TPot,
-  type TSpicy,
-  type TTaskBuilder,
-  type TWorkflowBuilder,
+import { Core } from "$shibui/components";
+import type {
+  TCoreOptions,
+  TPot,
+  TSpicy,
+  TTaskBuilder,
+  TWorkflowBuilder,
 } from "$shibui/types";
 import type { Constructor } from "$helpers/types";
 import type { Pot } from "$shibui/entities";
 import {
-  LogEvent,
   TaskFailedEvent,
   TaskFinishedEvent,
   WorkflowFailedEvent,
@@ -47,7 +46,6 @@ export const execute = async <S extends TSpicy>(
   pots?: Array<TPot>,
   options?: TCoreOptions<S>,
 ): Promise<boolean> => {
-  const startTime = new Date().getTime();
   let isComplete = false;
   let isOk = true;
 
@@ -83,13 +81,14 @@ export const execute = async <S extends TSpicy>(
   await tmpCore.start();
   if (pots) pots.forEach((pot) => tmpCore.send(pot));
   while (!isComplete) await delay(0);
+  tmpCore.close();
   return isOk;
 };
 
 export const runCI = <S extends TSpicy>(
   builder: TTaskBuilder | TWorkflowBuilder,
   pots?: Array<TPot>,
-) => {
+): void => {
   emitters.logEventEmitter.addListener((event) => {
     if (event.level > 3) {
       if (event.sourceType === "TASK") {
@@ -119,13 +118,13 @@ export const task = <
   CPot extends ContextPot<{}> | undefined = undefined,
 >(
   ...constructors: { [K in keyof Pots]: Constructor<Pots[K]> }
-) => {
+): TaskBuilder<{}, Pots, CPot> => {
   return new TaskBuilder<{}, Pots, CPot>(...constructors);
 };
 
 export const workflow = <CP extends ContextPot<{}>>(
   contextPotConstructor?: Constructor<CP>,
-) =>
+): WorkflowBuilder<TSpicy, CP> =>
   new WorkflowBuilder<TSpicy, CP>(
     contextPotConstructor || createRandomContext(ContextPot),
   );
@@ -178,10 +177,7 @@ export {
   WorkflowStartedEvent,
 } from "$shibui/events";
 
-export {
-  TaskNameMissingError,
-  TaskTriggersMissingError,
-} from "$shibui/errors";
+export { TaskNameMissingError, TaskTriggersMissingError } from "$shibui/errors";
 
 export {
   DoOperation,
@@ -199,6 +195,7 @@ export type {
   TAnyCore,
   TAnyTaskDoHandler,
   TAnyTaskTrigger,
+  TasksStorage,
   TCore,
   TCoreOptions,
   TDoHandlerContext,
@@ -209,9 +206,9 @@ export type {
   TLoggerOptions,
   TOnHandlerContext,
   TOnHandlerResult,
-  TPotsConstructorsList,
   TPot,
   TPotPack,
+  TPotsConstructorsList,
   TSError,
   TSEvent,
   TSpicy,
@@ -221,7 +218,6 @@ export type {
   TTaskTrigger,
   TTaskTriggerHandler,
   TTaskTriggerStorage,
-  TasksStorage,
   TWorkflow,
   TWorkflowBuilder,
   TWorkflowTrigger,

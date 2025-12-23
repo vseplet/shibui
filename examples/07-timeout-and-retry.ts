@@ -20,9 +20,9 @@ import { runCI, task } from "$shibui";
 runCI(
   task()
     .name("Timeout Example Task")
-    .attempts(3)        // Retry up to 3 times
-    .interval(3000)     // Wait 3 seconds between retries
-    .timeout(1000)      // Timeout after 1 second
+    .attempts(3) // Retry up to 3 times
+    .interval(3000) // Wait 3 seconds between retries
+    .timeout(1000) // Timeout after 1 second
     .do(async ({ finish, log }) => {
       log.inf("Task started, will sleep for 10 seconds...");
 
@@ -32,7 +32,7 @@ runCI(
       // This line will never be reached due to timeout
       return finish();
     })
-    .fail(async (error) => {
+    .fail((error) => {
       // This will be called after all retry attempts fail
       console.error(`Task failed after all attempts: ${error.message}`);
     }),
