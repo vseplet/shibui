@@ -106,16 +106,6 @@ type TPot = {
 - **Handler** (`do`) — the actual work to perform
 - **Result operations** — what happens after execution (next, finish, fail, repeat)
 
-```
-┌─────────────────────────────────────────────────────┐
-│                       TASK                          │
-│  ┌─────────┐    ┌─────────┐    ┌─────────────────┐ │
-│  │ Trigger │ -> │ Handler │ -> │ Result Operation│ │
-│  │  (on)   │    │  (do)   │    │ next/finish/... │ │
-│  └─────────┘    └─────────┘    └─────────────────┘ │
-└─────────────────────────────────────────────────────┘
-```
-
 ### Workflow
 
 **Workflow** is an orchestrated sequence of tasks sharing a common context. Workflows provide:
@@ -124,20 +114,6 @@ type TPot = {
 - Automatic task registration
 - Sequential task execution via `next()`
 - Workflow-level events (started, finished, failed)
-
-```
-┌──────────────────────────────────────────────────────────┐
-│                      WORKFLOW                            │
-│  ┌─────────┐                                             │
-│  │ Context │ (shared state)                              │
-│  └────┬────┘                                             │
-│       │                                                  │
-│       ▼                                                  │
-│  ┌────────┐    ┌────────┐    ┌────────┐                 │
-│  │ Task 1 │ -> │ Task 2 │ -> │ Task 3 │ -> finish()     │
-│  └────────┘    └────────┘    └────────┘                 │
-└──────────────────────────────────────────────────────────┘
-```
 
 ---
 
@@ -793,31 +769,6 @@ c.settings.DEFAULT_LOGGING_LEVEL = 2; // DEBUG level
 // 5 - WARN
 // 6 - ERROR
 // 7 - FATAL
-```
-
----
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                            CORE                                  │
-│                                                                 │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────┐ │
-│  │ Distributor │ -> │   Tester    │ -> │ Filler    │ Runner  │ │
-│  │  (Queue)    │    │ (Triggers)  │    │ (Slots)   │  (Do)   │ │
-│  └──────┬──────┘    └─────────────┘    └─────────────────────┘ │
-│         │                                         │             │
-│         │           ┌─────────────┐               │             │
-│         └───────────│   Deno.Kv   │<──────────────┘             │
-│                     │   (Queue)   │                             │
-│                     └─────────────┘                             │
-│                                                                 │
-│  ┌─────────────────────────────────────────────────────────────┐│
-│  │                    Event Emitters                           ││
-│  │   BroadcastChannel: Core Events, Log Events                 ││
-│  └─────────────────────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
