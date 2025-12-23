@@ -21,7 +21,6 @@ import {
   WarnLogEvent,
 } from "$core/events";
 import {
-  Level,
   LogLevel,
   SourceType,
   type TEventDrivenLogger,
@@ -32,14 +31,14 @@ import { colors } from "$deps";
 import type { EventEmitter } from "$core/components";
 
 const colorizeByLevel = {
-  [Level.Unknown]: colors.dim,
-  [Level.Debug]: colors.blue,
-  [Level.Trace]: colors.gray,
-  [Level.Verbose]: colors.cyan,
-  [Level.Info]: colors.green,
-  [Level.Warn]: colors.yellow,
-  [Level.Error]: colors.red,
-  [Level.Fatal]: colors.bgBrightRed,
+  [LogLevel.Unknown]: colors.dim,
+  [LogLevel.Debug]: colors.blue,
+  [LogLevel.Trace]: colors.gray,
+  [LogLevel.Verbose]: colors.cyan,
+  [LogLevel.Info]: colors.green,
+  [LogLevel.Warn]: colors.yellow,
+  [LogLevel.Error]: colors.red,
+  [LogLevel.Fatal]: colors.bgBrightRed,
 };
 
 export const levelName = [
@@ -101,7 +100,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   }
 
   dbg(msg: string) {
-    this.log(Level.Debug, msg);
+    this.log(LogLevel.Debug, msg);
     this.#emitter.emit(
       new DebugLogEvent(
         {
@@ -114,7 +113,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   }
 
   dbgm({ msg, meta }: { msg: string; meta: {} }) {
-    this.log(Level.Debug, msg);
+    this.log(LogLevel.Debug, msg);
     this.#emitter.emit(
       new DebugLogEvent(
         {
@@ -128,7 +127,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   }
 
   trc(msg: string) {
-    this.log(Level.Trace, msg);
+    this.log(LogLevel.Trace, msg);
     this.#emitter.emit(
       new TraceLogEvent(
         {
@@ -141,7 +140,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   }
 
   trcm({ msg, meta }: { msg: string; meta: {} }) {
-    this.log(Level.Trace, msg);
+    this.log(LogLevel.Trace, msg);
     this.#emitter.emit(
       new TraceLogEvent(
         {
@@ -155,7 +154,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   }
 
   vrb(msg: string) {
-    this.log(Level.Verbose, msg);
+    this.log(LogLevel.Verbose, msg);
     this.#emitter.emit(
       new VerboseLogEvent(
         {
@@ -168,7 +167,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   }
 
   vrbm({ msg, meta }: { msg: string; meta: {} }) {
-    this.log(Level.Verbose, msg);
+    this.log(LogLevel.Verbose, msg);
     this.#emitter.emit(
       new VerboseLogEvent(
         {
@@ -182,7 +181,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   }
 
   inf(msg: string) {
-    this.log(Level.Info, msg);
+    this.log(LogLevel.Info, msg);
     this.#emitter.emit(
       new InfoLogEvent(
         {
@@ -195,7 +194,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   }
 
   err(msg: string) {
-    this.log(Level.Error, msg);
+    this.log(LogLevel.Error, msg);
     this.#emitter.emit(
       new ErrorLogEvent(
         {
@@ -208,7 +207,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   }
 
   wrn(msg: string) {
-    this.log(Level.Warn, msg);
+    this.log(LogLevel.Warn, msg);
     this.#emitter.emit(
       new WarnLogEvent(
         {
@@ -221,7 +220,7 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   }
 
   flt(msg: string) {
-    this.log(Level.Fatal, msg);
+    this.log(LogLevel.Fatal, msg);
     this.#emitter.emit(
       new FatalLogEvent(
         {

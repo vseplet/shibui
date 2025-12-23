@@ -14,7 +14,7 @@
 
 import { SEvent } from "$core/entities";
 import {
-  Level,
+  LogLevel,
   SourceType,
   TLogEventArgs,
   TLogEventMetadata,
@@ -24,7 +24,7 @@ import { EventType } from "$core/constants";
 
 export class LogEvent<T> extends SEvent {
   override type = EventType.Log;
-  level = Level.Unknown;
+  level = LogLevel.Unknown;
   sourceName = UNKNOWN_TARGET;
   sourceType = SourceType.Unknown;
   msg: string;
@@ -40,29 +40,29 @@ export class LogEvent<T> extends SEvent {
 }
 
 export class DebugLogEvent extends LogEvent<TLogEventMetadata> {
-  override level = Level.Debug;
+  override level = LogLevel.Debug;
 }
 
 export class TraceLogEvent extends LogEvent<TLogEventMetadata> {
-  override level = Level.Trace;
+  override level = LogLevel.Trace;
 }
 
 export class VerboseLogEvent extends LogEvent<TLogEventMetadata> {
-  override level = Level.Verbose;
+  override level = LogLevel.Verbose;
 }
 
 export class InfoLogEvent extends LogEvent<TLogEventMetadata> {
-  override level = Level.Info;
+  override level = LogLevel.Info;
 }
 
 export class WarnLogEvent extends LogEvent<TLogEventMetadata> {
-  override level = Level.Warn;
+  override level = LogLevel.Warn;
 }
 
 export class ErrorLogEvent extends LogEvent<TLogEventMetadata> {
-  override level = Level.Error;
+  override level = LogLevel.Error;
 }
 
 export class FatalLogEvent extends LogEvent<TLogEventMetadata> {
-  override level = Level.Fatal;
+  override level = LogLevel.Fatal;
 }

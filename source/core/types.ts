@@ -128,7 +128,7 @@ export type TPot = {
   toc: number;
   uuid: `${string}-${string}-${string}-${string}-${string}`;
   name: string;
-  type: TPotType;
+  type: PotType;
   from: {
     workflow: string;
     task: string;
@@ -148,7 +148,7 @@ export type TSError = {
 };
 
 export type TSEvent = {
-  type: TEventType;
+  type: EventType;
   name: string;
   timestamp: number;
 };
@@ -244,36 +244,8 @@ export type TCoreOptions<S = TSpicy> = {
   spicy?: S;
 };
 
-// ============================================================================
-// Type Aliases (for backward compatibility and convenience)
-// ============================================================================
-
-/** @deprecated Use PotType enum instead */
-export type TPotType = PotType;
-
-/** @deprecated Use DoOperation enum instead */
-export type TDoOp = DoOperation;
-
-/** @deprecated Use TriggerOperation enum instead */
-export type TTriggerOp = TriggerOperation;
-
-/** @deprecated Use LogLevel enum instead */
-export type TLogLevel = LogLevel;
-
-/** @deprecated Use SourceType enum instead */
-export type TLogSource = SourceType;
-
-/** @deprecated Use TaskType enum instead */
-export type TTaskType = TaskType;
-
-/** @deprecated Use EventType enum instead */
-export type TEventType = EventType;
-
-/** @deprecated Use LogLevel enum instead */
-export const Level = LogLevel;
-
 export type TOnHandlerResult = {
-  op: TTriggerOp;
+  op: TriggerOperation;
   potIndex?: number;
 };
 
@@ -308,7 +280,7 @@ export type TTaskTrigger<Spicy, CTX, TP> = {
 export type TAnyTaskTrigger = TTaskTrigger<any, any, any>;
 
 export type TDoHandlerResult = {
-  op: TDoOp;
+  op: DoOperation;
   reason?: string;
   taskBuilders?: Array<TTaskBuilder>;
   data?: Partial<TPot["data"]>;
