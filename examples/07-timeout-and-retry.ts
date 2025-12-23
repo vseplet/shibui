@@ -32,7 +32,7 @@ runCI(
       // This line will never be reached due to timeout
       return finish();
     })
-    .fail((error) => {
+    .fail(async (error) => {
       // This will be called after all retry attempts fail
       console.error(`Task failed after all attempts: ${error.message}`);
     }),

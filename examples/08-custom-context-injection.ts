@@ -8,7 +8,7 @@
  * - Type-safe custom context
  */
 
-import shibuiCore, { InternalPot, type TriggerRule } from "$shibui";
+import shibuiCore, { InternalPot, TriggerRule } from "$shibui";
 
 /**
  * Create core with custom "spicy" context
@@ -31,7 +31,7 @@ class SimplePot extends InternalPot<{ value: number }> {
 // Task 3: Final task
 const task3 = core.task(SimplePot)
   .name("Task 3")
-  .onRule("TriggerRule.ForThisTask", SimplePot)
+  .onRule(TriggerRule.ForThisTask, SimplePot)
   .do(async ({ log, finish, pots }) => {
     log.dbg(`Task 3 - Final value: ${pots[0].data.value}`);
     return finish();
@@ -40,7 +40,7 @@ const task3 = core.task(SimplePot)
 // Task 2: Middle task
 const task2 = core.task(SimplePot)
   .name("Task 2")
-  .onRule("TriggerRule.ForThisTask", SimplePot)
+  .onRule(TriggerRule.ForThisTask, SimplePot)
   .do(async ({ pots, log, next }) => {
     const value = pots[0].data.value;
     log.dbg(`Task 2 - Received value: ${value}`);
@@ -52,7 +52,7 @@ const task2 = core.task(SimplePot)
 
 // Task 1: First task with custom context access
 const task1 = core.task(SimplePot)
-  .onRule("TriggerRule.ForThisTask", SimplePot)
+  .onRule(TriggerRule.ForThisTask, SimplePot)
   .name("Task 1")
   .do(async ({ log, next, x }) => {
     // Access custom spicy data
