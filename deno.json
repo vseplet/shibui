@@ -9,18 +9,11 @@
     "./core/pots": "./source/core/pots/mod.ts",
     "./core/events": "./source/core/events/mod.ts",
     "./core/errors": "./source/core/errors/mod.ts",
-    "./core/types": "./source/core/types.ts",
-    "./framework": "./source/framework/mod.ts",
-    "./framework/runtime/dev": "./source/framework/runtime/dev.ts",
-    "./framework/runtime/prod": "./source/framework/runtime/prod.ts",
-    "./framework/plugins/luminous": "./source/framework/plugins/luminous/mod.ts",
-    "./framework/scripts/init": "./source/framework/scripts/init.ts",
-    "./framework/scripts/update": "./source/framework/scripts/update.ts"
+    "./core/types": "./source/core/types.ts"
   },
   "publish": {
     "exclude": [
-      "drafts",
-      "shibui-project"
+      "drafts"
     ],
     "include": [
       "LICENSE",
@@ -32,7 +25,6 @@
   },
   "tasks": {
     "pub-dry": "deno publish --dry-run --allow-slow-types",
-    "serve": "deno run --allow-all --unstable-broadcast-channel ./source/moduleServe.ts",
     "ex1": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/ex1.ts",
     "ex2": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/ex2.ts",
     "ex3": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/ex3.ts",
@@ -41,22 +33,7 @@
     "ex6": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/ex6.ts",
     "ex7": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/ex7.ts",
     "ex8": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/ex8.ts",
-    "add-spicy": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/add-spicy.ts",
-
-    "dev": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./shibui-project/dev.ts",
-    "prod": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./shibui-project/prod.ts"
-  },
-  "lint": {
-    "exclude": [
-      "./source/framework/examples"
-    ]
-  },
-  "fmt": {
-    "exclude": [
-      "./source/versions.ts",
-      "./deno.json",
-      "./source/framework/examples"
-    ]
+    "add-spicy": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/add-spicy.ts"
   },
   "imports": {
     "$deps": "./source/deps.ts",
@@ -71,10 +48,6 @@
     "$core/emitters": "./source/core/emitters.ts",
     "$core/constants": "./source/core/constants.ts",
     "$core/components": "./source/core/components/mod.ts",
-    "$framework": "./source/framework/mod.ts",
-    "$framework/components/": "./source/framework/components/",
-    "$framework/runtime/": "./source/framework/runtime/",
-    "$framework/entities/": "./source/framework/entities/",
     "$helpers/types": "./source/helpers/types.ts",
     "$helpers": "./source/helpers/mod.ts"
   }
