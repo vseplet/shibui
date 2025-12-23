@@ -51,8 +51,8 @@ Shibui is an event-driven workflow automation engine built on Deno. It provides 
 ## Installation
 
 ```typescript
-import { task, workflow, execute, core } from "jsr:@vseplet/shibui@0.4.42/core";
-import { InternalPot, ExternalPot, ContextPot } from "jsr:@vseplet/shibui@0.4.42/core/pots";
+import { task, workflow, execute, core } from "jsr:@vseplet/shibui@0.4.43/core";
+import { InternalPot, ExternalPot, ContextPot } from "jsr:@vseplet/shibui@0.4.43/core/pots";
 ```
 
 **Required Deno flags:**
@@ -122,8 +122,8 @@ type TPot = {
 ### Simple Task
 
 ```typescript
-import { task, execute } from "jsr:@vseplet/shibui@0.4.42/core";
-import { InternalPot } from "jsr:@vseplet/shibui@0.4.42/core/pots";
+import { task, execute } from "jsr:@vseplet/shibui@0.4.43/core";
+import { InternalPot } from "jsr:@vseplet/shibui@0.4.43/core/pots";
 
 // 1. Define a Pot with your data structure
 class MessagePot extends InternalPot<{ text: string }> {
@@ -145,8 +145,8 @@ await execute(printTask, [new MessagePot().init({ text: "Hello, Shibui!" })]);
 ### Simple Workflow
 
 ```typescript
-import { workflow, execute } from "jsr:@vseplet/shibui@0.4.42/core";
-import { ContextPot } from "jsr:@vseplet/shibui@0.4.42/core/pots";
+import { workflow, execute } from "jsr:@vseplet/shibui@0.4.43/core";
+import { ContextPot } from "jsr:@vseplet/shibui@0.4.43/core/pots";
 
 // 1. Define workflow context
 class CounterCtx extends ContextPot<{ count: number }> {
@@ -190,7 +190,7 @@ await execute(counterWorkflow);
 For data flowing within the system:
 
 ```typescript
-import { InternalPot } from "jsr:@vseplet/shibui@0.4.42/core/pots";
+import { InternalPot } from "jsr:@vseplet/shibui@0.4.43/core/pots";
 
 class UserPot extends InternalPot<{
   id: number;
@@ -221,7 +221,7 @@ const user = new UserPot().init({
 For data from external sources:
 
 ```typescript
-import { ExternalPot } from "jsr:@vseplet/shibui@0.4.42/core/pots";
+import { ExternalPot } from "jsr:@vseplet/shibui@0.4.43/core/pots";
 
 class WebhookPot extends ExternalPot<{
   payload: Record<string, unknown>;
@@ -239,7 +239,7 @@ class WebhookPot extends ExternalPot<{
 For workflow shared state:
 
 ```typescript
-import { ContextPot } from "jsr:@vseplet/shibui@0.4.42/core/pots";
+import { ContextPot } from "jsr:@vseplet/shibui@0.4.43/core/pots";
 
 class PipelineCtx extends ContextPot<{
   startedAt: number;
@@ -269,7 +269,7 @@ class PipelineCtx extends ContextPot<{
 #### Creating Tasks
 
 ```typescript
-import { task } from "jsr:@vseplet/shibui@0.4.42/core";
+import { task } from "jsr:@vseplet/shibui@0.4.43/core";
 
 // Single pot task
 const t1 = task(PotA)
@@ -377,7 +377,7 @@ task(InputPot)
 #### Creating Workflows
 
 ```typescript
-import { workflow } from "jsr:@vseplet/shibui@0.4.42/core";
+import { workflow } from "jsr:@vseplet/shibui@0.4.43/core";
 
 const myWorkflow = workflow(MyContextPot)
   .name("My Workflow")
@@ -447,7 +447,7 @@ The `.sq()` method receives an object with:
 #### Creating Core Instance
 
 ```typescript
-import core from "jsr:@vseplet/shibui@0.4.42/core";
+import core from "jsr:@vseplet/shibui@0.4.43/core";
 
 const c = core({
   kv: {
@@ -493,7 +493,7 @@ c.send(new PotA(), t1);
 For simple execution without manual core management:
 
 ```typescript
-import { execute } from "jsr:@vseplet/shibui@0.4.42/core";
+import { execute } from "jsr:@vseplet/shibui@0.4.43/core";
 
 // Execute task
 const success = await execute(taskBuilder, [new InputPot()]);
