@@ -8,7 +8,7 @@
  * - Task ordering in workflows
  */
 
-import { execute, workflow } from "$core";
+import { execute, workflow } from "$shibui";
 
 // Create a workflow with two sequential tasks
 const simpleWorkflow = workflow()

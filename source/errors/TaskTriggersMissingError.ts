@@ -1,0 +1,7 @@
+import { SError } from "$shibui/entities";
+
+export class TaskTriggersMissingError extends SError {
+  constructor() {
+    super("Task triggers are missing!");
+  }
+}

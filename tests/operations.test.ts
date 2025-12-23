@@ -1,7 +1,7 @@
 import { assertEquals } from "jsr:@std/assert";
-import { task, execute, core } from "$core";
-import { InternalPot } from "$core/pots";
-import { TriggerRule } from "$core/constants";
+import { task, execute, core } from "$shibui";
+import { InternalPot } from "$shibui/pots";
+import { TriggerRule } from "$shibui/constants";
 
 Deno.test("Operations - finish() completes task successfully", async () => {
   class TestPot extends InternalPot<{ value: number }> {

@@ -8,9 +8,9 @@
  * - Type-safe custom context
  */
 
-import shibuiCore from "$core";
-import { InternalPot } from "$core/pots";
-import { TriggerRule } from "$core/constants";
+import shibuiCore from "$shibui";
+import { InternalPot } from "$shibui/pots";
+import { TriggerRule } from "$shibui/constants";
 
 /**
  * Create core with custom "spicy" context

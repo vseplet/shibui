@@ -1,12 +1,12 @@
 import { assertEquals } from "jsr:@std/assert";
-import { task, workflow, execute, core } from "$core";
-import { InternalPot, ContextPot } from "$core/pots";
+import { task, workflow, execute, core } from "$shibui";
+import { InternalPot, ContextPot } from "$shibui/pots";
 import {
   TaskFinishedEvent,
   TaskFailedEvent,
   WorkflowFinishedEvent,
   WorkflowFailedEvent,
-} from "$core/events";
+} from "$shibui/events";
 
 Deno.test("Events - TaskFinishedEvent on success", async () => {
   class TestPot extends InternalPot<{ value: number }> {

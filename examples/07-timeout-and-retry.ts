@@ -9,7 +9,7 @@
  * - Using runCI for test/CI environments
  */
 
-import { runCI, task } from "$core";
+import { runCI, task } from "$shibui";
 
 /**
  * This task will timeout because it sleeps for 10 seconds

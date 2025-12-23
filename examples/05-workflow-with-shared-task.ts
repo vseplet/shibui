@@ -9,10 +9,10 @@
  * - Parsing commit messages for versioning
  */
 
-import { execute, task, workflow } from "$core";
-import { ContextPot, CoreStartPot } from "$core/pots";
+import { execute, task, workflow } from "$shibui";
+import { ContextPot, CoreStartPot } from "$shibui/pots";
 import { sh } from "https://deno.land/x/shelly@v0.1.1/mod.ts";
-import type { TaskBuilder } from "$core/entities";
+import type { TaskBuilder } from "$shibui/entities";
 
 /**
  * Reusable task factory: Check update type from git commit message

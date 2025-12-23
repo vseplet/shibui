@@ -1,7 +1,7 @@
 import { assertEquals } from "jsr:@std/assert";
-import { task, workflow, execute, core } from "$core";
-import { InternalPot, ContextPot } from "$core/pots";
-import { TriggerRule } from "$core/constants";
+import { task, workflow, execute, core } from "$shibui";
+import { InternalPot, ContextPot } from "$shibui/pots";
+import { TriggerRule } from "$shibui/constants";
 
 // Based on ex1.ts - simple task with trigger
 Deno.test("Integration - simple task with conditional trigger", async () => {

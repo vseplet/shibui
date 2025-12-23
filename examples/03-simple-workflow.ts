@@ -8,7 +8,7 @@
  * - Random failure simulation
  */
 
-import { execute, workflow } from "$core";
+import { execute, workflow } from "$shibui";
 
 // Create a workflow with single task
 const simpleWorkflow = workflow()

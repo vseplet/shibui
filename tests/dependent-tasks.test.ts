@@ -1,6 +1,6 @@
 import { assertEquals } from "jsr:@std/assert";
-import { task, core } from "$core";
-import { InternalPot } from "$core/pots";
+import { task, core } from "$shibui";
+import { InternalPot } from "$shibui/pots";
 
 Deno.test("Dependent Tasks - two slots", async () => {
   class PotA extends InternalPot<{ a: number }> {
