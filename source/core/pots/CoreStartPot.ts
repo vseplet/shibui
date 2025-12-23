@@ -14,5 +14,5 @@ import { Pot } from "$core/entities";
 import { POT_TYPE_SYSTEM } from "$core/constants";
 
 export class CoreStartPot extends Pot<{}> {
-  type = POT_TYPE_SYSTEM;
+  override type = POT_TYPE_SYSTEM;
 }

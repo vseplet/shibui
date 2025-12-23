@@ -14,5 +14,5 @@ import { Pot } from "$core/entities";
 import { POT_TYPE_EXTERNAL } from "$core/constants";
 
 export class ExternalPot<T extends { [key: string]: unknown }> extends Pot<T> {
-  type = POT_TYPE_EXTERNAL;
+  override type = POT_TYPE_EXTERNAL;
 }

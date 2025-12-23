@@ -14,5 +14,5 @@ import { Pot } from "$core/entities";
 import { POT_TYPE_SYSTEM } from "$core/constants";
 
 export class SystemPot<T extends { [key: string]: unknown }> extends Pot<T> {
-  type = POT_TYPE_SYSTEM;
+  override type = POT_TYPE_SYSTEM;
 }
