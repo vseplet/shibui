@@ -55,7 +55,6 @@ deno add jsr:@vseplet/shibui
 ```
 
 ```typescript
-// Everything can be imported from the main package
 import {
   task,
   workflow,
@@ -65,9 +64,6 @@ import {
   ExternalPot,
   ContextPot
 } from "@vseplet/shibui";
-
-// Or use subpaths if you prefer
-import { InternalPot, ExternalPot, ContextPot } from "@vseplet/shibui/pots";
 ```
 
 **Required Deno flags:**

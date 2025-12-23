@@ -8,8 +8,7 @@
  * - Manual core management
  */
 
-import core from "$shibui";
-import { InternalPot } from "$shibui/pots";
+import core, { InternalPot } from "$shibui";
 
 const c = core();
 

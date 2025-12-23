@@ -1,6 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
-import { workflow, execute } from "$shibui";
-import { ContextPot, InternalPot, CoreStartPot } from "$shibui/pots";
+import { workflow, execute, ContextPot, InternalPot, CoreStartPot } from "$shibui";
 
 Deno.test("Workflow - simple workflow creation", () => {
   class MyContext extends ContextPot<{ count: number }> {

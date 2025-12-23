@@ -2,14 +2,7 @@
   "name": "@vseplet/shibui",
   "lock": false,
   "version": "0.4.43",
-  "exports": {
-    ".": "./source/mod.ts",
-    "./entities": "./source/entities/mod.ts",
-    "./pots": "./source/pots/mod.ts",
-    "./events": "./source/events/mod.ts",
-    "./errors": "./source/errors/mod.ts",
-    "./types": "./source/types.ts"
-  },
+  "exports": "./source/mod.ts",
   "publish": {
     "exclude": [
       "drafts"

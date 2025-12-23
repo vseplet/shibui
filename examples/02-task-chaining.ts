@@ -9,9 +9,7 @@
  * - Manual task registration
  */
 
-import core from "$shibui";
-import { InternalPot } from "$shibui/pots";
-import { TriggerRule } from "$shibui/constants";
+import core, { InternalPot, TriggerRule } from "$shibui";
 
 const c = core();
 

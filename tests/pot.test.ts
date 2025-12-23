@@ -1,5 +1,5 @@
 import { assertEquals, assertExists } from "jsr:@std/assert";
-import { InternalPot, ExternalPot, ContextPot } from "$shibui/pots";
+import { InternalPot, ExternalPot, ContextPot } from "$shibui";
 
 Deno.test("Pot - InternalPot creation", () => {
   class TestPot extends InternalPot<{ value: number }> {
