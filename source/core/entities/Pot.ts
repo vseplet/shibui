@@ -74,9 +74,8 @@ export class Pot<
     copy.name = this.name;
     copy.type = this.type;
     copy.init(self.structuredClone(this.data));
-    // TDOD: подумать над тем, как оптимизировать этот костыль
+    // TODO: optimize this workaround
     if (partialData) {
-      // copy.init(JSON.parse(JSON.stringify(partialData)));
       copy.init(self.structuredClone(partialData));
     }
     return copy;

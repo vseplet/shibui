@@ -81,8 +81,6 @@ export default class Distributor {
       const task = builder.build();
       this.#tester.registerTask(task);
     }
-
-    // this.#tester.show();
   }
 
   disable(builder: TTaskBuilder | TWorkflowBuilder) {

@@ -75,12 +75,6 @@ export class Core<S extends TSpicy> implements TCore<S> {
     await this.#globalPotDistributor.start();
   }
 
-  // stop() {
-  //   this.#globalPotDistributor.stop();
-  //   this.emitters.coreEventEmitter.close();
-  //   this.emitters.logEventEmitter.close();
-  // }
-
   register(builder: TTaskBuilder | TWorkflowBuilder) {
     this.#globalPotDistributor.register(builder);
   }

@@ -93,14 +93,6 @@ export class Tester {
       this.#workflowTriggers[potName] ||= [];
       this.#workflowTriggers[potName].push(workflow.triggers[potName]);
     }
-    // this.#log.vrb(STRS.rwn(workflow));
-  }
-
-  show() {
-    console.log(this.#taskTriggers);
-    console.log(this.#dependentTaskTriggers);
-    // console.log(this.#workflowTriggers);
-    // console.log(this.#workflowDependentTaskTriggers);
   }
 
   test(pot: Pot): boolean {

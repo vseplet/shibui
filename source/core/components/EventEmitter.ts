@@ -63,13 +63,7 @@ export class EventEmitter<
 
   onError(callback: (event: MessageEvent) => void) {
     this.#channelA.onmessageerror = callback;
-    // this.channelB.onmessageerror = callback; ?
   }
-
-  // close() {
-  //   this.#channelA.close();
-  //   this.#channelB.close();
-  // }
 
   emit(event: SEvent) {
     this.#channelB.postMessage(event);

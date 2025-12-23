@@ -84,7 +84,6 @@ export const execute = async <S extends TSpicy>(
   await tmpCore.start();
   if (pots) pots.forEach((pot) => tmpCore.send(pot));
   while (!isComplete) await delay(0);
-  // tmpCore.stop();
   return isOk;
 };
 
