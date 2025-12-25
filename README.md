@@ -4,50 +4,32 @@
 
 [![JSR](https://jsr.io/badges/@vseplet/shibui)](https://jsr.io/@vseplet/shibui)
 
-> **Warning**: This package is under active development. API may change
-> frequently.
+> **Warning**: This package is under active development. API may change.
 
-## Table of Contents
+## Quick Start
 
-- [Overview](#overview)
-- [Installation](#installation)
-- [Core Concepts](#core-concepts)
-  - [Pot](#pot)
-  - [Task](#task)
-  - [Workflow](#workflow)
-- [Quick Start](#quick-start)
-- [API Reference](#api-reference)
-  - [Pot Types](#pot-types)
-  - [Task Builder](#task-builder)
-  - [Workflow Builder](#workflow-builder)
-  - [Core](#core)
-  - [Events](#events)
-- [Advanced Usage](#advanced-usage)
-  - [Dependent Tasks (Multiple Inputs)](#dependent-tasks-multiple-inputs)
-  - [Task Chaining](#task-chaining)
-  - [Shared Tasks](#shared-tasks)
-  - [Retry and Timeout](#retry-and-timeout)
-  - [Custom Context](#custom-context)
-- [Configuration](#configuration)
-- [License](#license)
+```typescript
+import { execute, pot, task } from "@vseplet/shibui";
 
----
+// 1. Define data with pot()
+const Message = pot("Message", { text: "" });
 
-## Overview
+// 2. Create a task
+const printTask = task(Message)
+  .name("Print Message")
+  .do(async ({ pots, log, finish }) => {
+    log.inf(`Received: ${pots[0].data.text}`);
+    return finish();
+  });
 
-Shibui is an event-driven workflow automation engine built on Deno. It provides
-a declarative DSL for defining tasks and workflows that process data through a
-system of "pots" (data containers).
+// 3. Execute
+await execute(printTask, [Message.create({ text: "Hello!" })]);
+```
 
-**Key Features:**
-
-- Event-driven architecture with Deno KV message queue
-- Type-safe DSL for task and workflow definition
-- Flexible trigger system with built-in rules
-- Support for dependent tasks (multiple input sources)
-- Workflow context for shared state
-- Built-in retry mechanism with TTL
-- Comprehensive logging system
+**Run with:**
+```bash
+deno run --allow-all --unstable-kv your_script.ts
+```
 
 ---
 
@@ -58,21 +40,7 @@ deno add jsr:@vseplet/shibui
 ```
 
 ```typescript
-import {
-  ContextPot,
-  core,
-  execute,
-  ExternalPot,
-  InternalPot,
-  task,
-  workflow,
-} from "@vseplet/shibui";
-```
-
-**Required Deno flags:**
-
-```bash
-deno run --allow-all --unstable-broadcast-channel --unstable-kv your_script.ts
+import { execute, pot, shibui, task, workflow } from "@vseplet/shibui";
 ```
 
 ---
@@ -81,721 +49,381 @@ deno run --allow-all --unstable-broadcast-channel --unstable-kv your_script.ts
 
 ### Pot
 
-**Pot** (from Japanese 壺 - "pot, jar") is the fundamental data container in
-Shibui. Every piece of data flowing through the system is wrapped in a Pot.
+**Pot** is a data container. Create pots using the `pot()` factory:
 
 ```typescript
-type TPot = {
-  toc: number; // Time of creation (timestamp)
-  uuid: string; // Unique identifier
-  name: string; // Class name (auto-generated)
-  type: TPotType; // EXTERNAL | INTERNAL | CONTEXT | SYSTEM | UNKNOWN
-  from: { // Origin
-    workflow: string;
-    task: string;
-  };
-  to: { // Destination
-    workflow: string;
-    task: string;
-  };
-  ttl: number; // Time-to-live for retries
-  data: unknown; // Payload data
-};
+// Simple pot
+const Counter = pot("Counter", { value: 0 });
+
+// With TTL (retry count)
+const Message = pot("Message", { text: "" }, { ttl: 3 });
+
+// Create instances
+const instance = Counter.create({ value: 42 });
 ```
-
-#### Pot Types
-
-| Type           | Purpose                                            | Usage                        |
-| -------------- | -------------------------------------------------- | ---------------------------- |
-| `InternalPot`  | Data flowing between tasks within the system       | Default for most use cases   |
-| `ExternalPot`  | Data coming from external sources (HTTP, webhooks) | Integration points           |
-| `ContextPot`   | Shared state within a workflow                     | Workflow-wide data           |
-| `SystemPot`    | Internal system events                             | Reserved for core            |
-| `CoreStartPot` | Emitted when core starts                           | Trigger workflows on startup |
 
 ### Task
 
-**Task** is a unit of work that processes one or more pots. Tasks have:
+**Task** processes pots. Tasks have triggers, handlers, and result operations:
 
-- **Triggers** (`on`) — conditions that determine when to execute
-- **Handler** (`do`) — the actual work to perform
-- **Result operations** — what happens after execution (next, finish, fail,
-  repeat)
+```typescript
+const myTask = task(Counter)
+  .name("My Task")
+  .when(data => data.value > 0)      // Trigger condition
+  .retry({ attempts: 3, timeout: 5000 })  // Retry config
+  .do(async ({ pots, log, finish }) => {
+    log.inf(`Processing: ${pots[0].data.value}`);
+    return finish();
+  })
+  .catch(async (error) => {           // Error handler
+    console.error(error.message);
+  });
+```
 
 ### Workflow
 
-**Workflow** is an orchestrated sequence of tasks sharing a common context.
-Workflows provide:
-
-- Shared context pot across all tasks
-- Automatic task registration
-- Sequential task execution via `next()`
-- Workflow-level events (started, finished, failed)
-
----
-
-## Quick Start
-
-### Simple Task
+**Workflow** orchestrates tasks with shared context:
 
 ```typescript
-import { execute, InternalPot, task } from "@vseplet/shibui";
-
-// 1. Define a Pot with your data structure
-class MessagePot extends InternalPot<{ text: string }> {
-  data = { text: "" };
-}
-
-// 2. Create a task that processes this pot
-const printTask = task(MessagePot)
-  .name("Print Message")
-  .do(async ({ pots, log, finish }) => {
-    log.inf(`Received: ${pots[0].data.text}`);
-    return finish();
-  });
-
-// 3. Execute with input data
-await execute(printTask, [new MessagePot().init({ text: "Hello, Shibui!" })]);
-```
-
-### Simple Workflow
-
-```typescript
-import { ContextPot, execute, workflow } from "@vseplet/shibui";
-
-// 1. Define workflow context
-class CounterCtx extends ContextPot<{ count: number }> {
-  data = { count: 0 };
-}
-
-// 2. Create workflow with task sequence
-const counterWorkflow = workflow(CounterCtx)
-  .name("Counter Workflow")
+const myWorkflow = workflow()
+  .name("My Workflow")
   .sq(({ task }) => {
-    const increment = task()
-      .name("Increment")
-      .do(async ({ ctx, log, next }) => {
-        ctx.data.count += 1;
-        log.inf(`Count: ${ctx.data.count}`);
-        return next(print);
-      });
+    const step2 = task()
+      .name("Step 2")
+      .do(async ({ ctx, finish }) => finish());
 
-    const print = task()
-      .name("Print Result")
-      .do(async ({ ctx, log, finish }) => {
-        log.inf(`Final count: ${ctx.data.count}`);
-        return finish();
-      });
+    const step1 = task()
+      .name("Step 1")
+      .do(async ({ ctx, next }) => next(step2));
 
-    return increment; // First task to execute
+    return step1;
   });
-
-// 3. Execute workflow
-await execute(counterWorkflow);
 ```
 
 ---
 
 ## API Reference
 
-### Pot Types
+### pot(name, defaults, options?)
 
-#### InternalPot
-
-For data flowing within the system:
+Create a pot factory:
 
 ```typescript
-import { InternalPot } from "@vseplet/shibui";
+const User = pot("User", {
+  name: "Anonymous",
+  age: 0
+}, { ttl: 3 });
 
-class UserPot extends InternalPot<{
-  id: number;
-  name: string;
-  email: string;
-}> {
-  // Default TTL (retries)
-  override ttl = 3;
+// Methods
+User.create()              // Create with defaults
+User.create({ age: 25 })   // Create with overrides
+User.name                  // "User"
+User.defaults              // { name: "Anonymous", age: 0 }
+User.ttl                   // 3
+```
 
-  // Default data
-  data = {
-    id: 0,
-    name: "",
-    email: "",
-  };
-}
+### task(...pots)
 
-// Usage
-const user = new UserPot().init({
-  id: 1,
-  name: "John",
-  email: "john@example.com",
+Create a task builder:
+
+```typescript
+// Single pot
+task(Counter).name("Task").do(...)
+
+// Multiple pots (dependent task - waits for all)
+task(PotA, PotB, PotC).name("Combiner").do(...)
+```
+
+#### Task Builder Methods
+
+| Method | Description |
+|--------|-------------|
+| `.name(string)` | Set task name (required) |
+| `.when(predicate)` | Filter by data condition |
+| `.on(Pot, handler)` | Custom trigger handler |
+| `.onRule(rule, Pot)` | Built-in trigger rule |
+| `.do(handler)` | Execution handler (required) |
+| `.retry({ attempts, interval, timeout })` | Retry configuration |
+| `.catch(handler)` | Error handler |
+
+#### .when() - Simple Trigger
+
+```typescript
+task(Counter)
+  .when(data => data.value > 0)  // Only execute if value > 0
+  .do(...)
+```
+
+#### .do() Handler
+
+```typescript
+task(Counter)
+  .do(async ({ pots, log, next, finish, fail, repeat }) => {
+    // pots - array of input pots
+    // log - logger (dbg, inf, wrn, err, etc.)
+
+    // Return one of:
+    return finish();              // Complete successfully
+    return fail("reason");        // Complete with error
+    return next(otherTask, data); // Chain to another task
+    return repeat();              // Retry (uses TTL)
+  });
+```
+
+#### .retry() - Resilience
+
+```typescript
+task(Counter)
+  .retry({
+    attempts: 3,      // Retry up to 3 times
+    interval: 1000,   // Wait 1s between retries
+    timeout: 5000     // Timeout after 5s
+  })
+  .do(...)
+  .catch(async (error) => {
+    // Called after all retries fail
+  });
+```
+
+### execute(builder, pots?, options?)
+
+Execute a task or workflow:
+
+```typescript
+// Execute task with pot factory (auto-creates instance)
+await execute(myTask, [Counter]);
+
+// Execute with custom data
+await execute(myTask, [Counter.create({ value: 42 })]);
+
+// Execute workflow
+await execute(myWorkflow);
+
+// With options
+await execute(myTask, [Counter], {
+  kv: { inMemory: true },
+  logger: { enable: false }
 });
 ```
 
-#### ExternalPot
+### shibui(options?)
 
-For data from external sources:
-
-```typescript
-import { ExternalPot } from "@vseplet/shibui";
-
-class WebhookPot extends ExternalPot<{
-  payload: Record<string, unknown>;
-  headers: Record<string, string>;
-}> {
-  data = {
-    payload: {},
-    headers: {},
-  };
-}
-```
-
-#### ContextPot
-
-For workflow shared state:
+Create an engine instance for manual control:
 
 ```typescript
-import { ContextPot } from "@vseplet/shibui";
+const app = shibui({
+  kv: {
+    inMemory: true     // Use in-memory storage
+    // path: "./data"  // Or persistent path
+  },
+  logger: {
+    enable: true       // Enable/disable logging
+  },
+  spicy: {             // Custom data for handlers
+    apiKey: "..."
+  }
+});
 
-class PipelineCtx extends ContextPot<{
-  startedAt: number;
-  steps: string[];
-  errors: string[];
-}> {
-  data = {
-    startedAt: Date.now(),
-    steps: [],
-    errors: [],
-  };
-}
+app.settings.DEFAULT_LOGGING_LEVEL = 4;  // Set log level (INFO)
+
+app.register(myTask);
+await app.start();
+app.send(Counter, myTask);  // Auto-creates pot instance
 ```
 
-#### Pot Methods
+### workflow()
 
-| Method              | Description                                       |
-| ------------------- | ------------------------------------------------- |
-| `init(data)`        | Initialize pot with partial data                  |
-| `copy(data?)`       | Create a deep copy, optionally with modified data |
-| `deserialize(json)` | Restore pot from JSON                             |
-
----
-
-### Task Builder
-
-#### Creating Tasks
-
-```typescript
-import { task } from "@vseplet/shibui";
-
-// Single pot task
-const t1 = task(PotA)
-  .name("Task Name")
-  .do(async ({ pots, log, finish }) => {
-    // pots[0] is PotA
-    return finish();
-  });
-
-// Multiple pots task (dependent)
-const t2 = task(PotA, PotB, PotC)
-  .name("Dependent Task")
-  .do(async ({ pots, log, finish }) => {
-    // pots[0] is PotA, pots[1] is PotB, pots[2] is PotC
-    return finish();
-  });
-```
-
-#### Builder Methods
-
-| Method               | Description                           |
-| -------------------- | ------------------------------------- |
-| `.name(string)`      | Set task name (required)              |
-| `.on(Pot, handler?)` | Add trigger with optional handler     |
-| `.onRule(rule, Pot)` | Add trigger with built-in rule        |
-| `.do(handler)`       | Set execution handler (required)      |
-| `.fail(handler)`     | Set error handler                     |
-| `.attempts(n)`       | Set retry attempts (default: 1)       |
-| `.interval(ms)`      | Set retry interval in milliseconds    |
-| `.timeout(ms)`       | Set execution timeout in milliseconds |
-| `.build()`           | Build task (called automatically)     |
-
-#### Trigger Handlers (on)
-
-```typescript
-task(MessagePot)
-  .name("Conditional Task")
-  .on(MessagePot, ({ pot, log, allow, deny }) => {
-    // pot - the incoming pot
-    // log - logger instance
-    // allow(index?) - accept pot (optionally to specific slot)
-    // deny() - reject pot
-
-    if (pot.data.text.length > 0) {
-      return allow();
-    }
-    return deny();
-  })
-  .do(/* ... */);
-```
-
-#### Built-in Trigger Rules (onRule)
-
-| Rule            | Description                                   |
-| --------------- | --------------------------------------------- |
-| `"ForThisTask"` | Accept only pots explicitly sent to this task |
-| `"ForAnyTask"`  | Accept pots sent to any known task            |
-| `"ForUnknown"`  | Accept pots with unknown destination          |
-
-```typescript
-task(DataPot)
-  .name("Targeted Handler")
-  .onRule("ForThisTask", DataPot)
-  .do(/* ... */);
-```
-
-#### Do Handler
-
-```typescript
-task(InputPot)
-  .name("Processor")
-  .do(async ({ pots, log, next, finish, fail, repeat }) => {
-    // pots - array of input pots
-    // log - logger with methods: dbg, trc, vrb, inf, wrn, err, flt
-
-    // Result operations:
-    // next(taskBuilder, data?) - send to next task
-    // finish() - complete successfully
-    // fail(reason?) - complete with error
-    // repeat() - retry this task
-
-    try {
-      const result = await processData(pots[0].data);
-      return next(nextTask, { result });
-    } catch (e) {
-      return fail(e.message);
-    }
-  });
-```
-
-#### Result Operations
-
-| Operation               | Description                                 |
-| ----------------------- | ------------------------------------------- |
-| `next(task, data?)`     | Send pot to another task with optional data |
-| `next([t1, t2], data?)` | Send to multiple tasks                      |
-| `finish()`              | Complete task/workflow successfully         |
-| `fail(reason?)`         | Complete with error                         |
-| `repeat()`              | Retry current task (uses TTL)               |
-
----
-
-### Workflow Builder
-
-#### Creating Workflows
+Create a workflow:
 
 ```typescript
 import { workflow } from "@vseplet/shibui";
 
-const myWorkflow = workflow(MyContextPot)
+const myWorkflow = workflow()
   .name("My Workflow")
-  .on(TriggerPot, (pot) => new MyContextPot().init({/* from trigger */}))
   .sq(({ task }) => {
-    // Define tasks here
-    const first = task()
-      .name("First")
-      .do(async ({ ctx, next }) => next(second));
+    const done = task()
+      .name("Done")
+      .do(async ({ ctx, log, finish }) => {
+        log.inf(`Final: ${ctx.data.count}`);
+        return finish();
+      });
 
-    const second = task()
-      .name("Second")
-      .do(async ({ ctx, finish }) => finish());
+    const increment = task()
+      .name("Increment")
+      .do(async ({ ctx, next }) => {
+        ctx.data.count = (ctx.data.count || 0) + 1;
+        return next(done);
+      });
 
-    return first; // Return first task
+    return increment;
   });
 ```
 
-#### Builder Methods
-
-| Method               | Description                                |
-| -------------------- | ------------------------------------------ |
-| `.name(string)`      | Set workflow name (required)               |
-| `.on(Pot, handler?)` | Add trigger that creates context           |
-| `.triggers(...Pots)` | Add multiple triggers with default handler |
-| `.sq(sequence)`      | Define task sequence                       |
-| `.build()`           | Build workflow (called automatically)      |
-
-#### Sequence Function
-
-The `.sq()` method receives an object with:
-
-| Property          | Description                                    |
-| ----------------- | ---------------------------------------------- |
-| `task(...Pots)`   | Create a workflow task (context is first slot) |
-| `shared(builder)` | Register an external task builder              |
-
-```typescript
-.sq(({ task, shared }) => {
-  // Inside workflow tasks, ctx is automatically available
-  const t1 = task()
-    .name("Task 1")
-    .do(async ({ ctx, log, next }) => {
-      // ctx is the ContextPot
-      ctx.data.step = "processed";
-      return next(t2);
-    });
-
-  const t2 = task(ExtraPot)  // Can also accept additional pots
-    .name("Task 2")
-    .do(async ({ ctx, pots, finish }) => {
-      // ctx is ContextPot, pots[0] is ExtraPot
-      return finish();
-    });
-
-  // Use shared for reusable task functions
-  const t0 = shared(createReusableTask(MyContextPot, t1));
-
-  return t0;
-});
-```
-
 ---
 
-### Core
-
-#### Creating Core Instance
-
-```typescript
-import core from "@vseplet/shibui";
-
-const c = core({
-  kv: {
-    inMemory: true, // Use in-memory KV (for testing)
-    // path: "./data.db"  // Or persistent path
-  },
-  logger: {
-    enable: true,
-  },
-});
-```
-
-#### Core Methods
-
-| Method                  | Description                                     |
-| ----------------------- | ----------------------------------------------- |
-| `register(builder)`     | Register task or workflow                       |
-| `start()`               | Start the core (async)                          |
-| `send(pot, task?)`      | Send pot to queue (optionally to specific task) |
-| `task(...Pots)`         | Create task builder                             |
-| `workflow(ContextPot)`  | Create workflow builder                         |
-| `createLogger(options)` | Create logger instance                          |
-
-#### Manual Registration
-
-```typescript
-const c = core();
-
-// Create and register tasks
-const t1 = c.task(PotA).name("Task 1").do(/* ... */);
-const t2 = c.task(PotA).name("Task 2").do(/* ... */);
-
-c.register(t1);
-c.register(t2);
-
-// Start and send data
-await c.start();
-c.send(new PotA(), t1);
-```
-
-#### Execute Helper
-
-For simple execution without manual core management:
-
-```typescript
-import { execute } from "@vseplet/shibui";
-
-// Execute task
-const success = await execute(taskBuilder, [new InputPot()]);
-
-// Execute workflow (triggers on CoreStartPot by default)
-const success = await execute(workflowBuilder);
-
-// With options
-const success = await execute(taskBuilder, pots, {
-  kv: { inMemory: true },
-  logger: { enable: false },
-});
-```
-
----
-
-### Events
-
-Shibui emits events through `BroadcastChannel`:
-
-#### Core Events
-
-| Event                   | Description                 |
-| ----------------------- | --------------------------- |
-| `TaskFinishedEvent`     | Task completed successfully |
-| `TaskFailedEvent`       | Task failed                 |
-| `WorkflowStartedEvent`  | Workflow started            |
-| `WorkflowFinishedEvent` | Workflow completed          |
-| `WorkflowFailedEvent`   | Workflow failed             |
-
-#### Log Events
-
-| Level   | Method      | Description         |
-| ------- | ----------- | ------------------- |
-| TRACE   | `log.trc()` | Detailed tracing    |
-| DEBUG   | `log.dbg()` | Debug information   |
-| VERBOSE | `log.vrb()` | Verbose output      |
-| INFO    | `log.inf()` | General information |
-| WARN    | `log.wrn()` | Warnings            |
-| ERROR   | `log.err()` | Errors              |
-| FATAL   | `log.flt()` | Fatal errors        |
-
----
-
-## Advanced Usage
-
-### Dependent Tasks (Multiple Inputs)
-
-Tasks can wait for multiple pots before executing:
-
-```typescript
-class DataA extends InternalPot<{ a: number }> {
-  data = { a: 0 };
-}
-
-class DataB extends InternalPot<{ b: number }> {
-  data = { b: 0 };
-}
-
-class DataC extends InternalPot<{ c: number }> {
-  data = { c: 0 };
-}
-
-// Task waits for all three pots
-const combiner = task(DataA, DataB, DataC)
-  .name("Combiner")
-  .do(async ({ pots, log, finish }) => {
-    const [a, b, c] = pots;
-    const sum = a.data.a + b.data.b + c.data.c;
-    log.inf(`Sum: ${sum}`);
-    return finish();
-  });
-
-// Send pots separately - task executes when all arrive
-const c = core();
-c.register(combiner);
-await c.start();
-
-c.send(new DataA().init({ a: 1 }));
-c.send(new DataB().init({ b: 2 }));
-c.send(new DataC().init({ c: 3 }));
-// Task executes with sum = 6
-```
+## Examples
 
 ### Task Chaining
 
 ```typescript
-const c = core();
+import { pot, shibui, TriggerRule } from "@vseplet/shibui";
 
-const step1 = c.task(DataPot)
-  .name("Step 1")
-  .onRule("ForThisTask", DataPot)
-  .do(async ({ pots, next }) => {
-    return next(step2, { value: pots[0].data.value + 1 });
+const Data = pot("Data", { value: 0 }, { ttl: 1 });
+
+const app = shibui();
+
+const step3 = app.task(Data)
+  .name("Step 3")
+  .onRule(TriggerRule.ForThisTask, Data)
+  .do(async ({ pots, log, finish }) => {
+    log.inf(`Final: ${pots[0].data.value}`);
+    return finish();
   });
 
-const step2 = c.task(DataPot)
+const step2 = app.task(Data)
   .name("Step 2")
-  .onRule("ForThisTask", DataPot)
+  .onRule(TriggerRule.ForThisTask, Data)
   .do(async ({ pots, next }) => {
     return next(step3, { value: pots[0].data.value + 1 });
   });
 
-const step3 = c.task(DataPot)
-  .name("Step 3")
-  .onRule("ForThisTask", DataPot)
+const step1 = app.task(Data)
+  .name("Step 1")
+  .onRule(TriggerRule.ForThisTask, Data)
+  .do(async ({ pots, next }) => {
+    return next(step2, { value: pots[0].data.value + 1 });
+  });
+
+app.register(step1);
+app.register(step2);
+app.register(step3);
+
+await app.start();
+app.send(Data, step1);  // Output: Final: 3
+```
+
+### Dependent Task (Multiple Inputs)
+
+```typescript
+const PotA = pot("PotA", { value: 1 });
+const PotB = pot("PotB", { value: 2 });
+const PotC = pot("PotC", { value: 3 });
+
+// Task waits for ALL pots before executing
+const combiner = task(PotA, PotB, PotC)
+  .name("Combiner")
   .do(async ({ pots, log, finish }) => {
-    log.inf(`Final value: ${pots[0].data.value}`);
+    const sum = pots.reduce((acc, p) => acc + p.data.value, 0);
+    log.inf(`Sum: ${sum}`);  // Sum: 6
     return finish();
   });
 
-c.register(step1);
-c.register(step2);
-c.register(step3);
+const app = shibui();
+app.register(combiner);
+await app.start();
 
-await c.start();
-c.send(new DataPot().init({ value: 0 }), step1);
-// Output: Final value: 3
+// Send pots separately
+app.send(PotA);
+app.send(PotB);
+app.send(PotC);  // Task executes now
 ```
 
-### Shared Tasks
-
-Create reusable task factories:
+### Conditional Execution
 
 ```typescript
-// Reusable task factory
-const createValidator = <CTX extends ContextPot<{ valid: boolean }>>(
-  ctxPot: new () => CTX,
-  nextTask: TaskBuilder<{}, [CTX], CTX>,
-) =>
-  task<[CTX], CTX>(ctxPot)
-    .name("Validator")
-    .do(async ({ ctx, log, next, fail }) => {
-      if (ctx.data.valid) {
-        return next(nextTask);
-      }
-      return fail("Validation failed");
-    });
+const Counter = pot("Counter", { value: Math.random() });
 
-// Use in workflow
-const myWorkflow = workflow(MyCtx)
-  .name("Pipeline")
-  .sq(({ task, shared }) => {
-    const process = task()
-      .name("Process")
-      .do(async ({ ctx, finish }) => finish());
-
-    const validate = shared(createValidator(MyCtx, process));
-
-    return validate;
+const conditionalTask = task(Counter)
+  .name("Conditional Task")
+  .when(data => data.value > 0.5)  // Only runs ~50% of time
+  .do(async ({ pots, log, finish }) => {
+    log.inf(`Value ${pots[0].data.value} passed the check!`);
+    return finish();
   });
+
+await execute(conditionalTask, [Counter]);
 ```
 
-### Retry and Timeout
+### Retry with Timeout
 
 ```typescript
-const resilientTask = task(DataPot)
+const Job = pot("Job", { id: 0 });
+
+const resilientTask = task(Job)
   .name("Resilient Task")
-  .attempts(3) // Retry up to 3 times
-  .interval(1000) // Wait 1s between retries
-  .timeout(5000) // Timeout after 5s
-  .do(async ({ pots, log, finish, repeat }) => {
-    try {
-      await riskyOperation(pots[0].data);
-      return finish();
-    } catch (e) {
-      log.wrn(`Attempt failed: ${e.message}`);
-      return repeat(); // Will retry if attempts remain
-    }
+  .retry({
+    attempts: 3,
+    interval: 2000,
+    timeout: 5000
   })
-  .fail(async (error) => {
-    console.error(`Task failed after all retries: ${error.message}`);
+  .do(async ({ pots, log, finish }) => {
+    log.inf(`Processing job ${pots[0].data.id}`);
+    // This will timeout and retry
+    await new Promise(r => setTimeout(r, 10000));
+    return finish();
+  })
+  .catch(async (error) => {
+    console.error(`Job failed: ${error.message}`);
   });
 ```
 
-### Custom Context
+### Task Pipelines
 
 ```typescript
-class BuildContext extends ContextPot<{
-  repository: string;
-  branch: string;
-  commit: string;
-  status: "pending" | "building" | "success" | "failed";
-  artifacts: string[];
-  errors: string[];
-}> {
-  data = {
-    repository: "",
-    branch: "",
-    commit: "",
-    status: "pending" as const,
-    artifacts: [],
-    errors: [],
-  };
-}
+import { chain, pot, task } from "@vseplet/shibui";
 
-const buildPipeline = workflow(BuildContext)
-  .name("Build Pipeline")
-  .on(WebhookPot, ({ pot }) => {
-    return new BuildContext().init({
-      repository: pot.data.payload.repository,
-      branch: pot.data.payload.branch,
-      commit: pot.data.payload.commit,
-    });
-  })
-  .sq(({ task }) => {
-    const checkout = task()
-      .name("Checkout")
-      .do(async ({ ctx, log, next }) => {
-        ctx.data.status = "building";
-        log.inf(`Checking out ${ctx.data.repository}@${ctx.data.branch}`);
-        return next(build);
-      });
+const Counter = pot("Counter", { value: 0 });
 
-    const build = task()
-      .name("Build")
-      .do(async ({ ctx, log, next, fail }) => {
-        try {
-          // Build logic here
-          ctx.data.artifacts.push("dist/bundle.js");
-          return next(deploy);
-        } catch (e) {
-          ctx.data.status = "failed";
-          ctx.data.errors.push(e.message);
-          return fail(e.message);
-        }
-      });
+// chain() - create task pipelines
+const pipeline = chain(
+  task(Counter).name("Start").do(({ finish }) => finish()),
+  task(Counter).name("Process").do(({ finish }) => finish()),
+  task(Counter).name("End").do(({ finish }) => finish())
+);
 
-    const deploy = task()
-      .name("Deploy")
-      .do(async ({ ctx, log, finish }) => {
-        ctx.data.status = "success";
-        log.inf(`Deployed ${ctx.data.artifacts.length} artifacts`);
-        return finish();
-      });
-
-    return checkout;
-  });
+console.log(pipeline.name);  // "Chain[Start -> Process -> End]"
 ```
 
 ---
 
 ## Configuration
 
-### Core Options
-
 ```typescript
-type TCoreOptions = {
-  mode?: "simple" | "default"; // Execution mode
-  kv?: {
-    inMemory?: boolean; // Use in-memory KV storage
-    path?: string; // Path for persistent KV storage
-  };
-  logger?: {
-    enable: boolean; // Enable/disable logging
-  };
-  spicy?: object; // Custom data available in handlers
-};
+const app = shibui({
+  kv: {
+    inMemory: true,    // Use in-memory storage (default: false)
+    // path: "./data"  // Persistent storage path
+  },
+  logger: {
+    enable: true       // Enable logging (default: true)
+  },
+  spicy: {             // Custom data available in all handlers
+    apiKey: "secret",
+    config: { ... }
+  }
+});
+
+// Set minimum log level (messages below this level are filtered)
+app.settings.DEFAULT_LOGGING_LEVEL = 4;  // INFO
 ```
 
-### Logger Settings
+### Log Levels
 
-```typescript
-const c = core();
-c.settings.DEFAULT_LOGGING_LEVEL = 2; // DEBUG level
+| Level | Name | Method |
+|-------|------|--------|
+| 0 | UNKNOWN | - |
+| 1 | TRACE | `log.trc()` |
+| 2 | DEBUG | `log.dbg()` |
+| 3 | VERBOSE | `log.vrb()` |
+| 4 | INFO | `log.inf()` |
+| 5 | WARN | `log.wrn()` |
+| 6 | ERROR | `log.err()` |
+| 7 | FATAL | `log.flt()` |
 
-// Levels:
-// 0 - UNKNOWN
-// 1 - TRACE
-// 2 - DEBUG
-// 3 - VERBOSE
-// 4 - INFO
-// 5 - WARN
-// 6 - ERROR
-// 7 - FATAL
-```
+> **Note:** Only messages with level >= `DEFAULT_LOGGING_LEVEL` are displayed.
 
 ---
 
 ## License
 
-CC BY-NC 3.0 (Creative Commons Attribution-NonCommercial 3.0 Unported)
-
-Copyright 2023-2024 Vsevolod Plentev
-
----
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit issues and pull requests.
+CC BY-NC 3.0 - Copyright 2023-2025 Vsevolod Plentev

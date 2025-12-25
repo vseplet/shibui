@@ -2,10 +2,8 @@
  * Example 7: Timeout and Retry Mechanism
  *
  * Demonstrates:
- * - Setting task timeout
- * - Configuring retry attempts
- * - Setting retry interval
- * - Using fail handler for error logging
+ * - Using .retry() for retry configuration (v1.0 API)
+ * - Using .catch() for error handling (v1.0 API)
  * - Using runCI for test/CI environments
  */
 
@@ -20,9 +18,12 @@ import { runCI, task } from "$shibui";
 runCI(
   task()
     .name("Timeout Example Task")
-    .attempts(3) // Retry up to 3 times
-    .interval(3000) // Wait 3 seconds between retries
-    .timeout(1000) // Timeout after 1 second
+    // v1.0 API: Use .retry() instead of separate .attempts()/.interval()/.timeout()
+    .retry({
+      attempts: 3, // Retry up to 3 times
+      interval: 3000, // Wait 3 seconds between retries
+      timeout: 1000, // Timeout after 1 second
+    })
     .do(async ({ finish, log }) => {
       log.inf("Task started, will sleep for 10 seconds...");
 
@@ -32,7 +33,8 @@ runCI(
       // This line will never be reached due to timeout
       return finish();
     })
-    .fail(async (error) => {
+    // v1.0 API: Use .catch() instead of .fail()
+    .catch(async (error) => {
       // This will be called after all retry attempts fail
       console.error(`Task failed after all attempts: ${error.message}`);
     }),
@@ -48,6 +50,6 @@ runCI(
  * 6. Timeout again
  * 7. Retry attempt 3 (wait 3s)
  * 8. Timeout again
- * 9. fail() handler is called with error
+ * 9. catch() handler is called with error
  * 10. Process exits with error code
  */

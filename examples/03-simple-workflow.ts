@@ -26,6 +26,10 @@ const simpleWorkflow = workflow()
         log.dbg(`Context data: ${JSON.stringify(ctx.data)}`);
         return finish();
       })
+      // v1.0 API: Use .catch() for error handling
+      .catch(async (error) => {
+        console.error(`Workflow task failed: ${error.message}`);
+      })
   );
 
 // Execute workflow

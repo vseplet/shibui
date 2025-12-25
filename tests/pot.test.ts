@@ -1,5 +1,14 @@
 import { assertEquals, assertExists } from "jsr:@std/assert";
-import { ContextPot, ExternalPot, InternalPot, PotType } from "$shibui";
+import {
+  context,
+  ContextPot,
+  ExternalPot,
+  InternalPot,
+  pot,
+  type PotData,
+  type PotOf,
+  PotType,
+} from "$shibui";
 
 Deno.test("Pot - InternalPot creation", () => {
   class TestPot extends InternalPot<{ value: number }> {
@@ -118,10 +127,95 @@ Deno.test("Pot - from/to metadata", () => {
     override data = { value: 0 };
   }
 
-  const pot = new TestPot();
+  const p = new TestPot();
 
-  assertEquals(pot.from.workflow, "unknown");
-  assertEquals(pot.from.task, "unknown");
-  assertEquals(pot.to.workflow, "unknown");
-  assertEquals(pot.to.task, "unknown");
+  assertEquals(p.from.workflow, "unknown");
+  assertEquals(p.from.task, "unknown");
+  assertEquals(p.to.workflow, "unknown");
+  assertEquals(p.to.task, "unknown");
+});
+
+// ============================================================================
+// v1.0 API Tests - pot() factory
+// ============================================================================
+
+Deno.test("Pot v1.0 - pot() factory creation", () => {
+  const Counter = pot("Counter", { value: 0 });
+
+  assertEquals(Counter.name, "Counter");
+  assertEquals(Counter.defaults.value, 0);
+  assertEquals(Counter.ttl, 0);
+});
+
+Deno.test("Pot v1.0 - pot() with TTL option", () => {
+  const Message = pot("Message", { text: "" }, { ttl: 100 });
+
+  assertEquals(Message.name, "Message");
+  assertEquals(Message.ttl, 100);
+});
+
+Deno.test("Pot v1.0 - pot().create() instance", () => {
+  const Counter = pot("Counter", { value: 0 });
+  const instance = Counter.create({ value: 42 });
+
+  assertEquals(instance.name, "Counter");
+  assertEquals(instance.type, PotType.Internal);
+  assertEquals(instance.data.value, 42);
+  assertEquals(instance.ttl, 0);
+  assertExists(instance.uuid);
+  assertExists(instance.toc);
+  assertEquals(instance.from.task, "unknown");
+  assertEquals(instance.to.task, "unknown");
+});
+
+Deno.test("Pot v1.0 - pot().create() with defaults", () => {
+  const User = pot("User", { name: "Anonymous", age: 0 });
+  const instance = User.create(); // No override
+
+  assertEquals(instance.data.name, "Anonymous");
+  assertEquals(instance.data.age, 0);
+});
+
+Deno.test("Pot v1.0 - pot().create() partial override", () => {
+  const User = pot("User", { name: "Anonymous", age: 0 });
+  const instance = User.create({ age: 25 }); // Only override age
+
+  assertEquals(instance.data.name, "Anonymous");
+  assertEquals(instance.data.age, 25);
+});
+
+Deno.test("Pot v1.0 - pot().init() is alias for create()", () => {
+  const Counter = pot("Counter", { value: 0 });
+  const instance = Counter.init({ value: 99 });
+
+  assertEquals(instance.data.value, 99);
+});
+
+Deno.test("Pot v1.0 - context() factory for workflows", () => {
+  const MyContext = context("MyWorkflow", { count: 0, status: "pending" });
+
+  assertEquals(MyContext.name, "Context:MyWorkflow");
+  assertEquals(MyContext.defaults.count, 0);
+  assertEquals(MyContext.defaults.status, "pending");
+});
+
+Deno.test("Pot v1.0 - PotData type helper", () => {
+  const Counter = pot("Counter", { value: 0 });
+
+  // This is a compile-time test - if it compiles, the type is correct
+  type CounterData = PotData<typeof Counter>;
+  const data: CounterData = { value: 42 };
+
+  assertEquals(data.value, 42);
+});
+
+Deno.test("Pot v1.0 - PotOf type helper", () => {
+  const Counter = pot("Counter", { value: 0 });
+
+  // This is a compile-time test - if it compiles, the type is correct
+  type CounterInstance = PotOf<typeof Counter>;
+  const instance: CounterInstance = Counter.create({ value: 42 });
+
+  assertEquals(instance.data.value, 42);
+  assertExists(instance.uuid);
 });

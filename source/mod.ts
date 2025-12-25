@@ -33,17 +33,43 @@ import { ContextPot } from "$shibui/pots";
 import { createRandomContext } from "./helpers/createRandomContext.ts";
 import { emitters } from "$shibui/emitters";
 import { levelName } from "./components/EventDrivenLogger.ts";
+import type { PotFactory, PotInstance } from "./pot.ts";
+
+/** Input for execute() - can be PotFactory, PotInstance, or TPot */
+// deno-lint-ignore no-explicit-any
+type PotLike = TPot | PotInstance<any> | PotFactory<any>;
+
+/** Check if input is a PotFactory */
+// deno-lint-ignore no-explicit-any
+function isPotFactoryInput(input: PotLike): input is PotFactory<any> {
+  return typeof input === "object" && input !== null && "create" in input &&
+    "_class" in input;
+}
+
+/** Convert PotLike to TPot */
+function toPot(input: PotLike): TPot {
+  if (isPotFactoryInput(input)) {
+    return input.create() as unknown as TPot;
+  }
+  return input as TPot;
+}
 
 /**
  * Executes a task or workflow using the provided builder.
  * @param {TTaskBuilder | TWorkflowBuilder} builder - The task or workflow builder.
- * @param {Array<TPot>} [pots] - An array of IPot objects to send to the core.
+ * @param {Array<PotLike>} [pots] - Pot factories, instances, or raw pots.
  * @param {TCoreOptions<S>} [_options] - Core options.
  * @returns {Promise<boolean>} - Returns true if execution is successful, otherwise false.
+ *
+ * @example
+ * const Counter = pot("Counter", { value: 0 });
+ * // All these work:
+ * await execute(myTask, [Counter]);                    // Factory - auto-creates
+ * await execute(myTask, [Counter.create({ value: 5 })]);  // Instance
  */
 export const execute = async <S extends TSpicy>(
   builder: TTaskBuilder | TWorkflowBuilder,
-  pots?: Array<TPot>,
+  pots?: Array<PotLike>,
   options?: TCoreOptions<S>,
 ): Promise<boolean> => {
   let isComplete = false;
@@ -79,7 +105,7 @@ export const execute = async <S extends TSpicy>(
   }
 
   await tmpCore.start();
-  if (pots) pots.forEach((pot) => tmpCore.send(pot));
+  if (pots) pots.forEach((pot) => tmpCore.send(toPot(pot)));
   while (!isComplete) await delay(0);
   tmpCore.close();
   return isOk;
@@ -113,13 +139,62 @@ export const runCI = <S extends TSpicy>(
   });
 };
 
+// ============================================================================
+// Type helpers for task() to accept both PotFactory and Constructor
+// ============================================================================
+
+/** Input type: either a Pot class constructor or a PotFactory */
+// deno-lint-ignore no-explicit-any
+type PotInput = Constructor<Pot<any>> | PotFactory<any>;
+
+/** Convert a single PotInput to its Pot type */
+// deno-lint-ignore no-explicit-any
+type ToPot<S> = S extends Constructor<infer P extends Pot<any>> ? P
+  // deno-lint-ignore no-explicit-any
+  : S extends PotFactory<infer D> ? Pot<D & { [key: string]: any }>
+  : never;
+
+/** Convert array of PotInputs to array of Pot types */
+type ToPots<Sources extends PotInput[]> = {
+  [K in keyof Sources]: ToPot<Sources[K]>;
+};
+
+/** Check if input is a PotFactory */
+// deno-lint-ignore no-explicit-any
+function isPotFactory(input: PotInput): input is PotFactory<any> {
+  return typeof input === "object" && input !== null && "_class" in input &&
+    "create" in input;
+}
+
+/** Convert PotInput to Constructor */
+// deno-lint-ignore no-explicit-any
+function toConstructor(input: PotInput): Constructor<Pot<any>> {
+  if (isPotFactory(input)) {
+    return input._class;
+  }
+  return input;
+}
+
+/**
+ * Creates a new task builder
+ *
+ * @example
+ * // With pot() factory (v1.0 - recommended)
+ * const Counter = pot("Counter", { value: 0 });
+ * task(Counter).name("Task").do(...)
+ *
+ * // With class (legacy)
+ * task(MyPot).name("Task").do(...)
+ */
 export const task = <
-  Pots extends Pot[],
+  Sources extends PotInput[],
   CPot extends ContextPot<{}> | undefined = undefined,
 >(
-  ...constructors: { [K in keyof Pots]: Constructor<Pots[K]> }
-): TaskBuilder<{}, Pots, CPot> => {
-  return new TaskBuilder<{}, Pots, CPot>(...constructors);
+  ...sources: Sources
+): TaskBuilder<{}, ToPots<Sources>, CPot> => {
+  const constructors = sources.map(toConstructor);
+  // deno-lint-ignore no-explicit-any
+  return new TaskBuilder<{}, ToPots<Sources>, CPot>(...constructors as any);
 };
 
 export const workflow = <CP extends ContextPot<{}>>(
@@ -143,7 +218,26 @@ export const core = <S extends TSpicy = {}>(
 
 export default core;
 
+// Alias: shibui = core
+export const shibui = core;
+
+// New v1.0 API - pot factory
+export {
+  context,
+  CoreStartPot as CoreStart,
+  pot,
+  type PotData,
+  type PotFactory,
+  type PotInstance,
+  type PotOf,
+  type PotOptions,
+} from "./pot.ts";
+
+// New v1.0 API - chain and pipe utilities
+export { chain, type ChainConfig, pipe, type Transform } from "./chain.ts";
+
 // Re-export everything from submodules for convenience
+// Legacy pot classes (deprecated, use pot() instead)
 export {
   ContextPot,
   CoreStartPot,
@@ -225,4 +319,11 @@ export type {
   TWorkflowTriggerHandlerContext,
   TWorkflowTriggersStorage,
   WorkflowsStorage,
+  // New v1.0 types
+  TPotData,
+  TPotInstanceOf,
+  TPotSource,
+  TWhenPredicate,
 } from "$shibui/types";
+
+export { isPotFactory } from "$shibui/types";

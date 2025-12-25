@@ -26,6 +26,35 @@ import { type Pot, WorkflowBuilder } from "$shibui/entities";
 import type { Constructor } from "$helpers/types";
 import { TaskBuilder } from "../entities/TaskBuilder.ts";
 import type { ContextPot } from "$shibui/pots";
+import type { PotFactory, PotInstance } from "../pot.ts";
+
+// Type helpers for task() to accept both PotFactory and Constructor
+// deno-lint-ignore no-explicit-any
+type PotInput = Constructor<Pot<any>> | PotFactory<any>;
+
+// deno-lint-ignore no-explicit-any
+type ToPot<S> = S extends Constructor<infer P extends Pot<any>> ? P
+  // deno-lint-ignore no-explicit-any
+  : S extends PotFactory<infer D> ? Pot<D & { [key: string]: any }>
+  : never;
+
+type ToPots<Sources extends PotInput[]> = {
+  [K in keyof Sources]: ToPot<Sources[K]>;
+};
+
+// deno-lint-ignore no-explicit-any
+function isPotFactory(input: PotInput): input is PotFactory<any> {
+  return typeof input === "object" && input !== null && "_class" in input &&
+    "create" in input;
+}
+
+// deno-lint-ignore no-explicit-any
+function toConstructor(input: PotInput): Constructor<Pot<any>> {
+  if (isPotFactory(input)) {
+    return input._class;
+  }
+  return input;
+}
 
 export class Core<S extends TSpicy> implements TCore<S> {
   emitters = emitters;
@@ -57,10 +86,12 @@ export class Core<S extends TSpicy> implements TCore<S> {
     return new WorkflowBuilder<S, CP>(contextPotConstructor);
   }
 
-  task<Pots extends Pot[]>(
-    ...constructors: { [K in keyof Pots]: Constructor<Pots[K]> }
-  ): TaskBuilder<S, Pots> {
-    return new TaskBuilder<S, Pots>(...constructors);
+  task<Sources extends PotInput[]>(
+    ...sources: Sources
+  ): TaskBuilder<S, ToPots<Sources>> {
+    const constructors = sources.map(toConstructor);
+    // deno-lint-ignore no-explicit-any
+    return new TaskBuilder<S, ToPots<Sources>>(...constructors as any);
   }
 
   createLogger = (options: TLoggerOptions): EventDrivenLogger => {
@@ -87,7 +118,18 @@ export class Core<S extends TSpicy> implements TCore<S> {
     this.#globalPotDistributor.enable(builder);
   }
 
-  send(pot: TPot, builder?: TTaskBuilder) {
+  /**
+   * Send a pot to the core for processing
+   * @param potLike - PotFactory (auto-creates), PotInstance, or TPot
+   * @param builder - Optional task to route the pot to
+   */
+  // deno-lint-ignore no-explicit-any
+  send(potLike: TPot | PotInstance<any> | PotFactory<any>, builder?: TTaskBuilder) {
+    // Auto-create if PotFactory
+    const pot = (typeof potLike === "object" && "create" in potLike && "_class" in potLike)
+      ? potLike.create() as unknown as TPot
+      : potLike as TPot;
+
     if (builder) pot.to.task = builder.task.name;
     this.#globalPotDistributor.send(pot);
   }

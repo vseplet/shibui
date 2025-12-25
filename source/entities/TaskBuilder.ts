@@ -20,10 +20,31 @@ import type {
   TTask,
   TTaskDoHandler,
   TTaskTriggerHandler,
+  TWhenPredicate,
   TWorkflowBuilder,
 } from "$shibui/types";
 import { TriggerRule, UNKNOWN_TARGET } from "$shibui/types";
 import { CoreStartPot } from "$shibui/pots";
+import type { PotFactory } from "../pot.ts";
+
+// Helper to check if input is PotFactory
+// deno-lint-ignore no-explicit-any
+function isPotFactory(input: any): input is PotFactory<any> {
+  return typeof input === "object" && input !== null && "_class" in input &&
+    "create" in input;
+}
+
+// Get constructor from either PotFactory or Constructor
+// deno-lint-ignore no-explicit-any
+function getConstructor<T extends Pot<any>>(
+  input: Constructor<T> | PotFactory<T["data"]>,
+): Constructor<T> {
+  if (isPotFactory(input)) {
+    // deno-lint-ignore no-explicit-any
+    return input._class as any;
+  }
+  return input;
+}
 
 export class TaskBuilder<
   Spicy extends TSpicy,
@@ -159,9 +180,10 @@ export class TaskBuilder<
 
   onRule<TP extends Pots[number]>(
     rule: TriggerRule,
-    potConstructor: Constructor<TP>,
+    potSource: Constructor<TP> | PotFactory<TP["data"]>,
     slot?: number,
   ): this {
+    const potConstructor = getConstructor(potSource);
     const handler = this.createRuleHandler(rule, potConstructor);
     if (!this.task.triggers[potConstructor.name]) {
       this.task.triggers[potConstructor.name] = [];
@@ -169,6 +191,39 @@ export class TaskBuilder<
 
     this.task.triggers[potConstructor.name].push(
       this.createTrigger(potConstructor, handler, slot),
+    );
+    return this;
+  }
+
+  /**
+   * Simple predicate-based trigger filter (v1.0 API)
+   * @example
+   * task(Counter)
+   *   .when(data => data.value > 0.5)
+   *   .do(...)
+   */
+  when<TP extends Pots[number] = Pots[0]>(
+    predicate: TWhenPredicate<TP["data"]>,
+    potConstructor?: Constructor<TP>,
+    slot?: number,
+  ): this {
+    // If no pot constructor provided, use the first one from constructor args
+    const targetPot = potConstructor || this.potsConstructors[0];
+    if (!targetPot) {
+      throw new Error("No pot constructor available for .when() - provide one as second argument");
+    }
+
+    const handler = (args: TOnHandlerContext<Spicy, CTX, TP>) => {
+      const pot = "ctx" in args ? args.ctx : args.pot;
+      return predicate(pot.data) ? args.allow() : args.deny();
+    };
+
+    if (!this.task.triggers[targetPot.name]) {
+      this.task.triggers[targetPot.name] = [];
+    }
+
+    this.task.triggers[targetPot.name].push(
+      this.createTrigger(targetPot as Constructor<TP>, handler, slot),
     );
     return this;
   }
@@ -186,6 +241,35 @@ export class TaskBuilder<
 
   fail(handler: (error: Error) => Promise<void>): this {
     this.task.fail = handler;
+    return this;
+  }
+
+  /**
+   * Alias for fail() - more familiar naming (v1.0 API)
+   * @example
+   * task("Name", Counter)
+   *   .do(...)
+   *   .catch(error => console.error(error))
+   */
+  catch(handler: (error: Error) => Promise<void>): this {
+    return this.fail(handler);
+  }
+
+  /**
+   * Configure retry behavior with a single object (v1.0 API)
+   * @example
+   * task("Name", Counter)
+   *   .retry({ attempts: 3, interval: 1000, timeout: 5000 })
+   *   .do(...)
+   */
+  retry(config: {
+    attempts?: number;
+    interval?: number;
+    timeout?: number;
+  }): this {
+    if (config.attempts !== undefined) this.task.attempts = config.attempts;
+    if (config.interval !== undefined) this.task.interval = config.interval;
+    if (config.timeout !== undefined) this.task.timeout = config.timeout;
     return this;
   }
 

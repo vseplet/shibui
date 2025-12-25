@@ -26,6 +26,8 @@ const simpleWorkflow = workflow()
     // Define task 1 (executes first)
     const t1 = task()
       .name("task 1")
+      // v1.0 API: Use .retry() for configuration
+      .retry({ attempts: 2, timeout: 10000 })
       .do(async ({ ctx, log, next }) => {
         // Modify shared context
         log.dbg(`Task 1 - Context data: ${JSON.stringify(ctx.data)}`);

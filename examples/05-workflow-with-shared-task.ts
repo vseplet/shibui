@@ -25,9 +25,14 @@ export const checkUpdateTypeByCommitMessage = <
 >(
   contextPot: new () => CTX,
   nextTask?: TaskBuilder<{}, [CTX], CTX>,
-) =>
-  task<[CTX], CTX>(contextPot)
+): TaskBuilder<{}, [CTX], CTX> => {
+  // Note: Using explicit generic types with task() requires type assertion
+  // deno-lint-ignore no-explicit-any
+  const builder = (task as any)(contextPot) as TaskBuilder<{}, [CTX], CTX>;
+  return builder
     .name("checkUpdateTypeByCommitMessage")
+    // v1.0 API: Use .retry() for resilience
+    .retry({ attempts: 2, timeout: 30000 })
     .do(async ({ ctx, log, next, finish }) => {
       // Get last commit message
       const lastCommitText = (await sh("git log -1 --pretty=%B")).stdout;
@@ -51,7 +56,12 @@ export const checkUpdateTypeByCommitMessage = <
       } else {
         return finish();
       }
+    })
+    // v1.0 API: Use .catch() for error handling
+    .catch(async (error) => {
+      console.error(`Failed to check commit message: ${error.message}`);
     });
+};
 
 // Define custom context for workflow
 class CTX extends ContextPot<{

@@ -2,32 +2,26 @@
  * Example 2: Task Chaining
  *
  * Demonstrates:
- * - Creating multiple tasks
+ * - Creating pot using pot() factory (v1.0 API)
  * - Using next() to chain tasks
- * - Using onRule(TriggerRule.ForThisTask) to target specific tasks
+ * - Using TriggerRule.ForThisTask for routing
  * - Passing data between tasks
- * - Manual task registration
  */
 
-import core, { InternalPot, TriggerRule } from "$shibui";
+import core, { pot, TriggerRule } from "$shibui";
 
 const c = core();
 
-// Define a pot for data passing
-class SimplePot extends InternalPot<{ value: number }> {
-  override ttl = 1;
-  override data = {
-    value: 0,
-  };
-}
+// v1.0 API: Define pot using pot() factory
+const SimplePot = pot("SimplePot", { value: 0 }, { ttl: 1 });
 
 // Task 3: Final task in chain
 const task3 = c.task(SimplePot)
   .name("Task 3")
-  .onRule(TriggerRule.ForThisTask, SimplePot) // Only accept pots sent to this task
+  .onRule(TriggerRule.ForThisTask, SimplePot)
   .do(async ({ log, pots, finish }) => {
     log.dbg(`Task 3 received value: ${pots[0].data.value}`);
-    return finish(); // End of chain
+    return finish();
   });
 
 // Task 2: Middle task in chain
@@ -37,11 +31,7 @@ const task2 = c.task(SimplePot)
   .do(async ({ log, pots, next }) => {
     const value = pots[0].data.value;
     log.dbg(`Task 2 received value: ${value}`);
-
-    // Increment and pass to task 3
-    return next(task3, {
-      value: value + 1,
-    });
+    return next(task3, { value: value + 1 });
   });
 
 // Task 1: First task in chain
@@ -51,11 +41,7 @@ const task1 = c.task(SimplePot)
   .do(async ({ log, pots, next }) => {
     const value = pots[0].data.value;
     log.dbg(`Task 1 received value: ${value}`);
-
-    // Increment and pass to task 2
-    return next(task2, {
-      value: value + 1,
-    });
+    return next(task2, { value: value + 1 });
   });
 
 // Register all tasks
@@ -65,6 +51,6 @@ c.register(task3);
 
 // Start core and send initial pot to task1
 await c.start();
-c.send(new SimplePot(), task1);
+c.send(SimplePot, task1);  // Auto-creates!
 
 // Result: value goes 0 -> 1 -> 2 -> 3 through the chain

@@ -17,6 +17,7 @@ import type { EventDrivenLogger } from "$shibui/components";
 import type { TaskBuilder } from "./entities/TaskBuilder.ts";
 import type { Pot, WorkflowBuilder } from "$shibui/entities";
 import type { ContextPot } from "$shibui/pots";
+import type { PotFactory, PotInstance } from "./pot.ts";
 
 // ============================================================================
 // Enums
@@ -349,3 +350,42 @@ export type TWorkflowBuilder = {
 };
 
 export type TPotsConstructorsList = Array<Constructor<Pot>>;
+
+// ============================================================================
+// New v1.0 Pot Factory Types
+// ============================================================================
+
+/**
+ * Union type that accepts either a Pot class constructor or a PotFactory
+ */
+export type TPotSource<T extends { [key: string]: unknown } = { [key: string]: unknown }> =
+  | Constructor<Pot<T>>
+  | PotFactory<T>;
+
+/**
+ * Extract data type from either Pot class or PotFactory
+ */
+export type TPotData<P> = P extends Constructor<Pot<infer D>> ? D
+  : P extends PotFactory<infer D> ? D
+  : never;
+
+/**
+ * Extract pot instance type from either Pot class or PotFactory
+ */
+export type TPotInstanceOf<P> = P extends Constructor<Pot<infer D>> ? Pot<D>
+  : P extends PotFactory<infer D> ? PotInstance<D>
+  : never;
+
+/**
+ * Type guard to check if a pot source is a PotFactory
+ */
+export function isPotFactory<T extends { [key: string]: unknown }>(
+  source: TPotSource<T>,
+): source is PotFactory<T> {
+  return typeof source === "object" && "create" in source && "name" in source;
+}
+
+/**
+ * Predicate function for .when() trigger filtering
+ */
+export type TWhenPredicate<T> = (data: T) => boolean;
