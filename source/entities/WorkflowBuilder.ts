@@ -58,9 +58,10 @@ export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
     ctxPotSource: Constructor<CPot> | PotFactory<object>,
   ) {
     // Accept either Constructor or PotFactory
-    this.ctxPotConstructor = (isPotFactory(ctxPotSource)
-      ? ctxPotSource._class
-      : ctxPotSource) as Constructor<CPot>;
+    this.ctxPotConstructor =
+      (isPotFactory(ctxPotSource)
+        ? ctxPotSource._class
+        : ctxPotSource) as Constructor<CPot>;
   }
 
   private addTrigger(

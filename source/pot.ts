@@ -74,7 +74,9 @@ export interface PotFactory<T extends object> {
 
 /** Internal Pot class type for TaskBuilder compatibility */
 // deno-lint-ignore no-explicit-any
-export type PotClass<T extends object> = new () => Pot<T & { [key: string]: any }>;
+export type PotClass<T extends object> = new () => Pot<
+  T & { [key: string]: any }
+>;
 
 const UNKNOWN = "unknown";
 

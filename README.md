@@ -27,6 +27,7 @@ await execute(printTask, [Message.create({ text: "Hello!" })]);
 ```
 
 **Run with:**
+
 ```bash
 deno run --allow-all --unstable-kv your_script.ts
 ```
@@ -69,13 +70,13 @@ const instance = Counter.create({ value: 42 });
 ```typescript
 const myTask = task(Counter)
   .name("My Task")
-  .when(data => data.value > 0)      // Trigger condition
-  .retry({ attempts: 3, timeout: 5000 })  // Retry config
+  .when((data) => data.value > 0) // Trigger condition
+  .retry({ attempts: 3, timeout: 5000 }) // Retry config
   .do(async ({ pots, log, finish }) => {
     log.inf(`Processing: ${pots[0].data.value}`);
     return finish();
   })
-  .catch(async (error) => {           // Error handler
+  .catch(async (error) => { // Error handler
     console.error(error.message);
   });
 ```
@@ -88,7 +89,7 @@ const myTask = task(Counter)
 // Define typed context with context()
 const MyContext = context("MyContext", {
   count: 0,
-  status: "pending"
+  status: "pending",
 });
 
 const myWorkflow = workflow(MyContext)
@@ -97,7 +98,7 @@ const myWorkflow = workflow(MyContext)
     const step2 = task()
       .name("Step 2")
       .do(async ({ ctx, finish }) => {
-        ctx.data.status = "done";  // TypeScript knows the type!
+        ctx.data.status = "done"; // TypeScript knows the type!
         return finish();
       });
 
@@ -123,15 +124,15 @@ Create a pot factory:
 ```typescript
 const User = pot("User", {
   name: "Anonymous",
-  age: 0
+  age: 0,
 }, { ttl: 3 });
 
 // Methods
-User.create()              // Create with defaults
-User.create({ age: 25 })   // Create with overrides
-User.name                  // "User"
-User.defaults              // { name: "Anonymous", age: 0 }
-User.ttl                   // 3
+User.create(); // Create with defaults
+User.create({ age: 25 }); // Create with overrides
+User.name; // "User"
+User.defaults; // { name: "Anonymous", age: 0 }
+User.ttl; // 3
 ```
 
 ### context(name, defaults)
@@ -142,13 +143,13 @@ Create a workflow context factory (typed):
 const OrderContext = context("OrderContext", {
   orderId: "",
   items: [] as string[],
-  total: 0
+  total: 0,
 });
 
 // Use with workflow for full type inference
 workflow(OrderContext).sq(({ task }) => {
   task().do(({ ctx }) => {
-    ctx.data.orderId = "ORD-001";  // TypeScript knows the type!
+    ctx.data.orderId = "ORD-001"; // TypeScript knows the type!
     ctx.data.items.push("item");
   });
 });
@@ -168,15 +169,15 @@ task(PotA, PotB, PotC).name("Combiner").do(...)
 
 #### Task Builder Methods
 
-| Method | Description |
-|--------|-------------|
-| `.name(string)` | Set task name (required) |
-| `.when(predicate)` | Filter by data condition |
-| `.on(Pot, handler)` | Custom trigger handler |
-| `.onRule(rule, Pot)` | Built-in trigger rule |
-| `.do(handler)` | Execution handler (required) |
-| `.retry({ attempts, interval, timeout })` | Retry configuration |
-| `.catch(handler)` | Error handler |
+| Method                                    | Description                  |
+| ----------------------------------------- | ---------------------------- |
+| `.name(string)`                           | Set task name (required)     |
+| `.when(predicate)`                        | Filter by data condition     |
+| `.on(Pot, handler)`                       | Custom trigger handler       |
+| `.onRule(rule, Pot)`                      | Built-in trigger rule        |
+| `.do(handler)`                            | Execution handler (required) |
+| `.retry({ attempts, interval, timeout })` | Retry configuration          |
+| `.catch(handler)`                         | Error handler                |
 
 #### .when() - Simple Trigger
 
@@ -195,10 +196,10 @@ task(Counter)
     // log - logger (dbg, inf, wrn, err, etc.)
 
     // Return one of:
-    return finish();              // Complete successfully
-    return fail("reason");        // Complete with error
+    return finish(); // Complete successfully
+    return fail("reason"); // Complete with error
     return next(otherTask, data); // Chain to another task
-    return repeat();              // Retry (uses TTL)
+    return repeat(); // Retry (uses TTL)
   });
 ```
 
@@ -234,7 +235,7 @@ await execute(myWorkflow);
 // With options
 await execute(myTask, [Counter], {
   storage: "memory",
-  logging: false
+  logging: false,
 });
 ```
 
@@ -244,16 +245,16 @@ Create an engine instance for manual control:
 
 ```typescript
 const app = core({
-  storage: "memory",     // or "./data/app.db" for persistent storage
-  logging: false,        // disable logging
-  context: {             // custom data for handlers
-    apiKey: "..."
-  }
+  storage: "memory", // or "./data/app.db" for persistent storage
+  logging: false, // disable logging
+  context: { // custom data for handlers
+    apiKey: "...",
+  },
 });
 
 app.register(myTask);
 await app.start();
-app.send(Counter, myTask);  // Auto-creates pot instance
+app.send(Counter, myTask); // Auto-creates pot instance
 app.close();
 ```
 
@@ -267,7 +268,7 @@ import { context, workflow } from "@vseplet/shibui";
 // With typed context
 const BuildContext = context("BuildContext", {
   steps: [] as string[],
-  status: "pending"
+  status: "pending",
 });
 
 const myWorkflow = workflow(BuildContext)
@@ -329,15 +330,15 @@ const app = core({
 
 ### Log Levels
 
-| Level | Name | Method |
-|-------|------|--------|
-| 1 | TRACE | `log.trc()` |
-| 2 | DEBUG | `log.dbg()` |
-| 3 | VERBOSE | `log.vrb()` |
-| 4 | INFO | `log.inf()` |
-| 5 | WARN | `log.wrn()` |
-| 6 | ERROR | `log.err()` |
-| 7 | FATAL | `log.flt()` |
+| Level | Name    | Method      |
+| ----- | ------- | ----------- |
+| 1     | TRACE   | `log.trc()` |
+| 2     | DEBUG   | `log.dbg()` |
+| 3     | VERBOSE | `log.vrb()` |
+| 4     | INFO    | `log.inf()` |
+| 5     | WARN    | `log.wrn()` |
+| 6     | ERROR   | `log.err()` |
+| 7     | FATAL   | `log.flt()` |
 
 ---
 
@@ -379,7 +380,7 @@ app.register(step2);
 app.register(step3);
 
 await app.start();
-app.send(Data, step1);  // Output: Final: 3
+app.send(Data, step1); // Output: Final: 3
 ```
 
 ### Dependent Task (Multiple Inputs)
@@ -394,7 +395,7 @@ const combiner = task(PotA, PotB, PotC)
   .name("Combiner")
   .do(async ({ pots, log, finish }) => {
     const sum = pots.reduce((acc, p) => acc + p.data.value, 0);
-    log.inf(`Sum: ${sum}`);  // Sum: 6
+    log.inf(`Sum: ${sum}`); // Sum: 6
     return finish();
   });
 
@@ -405,7 +406,7 @@ await app.start();
 // Send pots separately
 app.send(PotA);
 app.send(PotB);
-app.send(PotC);  // Task executes now
+app.send(PotC); // Task executes now
 ```
 
 ### Conditional Execution
@@ -415,7 +416,7 @@ const Counter = pot("Counter", { value: Math.random() });
 
 const conditionalTask = task(Counter)
   .name("Conditional Task")
-  .when(data => data.value > 0.5)  // Only runs ~50% of time
+  .when((data) => data.value > 0.5) // Only runs ~50% of time
   .do(async ({ pots, log, finish }) => {
     log.inf(`Value ${pots[0].data.value} passed the check!`);
     return finish();
@@ -434,12 +435,12 @@ const resilientTask = task(Job)
   .retry({
     attempts: 3,
     interval: 2000,
-    timeout: 5000
+    timeout: 5000,
   })
   .do(async ({ pots, log, finish }) => {
     log.inf(`Processing job ${pots[0].data.id}`);
     // This will timeout and retry
-    await new Promise(r => setTimeout(r, 10000));
+    await new Promise((r) => setTimeout(r, 10000));
     return finish();
   })
   .catch(async (error) => {
@@ -458,10 +459,10 @@ const Counter = pot("Counter", { value: 0 });
 const pipeline = chain(
   task(Counter).name("Start").do(({ finish }) => finish()),
   task(Counter).name("Process").do(({ finish }) => finish()),
-  task(Counter).name("End").do(({ finish }) => finish())
+  task(Counter).name("End").do(({ finish }) => finish()),
 );
 
-console.log(pipeline.name);  // "Chain[Start -> Process -> End]"
+console.log(pipeline.name); // "Chain[Start -> Process -> End]"
 ```
 
 ### Workflow with Typed Context

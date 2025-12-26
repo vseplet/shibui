@@ -103,7 +103,9 @@ Deno.test("Workflow - custom trigger handler", async () => {
     .name("Custom Trigger")
     .on(TriggerPot, (p) => {
       const triggerPot = p as typeof TriggerPot._class.prototype;
-      return new InitialContext._class().init({ initial: triggerPot.data.value * 2 });
+      return new InitialContext._class().init({
+        initial: triggerPot.data.value * 2,
+      });
     })
     .sq(({ task }) => {
       const t1 = task()

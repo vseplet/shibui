@@ -211,7 +211,9 @@ export class TaskBuilder<
     // If no pot constructor provided, use the first one from constructor args
     const targetPot = potConstructor || this.potsConstructors[0];
     if (!targetPot) {
-      throw new Error("No pot constructor available for .when() - provide one as second argument");
+      throw new Error(
+        "No pot constructor available for .when() - provide one as second argument",
+      );
     }
 
     const handler = (args: TOnHandlerContext<Spicy, CTX, TP>) => {

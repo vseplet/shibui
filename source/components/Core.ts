@@ -16,8 +16,8 @@ import {
   SourceType,
   type TCore,
   type TCoreOptions,
-  type TLoggingConfig,
   type TLoggerOptions,
+  type TLoggingConfig,
   type TPot,
   type TSpicy,
   type TTaskBuilder,
@@ -101,9 +101,7 @@ function normalizeOptions<S>(options: TCoreOptions<S>): {
   context: S | undefined;
 } {
   // Storage
-  const kvPath = options.storage === "memory"
-    ? ":memory:"
-    : options.storage;
+  const kvPath = options.storage === "memory" ? ":memory:" : options.storage;
 
   // Logging
   let loggingEnabled = true;
@@ -223,9 +221,13 @@ export class Core<S extends TSpicy> implements TCore<S> {
    * @param builder - Optional task to route the pot to
    */
   // deno-lint-ignore no-explicit-any
-  send(potLike: TPot | PotInstance<any> | PotFactory<any>, builder?: TTaskBuilder) {
+  send(
+    potLike: TPot | PotInstance<any> | PotFactory<any>,
+    builder?: TTaskBuilder,
+  ) {
     // Auto-create if PotFactory
-    const pot = (typeof potLike === "object" && "create" in potLike && "_class" in potLike)
+    const pot = (typeof potLike === "object" && "create" in potLike &&
+        "_class" in potLike)
       ? potLike.create() as unknown as TPot
       : potLike as TPot;
 

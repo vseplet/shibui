@@ -241,12 +241,24 @@ export type TLogEventMetadata = {
 /**
  * Logging level - can be string name or numeric value
  */
-export type LogLevelName = "trace" | "debug" | "verbose" | "info" | "warn" | "error" | "fatal";
+export type LogLevelName =
+  | "trace"
+  | "debug"
+  | "verbose"
+  | "info"
+  | "warn"
+  | "error"
+  | "fatal";
 
 /**
  * Source type name for filtering logs
  */
-export type SourceTypeName = "core" | "task" | "workflow" | "framework" | "plugin";
+export type SourceTypeName =
+  | "core"
+  | "task"
+  | "workflow"
+  | "framework"
+  | "plugin";
 
 /**
  * Detailed logging configuration
@@ -411,7 +423,9 @@ export type TPotsConstructorsList = Array<Constructor<Pot>>;
 /**
  * Union type that accepts either a Pot class constructor or a PotFactory
  */
-export type TPotSource<T extends { [key: string]: unknown } = { [key: string]: unknown }> =
+export type TPotSource<
+  T extends { [key: string]: unknown } = { [key: string]: unknown },
+> =
   | Constructor<Pot<T>>
   | PotFactory<T>;
 

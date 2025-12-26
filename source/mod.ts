@@ -246,10 +246,7 @@ export {
 export { chain, type ChainConfig, pipe, type Transform } from "./chain.ts";
 
 // Re-export everything from submodules for convenience
-export {
-  ContextPot,
-  CoreStartPot,
-} from "$shibui/pots";
+export { ContextPot, CoreStartPot } from "$shibui/pots";
 
 export {
   Pot,
@@ -306,8 +303,12 @@ export type {
   TOnHandlerContext,
   TOnHandlerResult,
   TPot,
+  // New v1.0 types
+  TPotData,
+  TPotInstanceOf,
   TPotPack,
   TPotsConstructorsList,
+  TPotSource,
   TSError,
   TSEvent,
   TSpicy,
@@ -317,6 +318,7 @@ export type {
   TTaskTrigger,
   TTaskTriggerHandler,
   TTaskTriggerStorage,
+  TWhenPredicate,
   TWorkflow,
   TWorkflowBuilder,
   TWorkflowTrigger,
@@ -324,11 +326,6 @@ export type {
   TWorkflowTriggerHandlerContext,
   TWorkflowTriggersStorage,
   WorkflowsStorage,
-  // New v1.0 types
-  TPotData,
-  TPotInstanceOf,
-  TPotSource,
-  TWhenPredicate,
 } from "$shibui/types";
 
 export { isPotFactory } from "$shibui/types";

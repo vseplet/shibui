@@ -1,11 +1,5 @@
 import { assertEquals, assertExists } from "jsr:@std/assert";
-import {
-  context,
-  pot,
-  type PotData,
-  type PotOf,
-  PotType,
-} from "$shibui";
+import { context, pot, type PotData, type PotOf, PotType } from "$shibui";
 
 Deno.test("Pot - basic creation with pot()", () => {
   const TestPot = pot("TestPot", { value: 0 });
