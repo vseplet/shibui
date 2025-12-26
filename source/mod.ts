@@ -269,8 +269,6 @@ export type {
   PotInput,
   PotLike,
   PotWithData,
-  ToPot,
-  ToPots,
   // Core types
   TAnyCore,
   TAnyTaskDoHandler,
@@ -286,6 +284,8 @@ export type {
   TLoggerOptions,
   TOnHandlerContext,
   TOnHandlerResult,
+  ToPot,
+  ToPots,
   TPot,
   TPotData,
   TPotInstanceOf,
