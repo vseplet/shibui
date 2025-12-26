@@ -40,7 +40,7 @@ deno add jsr:@vseplet/shibui
 ```
 
 ```typescript
-import { execute, pot, shibui, task, workflow } from "@vseplet/shibui";
+import { context, core, execute, pot, task, workflow } from "@vseplet/shibui";
 ```
 
 ---
@@ -85,16 +85,28 @@ const myTask = task(Counter)
 **Workflow** orchestrates tasks with shared context:
 
 ```typescript
-const myWorkflow = workflow()
+// Define typed context with context()
+const MyContext = context("MyContext", {
+  count: 0,
+  status: "pending"
+});
+
+const myWorkflow = workflow(MyContext)
   .name("My Workflow")
   .sq(({ task }) => {
     const step2 = task()
       .name("Step 2")
-      .do(async ({ ctx, finish }) => finish());
+      .do(async ({ ctx, finish }) => {
+        ctx.data.status = "done";  // TypeScript knows the type!
+        return finish();
+      });
 
     const step1 = task()
       .name("Step 1")
-      .do(async ({ ctx, next }) => next(step2));
+      .do(async ({ ctx, next }) => {
+        ctx.data.count++;
+        return next(step2);
+      });
 
     return step1;
   });
@@ -120,6 +132,26 @@ User.create({ age: 25 })   // Create with overrides
 User.name                  // "User"
 User.defaults              // { name: "Anonymous", age: 0 }
 User.ttl                   // 3
+```
+
+### context(name, defaults)
+
+Create a workflow context factory (typed):
+
+```typescript
+const OrderContext = context("OrderContext", {
+  orderId: "",
+  items: [] as string[],
+  total: 0
+});
+
+// Use with workflow for full type inference
+workflow(OrderContext).sq(({ task }) => {
+  task().do(({ ctx }) => {
+    ctx.data.orderId = "ORD-001";  // TypeScript knows the type!
+    ctx.data.items.push("item");
+  });
+});
 ```
 
 ### task(...pots)
@@ -201,63 +233,111 @@ await execute(myWorkflow);
 
 // With options
 await execute(myTask, [Counter], {
-  kv: { inMemory: true },
-  logger: { enable: false }
+  storage: "memory",
+  logging: false
 });
 ```
 
-### shibui(options?)
+### core(options?)
 
 Create an engine instance for manual control:
 
 ```typescript
-const app = shibui({
-  kv: {
-    inMemory: true     // Use in-memory storage
-    // path: "./data"  // Or persistent path
-  },
-  logger: {
-    enable: true       // Enable/disable logging
-  },
-  spicy: {             // Custom data for handlers
+const app = core({
+  storage: "memory",     // or "./data/app.db" for persistent storage
+  logging: false,        // disable logging
+  context: {             // custom data for handlers
     apiKey: "..."
   }
 });
 
-app.settings.DEFAULT_LOGGING_LEVEL = 4;  // Set log level (INFO)
-
 app.register(myTask);
 await app.start();
 app.send(Counter, myTask);  // Auto-creates pot instance
+app.close();
 ```
 
-### workflow()
+### workflow(contextFactory?)
 
 Create a workflow:
 
 ```typescript
-import { workflow } from "@vseplet/shibui";
+import { context, workflow } from "@vseplet/shibui";
 
-const myWorkflow = workflow()
-  .name("My Workflow")
+// With typed context
+const BuildContext = context("BuildContext", {
+  steps: [] as string[],
+  status: "pending"
+});
+
+const myWorkflow = workflow(BuildContext)
+  .name("Build Pipeline")
   .sq(({ task }) => {
-    const done = task()
-      .name("Done")
+    const deploy = task()
+      .name("Deploy")
       .do(async ({ ctx, log, finish }) => {
-        log.inf(`Final: ${ctx.data.count}`);
+        ctx.data.status = "deployed";
+        log.inf(`Steps: ${ctx.data.steps.join(" -> ")}`);
         return finish();
       });
 
-    const increment = task()
-      .name("Increment")
+    const build = task()
+      .name("Build")
       .do(async ({ ctx, next }) => {
-        ctx.data.count = (ctx.data.count || 0) + 1;
-        return next(done);
+        ctx.data.steps.push("build");
+        return next(deploy);
       });
 
-    return increment;
+    const checkout = task()
+      .name("Checkout")
+      .do(async ({ ctx, next }) => {
+        ctx.data.steps.push("checkout");
+        return next(build);
+      });
+
+    return checkout;
   });
+
+await execute(myWorkflow);
 ```
+
+---
+
+## Configuration
+
+```typescript
+const app = core({
+  // Storage: "memory" for in-memory, or file path for persistent
+  storage: "memory",
+  // storage: "./data/shibui.db",
+
+  // Logging: boolean or detailed config
+  logging: true,
+  // logging: false,
+  // logging: {
+  //   level: "info",                    // "trace" | "debug" | "verbose" | "info" | "warn" | "error" | "fatal"
+  //   sources: ["task", "workflow"]     // filter by source type
+  // },
+
+  // Context: custom data available in all handlers
+  context: {
+    apiKey: "secret",
+    config: { ... }
+  }
+});
+```
+
+### Log Levels
+
+| Level | Name | Method |
+|-------|------|--------|
+| 1 | TRACE | `log.trc()` |
+| 2 | DEBUG | `log.dbg()` |
+| 3 | VERBOSE | `log.vrb()` |
+| 4 | INFO | `log.inf()` |
+| 5 | WARN | `log.wrn()` |
+| 6 | ERROR | `log.err()` |
+| 7 | FATAL | `log.flt()` |
 
 ---
 
@@ -266,11 +346,11 @@ const myWorkflow = workflow()
 ### Task Chaining
 
 ```typescript
-import { pot, shibui, TriggerRule } from "@vseplet/shibui";
+import { core, pot, TriggerRule } from "@vseplet/shibui";
 
 const Data = pot("Data", { value: 0 }, { ttl: 1 });
 
-const app = shibui();
+const app = core({ storage: "memory", logging: false });
 
 const step3 = app.task(Data)
   .name("Step 3")
@@ -318,7 +398,7 @@ const combiner = task(PotA, PotB, PotC)
     return finish();
   });
 
-const app = shibui();
+const app = core({ storage: "memory" });
 app.register(combiner);
 await app.start();
 
@@ -384,43 +464,49 @@ const pipeline = chain(
 console.log(pipeline.name);  // "Chain[Start -> Process -> End]"
 ```
 
----
-
-## Configuration
+### Workflow with Typed Context
 
 ```typescript
-const app = shibui({
-  kv: {
-    inMemory: true,    // Use in-memory storage (default: false)
-    // path: "./data"  // Persistent storage path
-  },
-  logger: {
-    enable: true       // Enable logging (default: true)
-  },
-  spicy: {             // Custom data available in all handlers
-    apiKey: "secret",
-    config: { ... }
-  }
+import { context, execute, workflow } from "@vseplet/shibui";
+
+const OrderContext = context("OrderContext", {
+  orderId: "",
+  status: "pending" as "pending" | "processing" | "completed",
+  items: [] as string[],
+  total: 0,
 });
 
-// Set minimum log level (messages below this level are filtered)
-app.settings.DEFAULT_LOGGING_LEVEL = 4;  // INFO
+const orderWorkflow = workflow(OrderContext)
+  .name("Order Processing")
+  .sq(({ task }) => {
+    const complete = task()
+      .name("Complete")
+      .do(async ({ ctx, finish }) => {
+        ctx.data.status = "completed";
+        return finish();
+      });
+
+    const process = task()
+      .name("Process")
+      .do(async ({ ctx, next }) => {
+        ctx.data.status = "processing";
+        ctx.data.items.push("item1", "item2");
+        ctx.data.total = 100;
+        return next(complete);
+      });
+
+    const init = task()
+      .name("Init")
+      .do(async ({ ctx, next }) => {
+        ctx.data.orderId = "ORD-001";
+        return next(process);
+      });
+
+    return init;
+  });
+
+await execute(orderWorkflow, undefined, { storage: "memory", logging: false });
 ```
-
-### Log Levels
-
-| Level | Name | Method |
-|-------|------|--------|
-| 0 | UNKNOWN | - |
-| 1 | TRACE | `log.trc()` |
-| 2 | DEBUG | `log.dbg()` |
-| 3 | VERBOSE | `log.vrb()` |
-| 4 | INFO | `log.inf()` |
-| 5 | WARN | `log.wrn()` |
-| 6 | ERROR | `log.err()` |
-| 7 | FATAL | `log.flt()` |
-
-> **Note:** Only messages with level >= `DEFAULT_LOGGING_LEVEL` are displayed.
 
 ---
 

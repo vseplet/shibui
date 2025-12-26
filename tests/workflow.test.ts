@@ -1,17 +1,21 @@
 import { assertEquals } from "jsr:@std/assert";
-import {
-  ContextPot,
-  type CoreStartPot,
-  execute,
-  InternalPot,
-  workflow,
-} from "$shibui";
+import { context, execute, pot, workflow } from "$shibui";
+
+// Context pots using context() factory - simple and type-safe!
+const MyContext = context("MyContext", { count: 0 });
+const StepContext = context("StepContext", { step: 0 });
+const ValuesContext = context("ValuesContext", { values: [] as number[] });
+const InitialContext = context("InitialContext", { initial: 0 });
+const SourceContext = context("SourceContext", { source: "" });
+const ValueContext = context("ValueContext", { value: 0 });
+
+// Regular pots using pot() factory
+const TriggerPot = pot("TriggerPot", { value: 0 });
+const PotA = pot("PotA", { a: 0 });
+const PotB = pot("PotB", { b: 0 });
+const DataPot = pot("DataPot", { value: 0 });
 
 Deno.test("Workflow - simple workflow creation", () => {
-  class MyContext extends ContextPot<{ count: number }> {
-    override data = { count: 0 };
-  }
-
   const wf = workflow(MyContext)
     .name("Test Workflow")
     .sq(({ task }) => {
@@ -21,7 +25,7 @@ Deno.test("Workflow - simple workflow creation", () => {
       return t1;
     });
 
-  wf.build(); // Build the workflow to populate tasks array
+  wf.build();
 
   assertEquals(wf.workflow.name, "Test Workflow");
   assertEquals(wf.workflow.tasks.length, 1);
@@ -29,11 +33,7 @@ Deno.test("Workflow - simple workflow creation", () => {
 });
 
 Deno.test("Workflow - two task sequence", async () => {
-  class MyContext extends ContextPot<{ step: number }> {
-    override data = { step: 0 };
-  }
-
-  const wf = workflow(MyContext)
+  const wf = workflow(StepContext)
     .name("Two Step")
     .sq(({ task }) => {
       const t1 = task()
@@ -54,19 +54,15 @@ Deno.test("Workflow - two task sequence", async () => {
     });
 
   const success = await execute(wf, undefined, {
-    kv: { inMemory: true },
-    logger: { enable: false },
+    storage: "memory",
+    logging: false,
   });
 
   assertEquals(success, true);
 });
 
 Deno.test("Workflow - context shared across tasks", async () => {
-  class MyContext extends ContextPot<{ values: number[] }> {
-    override data = { values: [] as number[] };
-  }
-
-  const wf = workflow(MyContext)
+  const wf = workflow(ValuesContext)
     .name("Shared Context")
     .sq(({ task }) => {
       const t1 = task()
@@ -95,27 +91,19 @@ Deno.test("Workflow - context shared across tasks", async () => {
     });
 
   const success = await execute(wf, undefined, {
-    kv: { inMemory: true },
-    logger: { enable: false },
+    storage: "memory",
+    logging: false,
   });
 
   assertEquals(success, true);
 });
 
 Deno.test("Workflow - custom trigger handler", async () => {
-  class MyContext extends ContextPot<{ initial: number }> {
-    override data = { initial: 0 };
-  }
-
-  class TriggerPot extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
-  const wf = workflow(MyContext)
+  const wf = workflow(InitialContext)
     .name("Custom Trigger")
-    .on(TriggerPot, (pot) => {
-      const triggerPot = pot as TriggerPot;
-      return new MyContext().init({ initial: triggerPot.data.value * 2 });
+    .on(TriggerPot, (p) => {
+      const triggerPot = p as typeof TriggerPot._class.prototype;
+      return new InitialContext._class().init({ initial: triggerPot.data.value * 2 });
     })
     .sq(({ task }) => {
       const t1 = task()
@@ -127,31 +115,16 @@ Deno.test("Workflow - custom trigger handler", async () => {
       return t1;
     });
 
-  const success = await execute(
-    wf,
-    [new TriggerPot().init({ value: 10 })],
-    {
-      kv: { inMemory: true },
-      logger: { enable: false },
-    },
-  );
+  const success = await execute(wf, [TriggerPot.create({ value: 10 })], {
+    storage: "memory",
+    logging: false,
+  });
 
   assertEquals(success, true);
 });
 
 Deno.test("Workflow - multiple triggers", () => {
-  class MyContext extends ContextPot<{ source: string }> {
-    override data = { source: "" };
-  }
-
-  class PotA extends InternalPot<{ a: number }> {
-    override data = { a: 0 };
-  }
-  class PotB extends InternalPot<{ b: number }> {
-    override data = { b: 0 };
-  }
-
-  const wf = workflow(MyContext)
+  const wf = workflow(SourceContext)
     .name("Multi Trigger")
     .triggers(PotA, PotB)
     .sq(({ task }) => {
@@ -167,21 +140,12 @@ Deno.test("Workflow - multiple triggers", () => {
 });
 
 Deno.test("Workflow - workflow task with additional pot", async () => {
-  class MyContext extends ContextPot<{ count: number }> {
-    override data = { count: 0 };
-  }
-
-  class DataPot extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
   const wf = workflow(MyContext)
     .name("Additional Pot")
     .sq(({ task }) => {
-      const t1 = task(DataPot)
+      const t1 = task(DataPot._class)
         .name("Task 1")
         .do(async ({ ctx, pots, finish }) => {
-          // ctx is MyContext, pots[0] is DataPot
           ctx.data.count = pots[0].data.value;
           assertEquals(pots[0].data.value, 42);
           return finish();
@@ -189,19 +153,13 @@ Deno.test("Workflow - workflow task with additional pot", async () => {
       return t1;
     });
 
-  wf.build(); // Build the workflow to populate tasks array
+  wf.build();
 
-  // Note: This test shows structure but won't execute properly
-  // as workflow tasks with additional pots need special handling
   assertEquals(wf.workflow.tasks[0].slotsCount, 2); // Context + DataPot
 });
 
 Deno.test("Workflow - default trigger on CoreStartPot", () => {
-  class MyContext extends ContextPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
-  const wf = workflow(MyContext)
+  const wf = workflow(ValueContext)
     .name("Auto Start")
     .sq(({ task }) => {
       const t1 = task()
@@ -210,9 +168,8 @@ Deno.test("Workflow - default trigger on CoreStartPot", () => {
       return t1;
     });
 
-  wf.build(); // Build the workflow to add default trigger
+  wf.build();
 
-  // Should have CoreStartPot trigger by default
   assertEquals(wf.workflow.triggers["CoreStartPot"] !== undefined, true);
 });
 
@@ -223,7 +180,6 @@ Deno.test("Workflow - workflow without explicit context", async () => {
       const t1 = task()
         .name("Task 1")
         .do(async ({ ctx, finish }) => {
-          // ctx should be auto-generated ContextPot
           assertEquals(ctx.type, "CONTEXT");
           return finish();
         });
@@ -231,19 +187,15 @@ Deno.test("Workflow - workflow without explicit context", async () => {
     });
 
   const success = await execute(wf, undefined, {
-    kv: { inMemory: true },
-    logger: { enable: false },
+    storage: "memory",
+    logging: false,
   });
 
   assertEquals(success, true);
 });
 
 Deno.test("Workflow - task names include workflow prefix", () => {
-  class MyContext extends ContextPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
-  const wf = workflow(MyContext)
+  const wf = workflow(ValueContext)
     .name("MyWorkflow")
     .sq(({ task }) => {
       const t1 = task()
@@ -252,7 +204,56 @@ Deno.test("Workflow - task names include workflow prefix", () => {
       return t1;
     });
 
-  wf.build(); // Build the workflow to populate tasks array
+  wf.build();
 
   assertEquals(wf.workflow.tasks[0].name, "[MyWorkflow] Step1");
+});
+
+Deno.test("Workflow - type-safe context with context() factory", async () => {
+  const OrderContext = context("OrderContext", {
+    orderId: "",
+    status: "pending" as "pending" | "processing" | "completed",
+    items: [] as string[],
+    total: 0,
+  });
+
+  const wf = workflow(OrderContext)
+    .name("Order Processing")
+    .sq(({ task }) => {
+      const initOrder = task()
+        .name("Init Order")
+        .do(async ({ ctx, next }) => {
+          ctx.data.orderId = "ORD-001";
+          ctx.data.status = "processing";
+          return next(addItems);
+        });
+
+      const addItems = task()
+        .name("Add Items")
+        .do(async ({ ctx, next }) => {
+          ctx.data.items.push("item1", "item2");
+          ctx.data.total = 100;
+          return next(complete);
+        });
+
+      const complete = task()
+        .name("Complete")
+        .do(async ({ ctx, finish }) => {
+          ctx.data.status = "completed";
+          assertEquals(ctx.data.orderId, "ORD-001");
+          assertEquals(ctx.data.status, "completed");
+          assertEquals(ctx.data.items.length, 2);
+          assertEquals(ctx.data.total, 100);
+          return finish();
+        });
+
+      return initOrder;
+    });
+
+  const success = await execute(wf, undefined, {
+    storage: "memory",
+    logging: false,
+  });
+
+  assertEquals(success, true);
 });

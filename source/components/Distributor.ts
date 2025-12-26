@@ -15,7 +15,6 @@ import { Pot } from "$shibui/entities";
 import {
   SourceType,
   type TAnyCore,
-  type TCoreOptions,
   type TEventDrivenLogger,
   type TPot,
   type TTaskBuilder,
@@ -28,19 +27,19 @@ import { WorkflowBuilder } from "../entities/WorkflowBuilder.ts";
 export default class Distributor {
   #kv: Deno.Kv = undefined as unknown as Deno.Kv;
   #core: TAnyCore;
-  #coreOptions: TCoreOptions = {};
+  #storagePath: string | undefined;
   #log: TEventDrivenLogger;
   #tester: Tester;
 
-  constructor(coreOptions: TCoreOptions, core: TAnyCore, spicy = {}) {
-    this.#coreOptions = coreOptions;
+  constructor(storagePath: string | undefined, core: TAnyCore, context = {}) {
+    this.#storagePath = storagePath;
     this.#core = core;
     this.#log = core.createLogger({
       sourceType: SourceType.Core,
       sourceName: "Distributor",
     });
 
-    this.#tester = new Tester(core, this.#kv, spicy);
+    this.#tester = new Tester(core, this.#kv, context);
   }
 
   #test(rawPotObj: TPot) {
@@ -64,11 +63,7 @@ export default class Distributor {
 
   async start() {
     this.#log.trc(`starting update cycle...`);
-    this.#kv = await Deno.openKv(
-      this.#coreOptions.kv?.path || this.#coreOptions.kv?.inMemory
-        ? ":memory:"
-        : undefined,
-    );
+    this.#kv = await Deno.openKv(this.#storagePath);
     this.#kv.listenQueue((rawPotObj: TPot) => this.#test(rawPotObj));
     this.send(new CoreStartPot());
   }

@@ -128,12 +128,8 @@ export const runCI = <S extends TSpicy>(
   });
 
   execute(builder, pots, {
-    kv: {
-      inMemory: true,
-    },
-    logger: {
-      enable: false,
-    },
+    storage: "memory",
+    logging: false,
   }).then((value) => {
     Deno.exit(value ? 0 : -1);
   });
@@ -197,12 +193,25 @@ export const task = <
   return new TaskBuilder<{}, ToPots<Sources>, CPot>(...constructors as any);
 };
 
-export const workflow = <CP extends ContextPot<{}>>(
-  contextPotConstructor?: Constructor<CP>,
-): WorkflowBuilder<TSpicy, CP> =>
-  new WorkflowBuilder<TSpicy, CP>(
-    contextPotConstructor || createRandomContext(ContextPot),
+// Type helper to create a Pot type from data type
+type PotWithData<D extends object> = Pot<D & { [key: string]: unknown }>;
+
+// Overloads for proper type inference
+export function workflow<CP extends ContextPot<{}>>(
+  contextPotConstructor: Constructor<CP>,
+): WorkflowBuilder<TSpicy, CP>;
+export function workflow<D extends object>(
+  contextPotFactory: PotFactory<D>,
+): WorkflowBuilder<TSpicy, PotWithData<D>>;
+export function workflow(): WorkflowBuilder<TSpicy, ContextPot<{}>>;
+// Implementation
+export function workflow(
+  contextPotSource?: Constructor<ContextPot<{}>> | PotFactory<object>,
+): WorkflowBuilder<TSpicy, Pot> {
+  return new WorkflowBuilder<TSpicy, Pot>(
+    contextPotSource || createRandomContext(ContextPot),
   );
+}
 
 /**
  * Creates and returns a new instance of ShibuiCore.
@@ -237,13 +246,9 @@ export {
 export { chain, type ChainConfig, pipe, type Transform } from "./chain.ts";
 
 // Re-export everything from submodules for convenience
-// Legacy pot classes (deprecated, use pot() instead)
 export {
   ContextPot,
   CoreStartPot,
-  ExternalPot,
-  InternalPot,
-  SystemPot,
 } from "$shibui/pots";
 
 export {

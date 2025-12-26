@@ -169,10 +169,11 @@ export class TaskBuilder<
   }
 
   on<TP extends Pots[number]>(
-    pot: Constructor<TP>,
+    potSource: Constructor<TP> | PotFactory<TP["data"]>,
     handler?: TTaskTriggerHandler<Spicy, CTX, TP>,
     slot?: number,
   ): this {
+    const pot = getConstructor(potSource);
     if (!this.task.triggers[pot.name]) this.task.triggers[pot.name] = [];
     this.task.triggers[pot.name].push(this.createTrigger(pot, handler, slot));
     return this;

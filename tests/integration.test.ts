@@ -1,21 +1,33 @@
 import { assertEquals } from "jsr:@std/assert";
 import {
-  ContextPot,
+  context,
   core,
   execute,
-  InternalPot,
+  pot,
   task,
   TriggerRule,
   workflow,
 } from "$shibui";
 
+const SimplePot = pot("SimplePot", { value: 0 }, { ttl: 100 });
+const ChainPot = pot("ChainPot", { value: 0 }, { ttl: 1 });
+const PotA = pot("PotA", { value: 1 });
+const PotB = pot("PotB", { value: 2 });
+const PotC = pot("PotC", { value: 3 });
+const PotD = pot("PotD", { value: 4 });
+const PotE = pot("PotE", { value: 5 });
+const DataPot = pot("DataPot", { value: 0 });
+const RetryPot = pot("RetryPot", { attempt: 0 }, { ttl: 5 });
+
+// Context pots using context() factory
+const BuildContext = context("BuildContext", {
+  steps: [] as string[],
+  status: "pending",
+});
+const ErrorContext = context("ErrorContext", { error: "" });
+
 // Based on ex1.ts - simple task with trigger
 Deno.test("Integration - simple task with conditional trigger", async () => {
-  class SimplePot extends InternalPot<{ value: number }> {
-    override ttl = 100;
-    override data = { value: 0 };
-  }
-
   let executed = false;
   let testPassed = false;
 
@@ -31,13 +43,9 @@ Deno.test("Integration - simple task with conditional trigger", async () => {
       return finish();
     });
 
-  // Try with high value (should execute)
-  const pot = new SimplePot();
-  pot.data.value = 0.8;
-
-  const res = await execute(mySimpleTask, [pot], {
-    kv: { inMemory: true },
-    logger: { enable: false },
+  const res = await execute(mySimpleTask, [SimplePot.create({ value: 0.8 })], {
+    storage: "memory",
+    logging: false,
   });
 
   assertEquals(res, true);
@@ -47,41 +55,32 @@ Deno.test("Integration - simple task with conditional trigger", async () => {
 
 // Based on ex2.ts - task chaining
 Deno.test("Integration - task chain with data passing", async () => {
-  class SimplePot extends InternalPot<{ value: number }> {
-    override ttl = 1;
-    override data = { value: 0 };
-  }
-
-  const c = core({ kv: { inMemory: true }, logger: { enable: false } });
+  const c = core({ storage: "memory", logging: false });
 
   const results: number[] = [];
 
-  const task3 = c.task(SimplePot)
+  const task3 = c.task(ChainPot)
     .name("Task 3")
-    .onRule(TriggerRule.ForThisTask, SimplePot)
+    .onRule(TriggerRule.ForThisTask, ChainPot)
     .do(async ({ pots, finish }) => {
       results.push(pots[0].data.value);
       return finish();
     });
 
-  const task2 = c.task(SimplePot)
+  const task2 = c.task(ChainPot)
     .name("Task 2")
-    .onRule(TriggerRule.ForThisTask, SimplePot)
+    .onRule(TriggerRule.ForThisTask, ChainPot)
     .do(async ({ pots, next }) => {
       results.push(pots[0].data.value);
-      return next(task3, {
-        value: pots[0].data.value + 1,
-      });
+      return next(task3, { value: pots[0].data.value + 1 });
     });
 
-  const task1 = c.task(SimplePot)
+  const task1 = c.task(ChainPot)
     .name("Task 1")
-    .onRule(TriggerRule.ForThisTask, SimplePot)
+    .onRule(TriggerRule.ForThisTask, ChainPot)
     .do(async ({ pots, next }) => {
       results.push(pots[0].data.value);
-      return next(task2, {
-        value: pots[0].data.value + 1,
-      });
+      return next(task2, { value: pots[0].data.value + 1 });
     });
 
   c.register(task1);
@@ -89,7 +88,7 @@ Deno.test("Integration - task chain with data passing", async () => {
   c.register(task3);
 
   await c.start();
-  c.send(new SimplePot(), task1);
+  c.send(ChainPot, task1);
 
   await new Promise((resolve) => setTimeout(resolve, 1500));
 
@@ -123,8 +122,8 @@ Deno.test("Integration - simple workflow execution", async () => {
     });
 
   const res = await execute(simpleWorkflow, undefined, {
-    kv: { inMemory: true },
-    logger: { enable: false },
+    storage: "memory",
+    logging: false,
   });
 
   assertEquals(res, true);
@@ -133,23 +132,7 @@ Deno.test("Integration - simple workflow execution", async () => {
 
 // Based on ex6.ts - dependent task with 5 pots
 Deno.test("Integration - five slot dependent task", async () => {
-  class PotA extends InternalPot<{ value: number }> {
-    override data = { value: 1 };
-  }
-  class PotB extends InternalPot<{ value: number }> {
-    override data = { value: 2 };
-  }
-  class PotC extends InternalPot<{ value: number }> {
-    override data = { value: 3 };
-  }
-  class PotD extends InternalPot<{ value: number }> {
-    override data = { value: 4 };
-  }
-  class PotE extends InternalPot<{ value: number }> {
-    override data = { value: 5 };
-  }
-
-  const c = core({ kv: { inMemory: true }, logger: { enable: false } });
+  const c = core({ storage: "memory", logging: false });
 
   let sum = 0;
 
@@ -163,11 +146,11 @@ Deno.test("Integration - five slot dependent task", async () => {
   c.register(mySimpleTask);
   await c.start();
 
-  c.send(new PotA());
-  c.send(new PotB());
-  c.send(new PotC());
-  c.send(new PotD());
-  c.send(new PotE());
+  c.send(PotA);
+  c.send(PotB);
+  c.send(PotC);
+  c.send(PotD);
+  c.send(PotE);
 
   await new Promise((resolve) => setTimeout(resolve, 1500));
 
@@ -178,16 +161,6 @@ Deno.test("Integration - five slot dependent task", async () => {
 
 // Complex workflow with context mutation
 Deno.test("Integration - workflow with context mutation", async () => {
-  class BuildContext extends ContextPot<{
-    steps: string[];
-    status: string;
-  }> {
-    override data = {
-      steps: [] as string[],
-      status: "pending",
-    };
-  }
-
   const buildWorkflow = workflow(BuildContext)
     .name("Build Pipeline")
     .sq(({ task }) => {
@@ -221,8 +194,8 @@ Deno.test("Integration - workflow with context mutation", async () => {
     });
 
   const success = await execute(buildWorkflow, undefined, {
-    kv: { inMemory: true },
-    logger: { enable: false },
+    storage: "memory",
+    logging: false,
   });
 
   assertEquals(success, true);
@@ -230,13 +203,9 @@ Deno.test("Integration - workflow with context mutation", async () => {
 
 // Error handling and fail propagation
 Deno.test("Integration - error handling in workflow", async () => {
-  class MyContext extends ContextPot<{ error: string }> {
-    override data = { error: "" };
-  }
-
   let failHandlerCalled = false;
 
-  const errorWorkflow = workflow(MyContext)
+  const errorWorkflow = workflow(ErrorContext)
     .name("Error Workflow")
     .sq(({ task }) => {
       const t1 = task()
@@ -258,8 +227,8 @@ Deno.test("Integration - error handling in workflow", async () => {
     });
 
   const success = await execute(errorWorkflow, undefined, {
-    kv: { inMemory: true },
-    logger: { enable: false },
+    storage: "memory",
+    logging: false,
   });
 
   assertEquals(success, false);
@@ -268,11 +237,7 @@ Deno.test("Integration - error handling in workflow", async () => {
 
 // Parallel next() to multiple tasks
 Deno.test("Integration - parallel task execution", async () => {
-  class DataPot extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
-  const c = core({ kv: { inMemory: true }, logger: { enable: false } });
+  const c = core({ storage: "memory", logging: false });
 
   const results: string[] = [];
 
@@ -305,10 +270,7 @@ Deno.test("Integration - parallel task execution", async () => {
   c.register(taskB);
 
   await c.start();
-
-  const pot = new DataPot();
-  pot.to.task = "Starter";
-  c.send(pot, starter);
+  c.send(DataPot, starter);
 
   await new Promise((resolve) => setTimeout(resolve, 1500));
 
@@ -321,14 +283,9 @@ Deno.test("Integration - parallel task execution", async () => {
 
 // Timeout and retry
 Deno.test("Integration - retry mechanism", async () => {
-  class TestPot extends InternalPot<{ attempt: number }> {
-    override ttl = 5;
-    override data = { attempt: 0 };
-  }
-
   let attemptCount = 0;
 
-  const resilientTask = task(TestPot)
+  const resilientTask = task(RetryPot)
     .name("Resilient Task")
     .attempts(3)
     .interval(100)
@@ -340,14 +297,10 @@ Deno.test("Integration - retry mechanism", async () => {
       return finish();
     });
 
-  const success = await execute(
-    resilientTask,
-    [new TestPot()],
-    {
-      kv: { inMemory: true },
-      logger: { enable: false },
-    },
-  );
+  const success = await execute(resilientTask, [RetryPot], {
+    storage: "memory",
+    logging: false,
+  });
 
   assertEquals(success, true);
   assertEquals(attemptCount >= 2, true);

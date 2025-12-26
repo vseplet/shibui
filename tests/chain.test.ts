@@ -1,15 +1,13 @@
 import { assertEquals, assertThrows } from "jsr:@std/assert";
-import { chain, InternalPot, pipe, task } from "$shibui";
+import { chain, pipe, pot, task } from "$shibui";
+
+const Counter = pot("Counter", { value: 0 });
 
 // ============================================================================
 // chain() tests
 // ============================================================================
 
 Deno.test("Chain - creates chain from multiple tasks", () => {
-  class Counter extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
   const t1 = task(Counter).name("Task1").do(async ({ finish }) => finish());
   const t2 = task(Counter).name("Task2").do(async ({ finish }) => finish());
   const t3 = task(Counter).name("Task3").do(async ({ finish }) => finish());
@@ -21,10 +19,6 @@ Deno.test("Chain - creates chain from multiple tasks", () => {
 });
 
 Deno.test("Chain - requires at least 2 tasks", () => {
-  class Counter extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
   const t1 = task(Counter).name("Task1").do(async ({ finish }) => finish());
 
   assertThrows(
@@ -35,10 +29,6 @@ Deno.test("Chain - requires at least 2 tasks", () => {
 });
 
 Deno.test("Chain - preserves task order", () => {
-  class Counter extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
   const t1 = task(Counter).name("First").do(async ({ finish }) => finish());
   const t2 = task(Counter).name("Second").do(async ({ finish }) => finish());
   const t3 = task(Counter).name("Third").do(async ({ finish }) => finish());
@@ -127,7 +117,6 @@ Deno.test("Pipe - empty requires at least 1 transform", () => {
 });
 
 Deno.test("Pipe - practical example with pot-like data", () => {
-  // Simulating data transformation for a pot
   interface CounterData {
     value: number;
   }

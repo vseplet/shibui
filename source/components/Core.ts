@@ -12,9 +12,11 @@
 
 import { emitters } from "$shibui/emitters";
 import {
+  LogLevel,
   SourceType,
   type TCore,
   type TCoreOptions,
+  type TLoggingConfig,
   type TLoggerOptions,
   type TPot,
   type TSpicy,
@@ -25,7 +27,7 @@ import { Distributor, EventDrivenLogger } from "$shibui/components";
 import { type Pot, WorkflowBuilder } from "$shibui/entities";
 import type { Constructor } from "$helpers/types";
 import { TaskBuilder } from "../entities/TaskBuilder.ts";
-import type { ContextPot } from "$shibui/pots";
+import { ContextPot } from "$shibui/pots";
 import type { PotFactory, PotInstance } from "../pot.ts";
 
 // Type helpers for task() to accept both PotFactory and Constructor
@@ -56,34 +58,131 @@ function toConstructor(input: PotInput): Constructor<Pot<any>> {
   return input;
 }
 
+// Internal settings structure used by logger
+type TInternalSettings = {
+  DEFAULT_LOGGING_ENABLED: boolean;
+  DEFAULT_LOGGING_LEVEL: number;
+  ALLOWED_LOGGING_SOURCE_TYPES: SourceType[];
+};
+
+// Normalize log level from string or number
+function normalizeLogLevel(level: LogLevel | string | undefined): number {
+  if (level === undefined) return 0;
+  if (typeof level === "number") return level;
+  const map: Record<string, number> = {
+    trace: LogLevel.Trace,
+    debug: LogLevel.Debug,
+    verbose: LogLevel.Verbose,
+    info: LogLevel.Info,
+    warn: LogLevel.Warn,
+    error: LogLevel.Error,
+    fatal: LogLevel.Fatal,
+  };
+  return map[level] ?? 0;
+}
+
+// Normalize source type from string or SourceType
+function normalizeSourceType(source: SourceType | string): SourceType {
+  if (typeof source !== "string") return source;
+  const map: Record<string, SourceType> = {
+    core: SourceType.Core,
+    task: SourceType.Task,
+    workflow: SourceType.Workflow,
+    framework: SourceType.Framework,
+    plugin: SourceType.Plugin,
+  };
+  return map[source] ?? SourceType.Unknown;
+}
+
+// Normalize options to internal format
+function normalizeOptions<S>(options: TCoreOptions<S>): {
+  kvPath: string | undefined;
+  settings: TInternalSettings;
+  context: S | undefined;
+} {
+  // Storage
+  const kvPath = options.storage === "memory"
+    ? ":memory:"
+    : options.storage;
+
+  // Logging
+  let loggingEnabled = true;
+  let loggingLevel = 0;
+  let allowedSources: SourceType[] = [
+    SourceType.Core,
+    SourceType.Task,
+    SourceType.Workflow,
+    SourceType.Framework,
+    SourceType.Unknown,
+    SourceType.Plugin,
+  ];
+
+  if (options.logging !== undefined) {
+    if (typeof options.logging === "boolean") {
+      loggingEnabled = options.logging;
+    } else {
+      loggingEnabled = true;
+      const config = options.logging as TLoggingConfig;
+      loggingLevel = normalizeLogLevel(config.level);
+      if (config.sources) {
+        allowedSources = config.sources.map(normalizeSourceType);
+      }
+    }
+  }
+
+  return {
+    kvPath,
+    settings: {
+      DEFAULT_LOGGING_ENABLED: loggingEnabled,
+      DEFAULT_LOGGING_LEVEL: loggingLevel,
+      ALLOWED_LOGGING_SOURCE_TYPES: allowedSources,
+    },
+    context: options.context,
+  };
+}
+
 export class Core<S extends TSpicy> implements TCore<S> {
   emitters = emitters;
 
   #globalPotDistributor: Distributor;
-  settings = {
-    DEFAULT_LOGGING_ENABLED: true,
-    DEFAULT_LOGGING_LEVEL: 0,
-    ALLOWED_LOGGING_SOURCE_TYPES: [
-      SourceType.Core,
-      SourceType.Task,
-      SourceType.Workflow,
-      SourceType.Framework,
-      SourceType.Unknown,
-      SourceType.Plugin,
-    ],
-  };
+  #settings: TInternalSettings;
 
-  constructor(options: TCoreOptions) {
-    this.#globalPotDistributor = new Distributor(options, this, options.spicy);
-    if (options.logger?.enable === false) {
-      this.settings.DEFAULT_LOGGING_ENABLED = false;
-    }
+  constructor(options: TCoreOptions<S>) {
+    const normalized = normalizeOptions(options);
+    this.#settings = normalized.settings;
+
+    this.#globalPotDistributor = new Distributor(
+      normalized.kvPath,
+      this,
+      normalized.context,
+    );
   }
 
+  // Overloads for workflow with proper type inference
   workflow<CP extends ContextPot<{}>>(
     contextPotConstructor: Constructor<CP>,
-  ): WorkflowBuilder<S, CP> {
-    return new WorkflowBuilder<S, CP>(contextPotConstructor);
+  ): WorkflowBuilder<S, CP>;
+  workflow<D extends object>(
+    contextPotFactory: PotFactory<D>,
+  ): WorkflowBuilder<S, Pot<D & { [key: string]: unknown }>>;
+  workflow(): WorkflowBuilder<S, ContextPot<{}>>;
+  workflow(
+    contextPotSource?: Constructor<ContextPot<{}>> | PotFactory<object>,
+  ): WorkflowBuilder<S, Pot> {
+    return new WorkflowBuilder<S, Pot>(
+      contextPotSource || this.#createRandomContext(),
+    );
+  }
+
+  #createRandomContext(): Constructor<ContextPot<{}>> {
+    // deno-lint-ignore no-explicit-any
+    const RandomContext = class extends ContextPot<any> {
+      override data = {};
+    };
+    Object.defineProperty(RandomContext, "name", {
+      value: `CONTEXT`,
+    });
+    return RandomContext as Constructor<ContextPot<{}>>;
   }
 
   task<Sources extends PotInput[]>(
@@ -97,7 +196,7 @@ export class Core<S extends TSpicy> implements TCore<S> {
   createLogger = (options: TLoggerOptions): EventDrivenLogger => {
     return new EventDrivenLogger(
       emitters.logEventEmitter,
-      this.settings,
+      this.#settings,
       options,
     );
   };

@@ -155,5 +155,41 @@ export function context<T extends object>(
   name: string,
   defaults: T,
 ): PotFactory<T> {
-  return pot(`Context:${name}`, defaults);
+  const ttl = 0;
+
+  // Create a dynamic class with PotType.Context
+  // deno-lint-ignore no-explicit-any
+  const DynamicContextPot = class extends Pot<T & { [key: string]: any }> {
+    override type = PotType.Context;
+    override ttl = ttl;
+    override data = { ...defaults } as T & { [key: string]: unknown };
+  };
+  Object.defineProperty(DynamicContextPot, "name", { value: name });
+  // Note: No "Context:" prefix - cleaner API
+
+  const factory: PotFactory<T> = {
+    name,
+    defaults,
+    ttl,
+    _class: DynamicContextPot as PotClass<T>,
+
+    create(data?: Partial<T>): PotInstance<T> {
+      return {
+        uuid: crypto.randomUUID(),
+        name,
+        type: PotType.Context,
+        toc: Date.now(),
+        ttl,
+        data: { ...defaults, ...data },
+        from: { task: "unknown", workflow: "unknown" },
+        to: { task: "unknown", workflow: "unknown" },
+      };
+    },
+
+    init(data: Partial<T>): PotInstance<T> {
+      return this.create(data);
+    },
+  };
+
+  return factory;
 }

@@ -1,23 +1,19 @@
 import { assertEquals } from "jsr:@std/assert";
 import {
-  ContextPot,
+  context,
   core,
-  type execute,
-  InternalPot,
-  type task,
+  pot,
   TaskFailedEvent,
   TaskFinishedEvent,
-  type workflow,
   WorkflowFailedEvent,
   WorkflowFinishedEvent,
 } from "$shibui";
 
-Deno.test("Events - TaskFinishedEvent on success", async () => {
-  class TestPot extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
+const TestPot = pot("TestPot", { value: 0 });
+const MyContext = context("MyContext", { value: 0 });
 
-  const c = core({ kv: { inMemory: true }, logger: { enable: false } });
+Deno.test("Events - TaskFinishedEvent on success", async () => {
+  const c = core({ storage: "memory", logging: false });
 
   let eventFired = false;
 
@@ -34,7 +30,7 @@ Deno.test("Events - TaskFinishedEvent on success", async () => {
 
   c.register(t);
   await c.start();
-  c.send(new TestPot());
+  c.send(TestPot.create());
 
   await new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -44,11 +40,7 @@ Deno.test("Events - TaskFinishedEvent on success", async () => {
 });
 
 Deno.test("Events - TaskFailedEvent on failure", async () => {
-  class TestPot extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
-  const c = core({ kv: { inMemory: true }, logger: { enable: false } });
+  const c = core({ storage: "memory", logging: false });
 
   let eventFired = false;
 
@@ -65,7 +57,7 @@ Deno.test("Events - TaskFailedEvent on failure", async () => {
 
   c.register(t);
   await c.start();
-  c.send(new TestPot());
+  c.send(TestPot.create());
 
   await new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -75,11 +67,7 @@ Deno.test("Events - TaskFailedEvent on failure", async () => {
 });
 
 Deno.test("Events - WorkflowFinishedEvent on success", async () => {
-  class MyContext extends ContextPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
-  const c = core({ kv: { inMemory: true }, logger: { enable: false } });
+  const c = core({ storage: "memory", logging: false });
 
   let eventFired = false;
 
@@ -110,11 +98,7 @@ Deno.test("Events - WorkflowFinishedEvent on success", async () => {
 });
 
 Deno.test("Events - WorkflowFailedEvent on failure", async () => {
-  class MyContext extends ContextPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
-  const c = core({ kv: { inMemory: true }, logger: { enable: false } });
+  const c = core({ storage: "memory", logging: false });
 
   let eventFired = false;
 
@@ -145,11 +129,7 @@ Deno.test("Events - WorkflowFailedEvent on failure", async () => {
 });
 
 Deno.test("Events - log events emitted", async () => {
-  class TestPot extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
-  const c = core({ kv: { inMemory: true }, logger: { enable: true } });
+  const c = core({ storage: "memory", logging: true });
 
   const logMessages: string[] = [];
 
@@ -170,7 +150,7 @@ Deno.test("Events - log events emitted", async () => {
 
   c.register(t);
   await c.start();
-  c.send(new TestPot());
+  c.send(TestPot.create());
 
   await new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -182,11 +162,7 @@ Deno.test("Events - log events emitted", async () => {
 });
 
 Deno.test("Events - multiple listeners", async () => {
-  class TestPot extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
-  const c = core({ kv: { inMemory: true }, logger: { enable: false } });
+  const c = core({ storage: "memory", logging: false });
 
   let listener1Called = false;
   let listener2Called = false;
@@ -211,7 +187,7 @@ Deno.test("Events - multiple listeners", async () => {
 
   c.register(t);
   await c.start();
-  c.send(new TestPot());
+  c.send(TestPot.create());
 
   await new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -222,11 +198,7 @@ Deno.test("Events - multiple listeners", async () => {
 });
 
 Deno.test("Events - event contains metadata", async () => {
-  class TestPot extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
-  const c = core({ kv: { inMemory: true }, logger: { enable: false } });
+  const c = core({ storage: "memory", logging: false });
 
   let eventData: any = null;
 
@@ -243,7 +215,7 @@ Deno.test("Events - event contains metadata", async () => {
 
   c.register(t);
   await c.start();
-  c.send(new TestPot());
+  c.send(TestPot.create());
 
   await new Promise((resolve) => setTimeout(resolve, 500));
 

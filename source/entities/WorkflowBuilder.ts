@@ -20,6 +20,25 @@ import type {
 import { UNKNOWN_TARGET } from "$shibui/types";
 import { type Pot, TaskBuilder } from "$shibui/entities";
 import { CoreStartPot } from "$shibui/pots";
+import type { PotFactory } from "../pot.ts";
+
+// Helper to check if input is PotFactory
+// deno-lint-ignore no-explicit-any
+function isPotFactory(input: any): input is PotFactory<any> {
+  return typeof input === "object" && input !== null && "_class" in input &&
+    "create" in input;
+}
+
+// Get constructor from either PotFactory or Constructor
+function getConstructor(
+  input: Constructor<Pot> | PotFactory<object>,
+): Constructor<Pot> {
+  if (isPotFactory(input)) {
+    // deno-lint-ignore no-explicit-any
+    return input._class as any;
+  }
+  return input;
+}
 
 export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
   implements TWorkflowBuilder {
@@ -36,9 +55,12 @@ export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
   };
 
   constructor(
-    ctxPotConstructor: Constructor<CPot>,
+    ctxPotSource: Constructor<CPot> | PotFactory<object>,
   ) {
-    this.ctxPotConstructor = ctxPotConstructor;
+    // Accept either Constructor or PotFactory
+    this.ctxPotConstructor = (isPotFactory(ctxPotSource)
+      ? ctxPotSource._class
+      : ctxPotSource) as Constructor<CPot>;
   }
 
   private addTrigger(
@@ -53,10 +75,10 @@ export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
   }
 
   on(
-    potConstructor: Constructor<Pot>,
+    potSource: Constructor<Pot> | PotFactory<object>,
     handler?: (pot: Pot) => CPot | null,
   ): this {
-    this.addTrigger(potConstructor, handler);
+    this.addTrigger(getConstructor(potSource), handler);
     return this;
   }
 
@@ -65,8 +87,8 @@ export class WorkflowBuilder<Spicy extends TSpicy, CPot extends Pot>
     return this;
   }
 
-  triggers(...constructorList: Array<Constructor<Pot>>): this {
-    constructorList.forEach((constructor) => this.addTrigger(constructor));
+  triggers(...sourceList: Array<Constructor<Pot> | PotFactory<object>>): this {
+    sourceList.forEach((source) => this.addTrigger(getConstructor(source)));
     return this;
   }
 

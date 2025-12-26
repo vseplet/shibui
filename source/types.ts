@@ -201,9 +201,14 @@ export type TLoggerOptions = {
 export type TCore<S extends TSpicy> = {
   emitters: typeof emitters;
 
+  // Overloads for workflow with proper type inference
   workflow<CP extends ContextPot<{}>>(
     contextPotConstructor: Constructor<CP>,
   ): WorkflowBuilder<S, CP>;
+  workflow<D extends object>(
+    contextPotFactory: PotFactory<D>,
+  ): WorkflowBuilder<S, Pot<D & { [key: string]: unknown }>>;
+  workflow(): WorkflowBuilder<S, ContextPot<{}>>;
 
   task<Pots extends Pot[]>(
     ...constructors: { [K in keyof Pots]: Constructor<Pots[K]> }
@@ -233,16 +238,64 @@ export type TLogEventMetadata = {
   name?: string;
 };
 
+/**
+ * Logging level - can be string name or numeric value
+ */
+export type LogLevelName = "trace" | "debug" | "verbose" | "info" | "warn" | "error" | "fatal";
+
+/**
+ * Source type name for filtering logs
+ */
+export type SourceTypeName = "core" | "task" | "workflow" | "framework" | "plugin";
+
+/**
+ * Detailed logging configuration
+ */
+export type TLoggingConfig = {
+  /** Minimum log level to display */
+  level?: LogLevel | LogLevelName;
+  /** Which source types to log */
+  sources?: (SourceType | SourceTypeName)[];
+};
+
+/**
+ * Simplified core configuration options
+ *
+ * @example
+ * ```typescript
+ * // Minimal config for tests
+ * core({ storage: "memory", logging: false })
+ *
+ * // Production with file storage
+ * core({ storage: "./data/shibui.db" })
+ *
+ * // With custom logging
+ * core({
+ *   storage: "memory",
+ *   logging: { level: "info", sources: ["task", "workflow"] }
+ * })
+ * ```
+ */
 export type TCoreOptions<S = TSpicy> = {
-  mode?: "simple" | "default";
-  kv?: {
-    inMemory?: boolean;
-    path?: string;
-  };
-  logger?: {
-    enable: boolean;
-  };
-  spicy?: S;
+  /**
+   * Storage configuration
+   * - "memory" for in-memory storage (good for tests)
+   * - file path string for persistent storage
+   */
+  storage?: "memory" | string;
+
+  /**
+   * Logging configuration
+   * - false: disable logging
+   * - true: enable with defaults (all levels, all sources)
+   * - object: fine-grained control
+   */
+  logging?: boolean | TLoggingConfig;
+
+  /**
+   * Custom context data available in tasks
+   */
+  context?: S;
 };
 
 export type TOnHandlerResult = {

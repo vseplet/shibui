@@ -1,17 +1,11 @@
 import { assertEquals } from "jsr:@std/assert";
-import {
-  type CoreStartPot,
-  execute,
-  InternalPot,
-  task,
-  TriggerRule,
-} from "$shibui";
+import { execute, pot, task, TriggerRule } from "$shibui";
+
+const TestPot = pot("TestPot", { value: 0 });
+const PotA = pot("PotA", { a: 0 });
+const PotB = pot("PotB", { b: "" });
 
 Deno.test("Task - simple task creation", () => {
-  class TestPot extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
   const t = task(TestPot)
     .name("Test Task")
     .do(async ({ pots, finish }) => {
@@ -23,10 +17,6 @@ Deno.test("Task - simple task creation", () => {
 });
 
 Deno.test("Task - simple execution with finish", async () => {
-  class TestPot extends InternalPot<{ value: number }> {
-    override data = { value: 42 };
-  }
-
   let executed = false;
   let receivedValue = 0;
 
@@ -38,9 +28,9 @@ Deno.test("Task - simple execution with finish", async () => {
       return finish();
     });
 
-  const success = await execute(t, [new TestPot().init({ value: 42 })], {
-    kv: { inMemory: true },
-    logger: { enable: false },
+  const success = await execute(t, [TestPot.create({ value: 42 })], {
+    storage: "memory",
+    logging: false,
   });
 
   assertEquals(success, true);
@@ -49,10 +39,6 @@ Deno.test("Task - simple execution with finish", async () => {
 });
 
 Deno.test("Task - trigger with custom handler", async () => {
-  class TestPot extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
   let triggerCalled = false;
   let taskExecuted = false;
 
@@ -67,10 +53,9 @@ Deno.test("Task - trigger with custom handler", async () => {
       return finish();
     });
 
-  // Test allow case with value > 10
-  const result = await execute(t, [new TestPot().init({ value: 20 })], {
-    kv: { inMemory: true },
-    logger: { enable: false },
+  const result = await execute(t, [TestPot.create({ value: 20 })], {
+    storage: "memory",
+    logging: false,
   });
 
   assertEquals(triggerCalled, true);
@@ -79,10 +64,6 @@ Deno.test("Task - trigger with custom handler", async () => {
 });
 
 Deno.test("Task - onRule TriggerRule.ForThisTask", async () => {
-  class TestPot extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
   let executed = false;
 
   const t = task(TestPot)
@@ -93,12 +74,12 @@ Deno.test("Task - onRule TriggerRule.ForThisTask", async () => {
       return finish();
     });
 
-  const pot = new TestPot().init({ value: 42 });
-  pot.to.task = "Target Task";
+  const instance = TestPot.create({ value: 42 });
+  instance.to.task = "Target Task";
 
-  const success = await execute(t, [pot], {
-    kv: { inMemory: true },
-    logger: { enable: false },
+  const success = await execute(t, [instance], {
+    storage: "memory",
+    logging: false,
   });
 
   assertEquals(success, true);
@@ -106,10 +87,6 @@ Deno.test("Task - onRule TriggerRule.ForThisTask", async () => {
 });
 
 Deno.test("Task - onRule TriggerRule.ForUnknown", async () => {
-  class TestPot extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
   let executed = false;
 
   const t = task(TestPot)
@@ -120,12 +97,12 @@ Deno.test("Task - onRule TriggerRule.ForUnknown", async () => {
       return finish();
     });
 
-  const pot = new TestPot().init({ value: 42 });
-  // pot.to.task is "unknown" by default
+  const instance = TestPot.create({ value: 42 });
+  // instance.to.task is "unknown" by default
 
-  const success = await execute(t, [pot], {
-    kv: { inMemory: true },
-    logger: { enable: false },
+  const success = await execute(t, [instance], {
+    storage: "memory",
+    logging: false,
   });
 
   assertEquals(success, true);
@@ -133,10 +110,6 @@ Deno.test("Task - onRule TriggerRule.ForUnknown", async () => {
 });
 
 Deno.test("Task - attempts and interval configuration", () => {
-  class TestPot extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
   const t = task(TestPot)
     .name("Resilient Task")
     .attempts(5)
@@ -150,10 +123,6 @@ Deno.test("Task - attempts and interval configuration", () => {
 });
 
 Deno.test("Task - fail handler", async () => {
-  class TestPot extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
   let failHandlerCalled = false;
   let errorMessage = "";
 
@@ -167,9 +136,9 @@ Deno.test("Task - fail handler", async () => {
       errorMessage = error.message;
     });
 
-  const success = await execute(t, [new TestPot()], {
-    kv: { inMemory: true },
-    logger: { enable: false },
+  const success = await execute(t, [TestPot.create()], {
+    storage: "memory",
+    logging: false,
   });
 
   assertEquals(success, false);
@@ -188,8 +157,8 @@ Deno.test("Task - default trigger on CoreStartPot", async () => {
     });
 
   const success = await execute(t, undefined, {
-    kv: { inMemory: true },
-    logger: { enable: false },
+    storage: "memory",
+    logging: false,
   });
 
   assertEquals(success, true);
@@ -197,13 +166,6 @@ Deno.test("Task - default trigger on CoreStartPot", async () => {
 });
 
 Deno.test("Task - multiple pot types", () => {
-  class PotA extends InternalPot<{ a: number }> {
-    override data = { a: 0 };
-  }
-  class PotB extends InternalPot<{ b: string }> {
-    override data = { b: "" };
-  }
-
   const t = task(PotA, PotB)
     .name("Multi Pot Task")
     .do(async ({ pots, finish }) => {
@@ -214,10 +176,6 @@ Deno.test("Task - multiple pot types", () => {
 });
 
 Deno.test("Task - logger available in do handler", async () => {
-  class TestPot extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
   let loggerWorks = false;
 
   const t = task(TestPot)
@@ -228,24 +186,16 @@ Deno.test("Task - logger available in do handler", async () => {
       return finish();
     });
 
-  const success = await execute(t, [new TestPot()], {
-    kv: { inMemory: true },
-    logger: { enable: false },
+  const success = await execute(t, [TestPot.create()], {
+    storage: "memory",
+    logging: false,
   });
 
   assertEquals(success, true);
   assertEquals(loggerWorks, true);
 });
 
-// ============================================================================
-// v1.0 API Tests
-// ============================================================================
-
-Deno.test("Task v1.0 - .when() predicate trigger", async () => {
-  class TestPot extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
+Deno.test("Task - .when() predicate trigger", async () => {
   let executed = false;
 
   const t = task(TestPot)
@@ -256,21 +206,16 @@ Deno.test("Task v1.0 - .when() predicate trigger", async () => {
       return finish();
     });
 
-  // Should execute - value > 10
-  const success = await execute(t, [new TestPot().init({ value: 20 })], {
-    kv: { inMemory: true },
-    logger: { enable: false },
+  const success = await execute(t, [TestPot.create({ value: 20 })], {
+    storage: "memory",
+    logging: false,
   });
 
   assertEquals(success, true);
   assertEquals(executed, true);
 });
 
-Deno.test("Task v1.0 - .when() denies when predicate returns false", async () => {
-  class TestPot extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
+Deno.test("Task - .when() denies when predicate returns false", async () => {
   let executed = false;
 
   const t = task(TestPot)
@@ -281,21 +226,12 @@ Deno.test("Task v1.0 - .when() denies when predicate returns false", async () =>
       return finish();
     });
 
-  // Should NOT execute - value < 100, so predicate returns false
-  // Note: execute will timeout/fail because task never runs
-  const _pot = new TestPot().init({ value: 5 });
-
-  // We need a different approach - this will hang because task is denied
-  // Let's just verify the trigger is created correctly
+  // We verify the trigger is created correctly
   assertEquals(t.task.triggers["TestPot"].length, 1);
   assertEquals(executed, false);
 });
 
-Deno.test("Task v1.0 - .retry() configuration", () => {
-  class TestPot extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
+Deno.test("Task - .retry() configuration", () => {
   const t = task(TestPot)
     .name("Retry Test")
     .retry({ attempts: 5, interval: 2000, timeout: 10000 })
@@ -306,11 +242,7 @@ Deno.test("Task v1.0 - .retry() configuration", () => {
   assertEquals(t.task.timeout, 10000);
 });
 
-Deno.test("Task v1.0 - .catch() alias for .fail()", async () => {
-  class TestPot extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
+Deno.test("Task - .catch() alias for .fail()", async () => {
   let catchCalled = false;
 
   const t = task(TestPot)
@@ -322,9 +254,9 @@ Deno.test("Task v1.0 - .catch() alias for .fail()", async () => {
       catchCalled = true;
     });
 
-  const success = await execute(t, [new TestPot()], {
-    kv: { inMemory: true },
-    logger: { enable: false },
+  const success = await execute(t, [TestPot.create()], {
+    storage: "memory",
+    logging: false,
   });
 
   assertEquals(success, false);

@@ -1,15 +1,25 @@
 import { assertEquals } from "jsr:@std/assert";
-import { core, InternalPot, type task } from "$shibui";
+import { core, pot } from "$shibui";
+
+const PotA = pot("PotA", { a: 0 });
+const PotB = pot("PotB", { b: 0 });
+const PotC = pot("PotC", { c: 0 });
+const Pot1 = pot("Pot1", { v: 1 });
+const Pot2 = pot("Pot2", { v: 2 });
+const Pot3 = pot("Pot3", { v: 3 });
+const Pot4 = pot("Pot4", { v: 4 });
+const Pot5 = pot("Pot5", { v: 5 });
+const StringPot = pot("StringPot", { text: "" });
+const NumberPot = pot("NumberPot", { num: 0 });
+const BooleanPot = pot("BooleanPot", { flag: false });
+const TypePotA = pot("TypePotA", { type: "A" });
+const TypePotB = pot("TypePotB", { type: "B" });
+const TypePotC = pot("TypePotC", { type: "C" });
+const ValuePotA = pot("ValuePotA", { value: 0 });
+const ValuePotB = pot("ValuePotB", { value: 0 });
 
 Deno.test("Dependent Tasks - two slots", async () => {
-  class PotA extends InternalPot<{ a: number }> {
-    override data = { a: 0 };
-  }
-  class PotB extends InternalPot<{ b: number }> {
-    override data = { b: 0 };
-  }
-
-  const c = core({ kv: { inMemory: true }, logger: { enable: false } });
+  const c = core({ storage: "memory", logging: false });
 
   let executed = false;
   let sumResult = 0;
@@ -25,8 +35,8 @@ Deno.test("Dependent Tasks - two slots", async () => {
   c.register(combiner);
   await c.start();
 
-  c.send(new PotA().init({ a: 10 }));
-  c.send(new PotB().init({ b: 20 }));
+  c.send(PotA.create({ a: 10 }));
+  c.send(PotB.create({ b: 20 }));
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -37,17 +47,7 @@ Deno.test("Dependent Tasks - two slots", async () => {
 });
 
 Deno.test("Dependent Tasks - three slots", async () => {
-  class PotA extends InternalPot<{ a: number }> {
-    override data = { a: 0 };
-  }
-  class PotB extends InternalPot<{ b: number }> {
-    override data = { b: 0 };
-  }
-  class PotC extends InternalPot<{ c: number }> {
-    override data = { c: 0 };
-  }
-
-  const c = core({ kv: { inMemory: true }, logger: { enable: false } });
+  const c = core({ storage: "memory", logging: false });
 
   let executed = false;
   let result = 0;
@@ -63,9 +63,9 @@ Deno.test("Dependent Tasks - three slots", async () => {
   c.register(combiner);
   await c.start();
 
-  c.send(new PotA().init({ a: 1 }));
-  c.send(new PotB().init({ b: 2 }));
-  c.send(new PotC().init({ c: 3 }));
+  c.send(PotA.create({ a: 1 }));
+  c.send(PotB.create({ b: 2 }));
+  c.send(PotC.create({ c: 3 }));
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -76,23 +76,7 @@ Deno.test("Dependent Tasks - three slots", async () => {
 });
 
 Deno.test("Dependent Tasks - five slots (maximum)", async () => {
-  class Pot1 extends InternalPot<{ v: number }> {
-    override data = { v: 1 };
-  }
-  class Pot2 extends InternalPot<{ v: number }> {
-    override data = { v: 2 };
-  }
-  class Pot3 extends InternalPot<{ v: number }> {
-    override data = { v: 3 };
-  }
-  class Pot4 extends InternalPot<{ v: number }> {
-    override data = { v: 4 };
-  }
-  class Pot5 extends InternalPot<{ v: number }> {
-    override data = { v: 5 };
-  }
-
-  const c = core({ kv: { inMemory: true }, logger: { enable: false } });
+  const c = core({ storage: "memory", logging: false });
 
   let executed = false;
   let result = 0;
@@ -108,11 +92,11 @@ Deno.test("Dependent Tasks - five slots (maximum)", async () => {
   c.register(combiner);
   await c.start();
 
-  c.send(new Pot1().init({ v: 1 }));
-  c.send(new Pot2().init({ v: 2 }));
-  c.send(new Pot3().init({ v: 3 }));
-  c.send(new Pot4().init({ v: 4 }));
-  c.send(new Pot5().init({ v: 5 }));
+  c.send(Pot1.create({ v: 1 }));
+  c.send(Pot2.create({ v: 2 }));
+  c.send(Pot3.create({ v: 3 }));
+  c.send(Pot4.create({ v: 4 }));
+  c.send(Pot5.create({ v: 5 }));
 
   await new Promise((resolve) => setTimeout(resolve, 1500));
 
@@ -123,14 +107,7 @@ Deno.test("Dependent Tasks - five slots (maximum)", async () => {
 });
 
 Deno.test("Dependent Tasks - waits for all pots", async () => {
-  class PotA extends InternalPot<{ a: number }> {
-    override data = { a: 0 };
-  }
-  class PotB extends InternalPot<{ b: number }> {
-    override data = { b: 0 };
-  }
-
-  const c = core({ kv: { inMemory: true }, logger: { enable: false } });
+  const c = core({ storage: "memory", logging: false });
 
   let executionCount = 0;
 
@@ -145,7 +122,7 @@ Deno.test("Dependent Tasks - waits for all pots", async () => {
   await c.start();
 
   // Send only one pot
-  c.send(new PotA().init({ a: 10 }));
+  c.send(PotA.create({ a: 10 }));
 
   await new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -153,7 +130,7 @@ Deno.test("Dependent Tasks - waits for all pots", async () => {
   assertEquals(executionCount, 0);
 
   // Send second pot
-  c.send(new PotB().init({ b: 20 }));
+  c.send(PotB.create({ b: 20 }));
 
   await new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -164,21 +141,11 @@ Deno.test("Dependent Tasks - waits for all pots", async () => {
 });
 
 Deno.test("Dependent Tasks - order of pots matches declaration", async () => {
-  class PotA extends InternalPot<{ type: string }> {
-    override data = { type: "A" };
-  }
-  class PotB extends InternalPot<{ type: string }> {
-    override data = { type: "B" };
-  }
-  class PotC extends InternalPot<{ type: string }> {
-    override data = { type: "C" };
-  }
-
-  const c = core({ kv: { inMemory: true }, logger: { enable: false } });
+  const c = core({ storage: "memory", logging: false });
 
   let receivedOrder: string[] = [];
 
-  const combiner = c.task(PotA, PotB, PotC)
+  const combiner = c.task(TypePotA, TypePotB, TypePotC)
     .name("Order Test")
     .do(async ({ pots, finish }) => {
       receivedOrder = pots.map((p) => p.data.type);
@@ -189,9 +156,9 @@ Deno.test("Dependent Tasks - order of pots matches declaration", async () => {
   await c.start();
 
   // Send in different order
-  c.send(new PotC().init({ type: "C" }));
-  c.send(new PotA().init({ type: "A" }));
-  c.send(new PotB().init({ type: "B" }));
+  c.send(TypePotC.create({ type: "C" }));
+  c.send(TypePotA.create({ type: "A" }));
+  c.send(TypePotB.create({ type: "B" }));
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -202,23 +169,16 @@ Deno.test("Dependent Tasks - order of pots matches declaration", async () => {
 });
 
 Deno.test("Dependent Tasks - custom triggers per slot", async () => {
-  class PotA extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-  class PotB extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
-  const c = core({ kv: { inMemory: true }, logger: { enable: false } });
+  const c = core({ storage: "memory", logging: false });
 
   let executed = false;
 
-  const combiner = c.task(PotA, PotB)
+  const combiner = c.task(ValuePotA, ValuePotB)
     .name("Custom Trigger Task")
-    .on(PotA, ({ pot, allow, deny }) => {
+    .on(ValuePotA, ({ pot, allow, deny }) => {
       return pot.data.value > 5 ? allow(0) : deny();
     }, 0)
-    .on(PotB, ({ pot, allow, deny }) => {
+    .on(ValuePotB, ({ pot, allow, deny }) => {
       return pot.data.value < 100 ? allow(1) : deny();
     }, 1)
     .do(async ({ finish }) => {
@@ -229,10 +189,10 @@ Deno.test("Dependent Tasks - custom triggers per slot", async () => {
   c.register(combiner);
   await c.start();
 
-  // PotA should be accepted (10 > 5)
-  c.send(new PotA().init({ value: 10 }));
-  // PotB should be accepted (20 < 100)
-  c.send(new PotB().init({ value: 20 }));
+  // ValuePotA should be accepted (10 > 5)
+  c.send(ValuePotA.create({ value: 10 }));
+  // ValuePotB should be accepted (20 < 100)
+  c.send(ValuePotB.create({ value: 20 }));
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -242,20 +202,13 @@ Deno.test("Dependent Tasks - custom triggers per slot", async () => {
 });
 
 Deno.test("Dependent Tasks - rejects if trigger denies", async () => {
-  class PotA extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-  class PotB extends InternalPot<{ value: number }> {
-    override data = { value: 0 };
-  }
-
-  const c = core({ kv: { inMemory: true }, logger: { enable: false } });
+  const c = core({ storage: "memory", logging: false });
 
   let executed = false;
 
-  const combiner = c.task(PotA, PotB)
+  const combiner = c.task(ValuePotA, ValuePotB)
     .name("Reject Task")
-    .on(PotA, ({ pot, allow, deny }) => {
+    .on(ValuePotA, ({ pot, allow, deny }) => {
       return pot.data.value > 100 ? allow(0) : deny();
     }, 0)
     .do(async ({ finish }) => {
@@ -266,29 +219,19 @@ Deno.test("Dependent Tasks - rejects if trigger denies", async () => {
   c.register(combiner);
   await c.start();
 
-  c.send(new PotA().init({ value: 5 })); // Should be denied
-  c.send(new PotB().init({ value: 20 }));
+  c.send(ValuePotA.create({ value: 5 })); // Should be denied
+  c.send(ValuePotB.create({ value: 20 }));
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  // Should not execute because PotA was denied
+  // Should not execute because ValuePotA was denied
   assertEquals(executed, false);
 
   c.close();
 });
 
 Deno.test("Dependent Tasks - different pot types", async () => {
-  class StringPot extends InternalPot<{ text: string }> {
-    override data = { text: "" };
-  }
-  class NumberPot extends InternalPot<{ num: number }> {
-    override data = { num: 0 };
-  }
-  class BooleanPot extends InternalPot<{ flag: boolean }> {
-    override data = { flag: false };
-  }
-
-  const c = core({ kv: { inMemory: true }, logger: { enable: false } });
+  const c = core({ storage: "memory", logging: false });
 
   let result = "";
 
@@ -302,9 +245,9 @@ Deno.test("Dependent Tasks - different pot types", async () => {
   c.register(mixer);
   await c.start();
 
-  c.send(new StringPot().init({ text: "hello" }));
-  c.send(new NumberPot().init({ num: 42 }));
-  c.send(new BooleanPot().init({ flag: true }));
+  c.send(StringPot.create({ text: "hello" }));
+  c.send(NumberPot.create({ num: 42 }));
+  c.send(BooleanPot.create({ flag: true }));
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
