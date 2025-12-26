@@ -12,7 +12,11 @@
 
 import { Core } from "$shibui/components";
 import type {
+  PotInput,
+  PotLike,
+  PotWithData,
   TCoreOptions,
+  ToPots,
   TPot,
   TSpicy,
   TTaskBuilder,
@@ -33,11 +37,7 @@ import { ContextPot } from "$shibui/pots";
 import { createRandomContext } from "./helpers/createRandomContext.ts";
 import { emitters } from "$shibui/emitters";
 import { levelName } from "./components/EventDrivenLogger.ts";
-import type { PotFactory, PotInstance } from "./pot.ts";
-
-/** Input for execute() - can be PotFactory, PotInstance, or TPot */
-// deno-lint-ignore no-explicit-any
-type PotLike = TPot | PotInstance<any> | PotFactory<any>;
+import type { PotFactory } from "./pot.ts";
 
 /** Check if input is a PotFactory */
 // deno-lint-ignore no-explicit-any
@@ -135,26 +135,6 @@ export const runCI = <S extends TSpicy>(
   });
 };
 
-// ============================================================================
-// Type helpers for task() to accept both PotFactory and Constructor
-// ============================================================================
-
-/** Input type: either a Pot class constructor or a PotFactory */
-// deno-lint-ignore no-explicit-any
-type PotInput = Constructor<Pot<any>> | PotFactory<any>;
-
-/** Convert a single PotInput to its Pot type */
-// deno-lint-ignore no-explicit-any
-type ToPot<S> = S extends Constructor<infer P extends Pot<any>> ? P
-  // deno-lint-ignore no-explicit-any
-  : S extends PotFactory<infer D> ? Pot<D & { [key: string]: any }>
-  : never;
-
-/** Convert array of PotInputs to array of Pot types */
-type ToPots<Sources extends PotInput[]> = {
-  [K in keyof Sources]: ToPot<Sources[K]>;
-};
-
 /** Check if input is a PotFactory */
 // deno-lint-ignore no-explicit-any
 function isPotFactory(input: PotInput): input is PotFactory<any> {
@@ -192,9 +172,6 @@ export const task = <
   // deno-lint-ignore no-explicit-any
   return new TaskBuilder<{}, ToPots<Sources>, CPot>(...constructors as any);
 };
-
-// Type helper to create a Pot type from data type
-type PotWithData<D extends object> = Pot<D & { [key: string]: unknown }>;
 
 // Overloads for proper type inference
 export function workflow<CP extends ContextPot<{}>>(
@@ -288,6 +265,13 @@ export {
 } from "$shibui/constants";
 
 export type {
+  // Type helpers
+  PotInput,
+  PotLike,
+  PotWithData,
+  ToPot,
+  ToPots,
+  // Core types
   TAnyCore,
   TAnyTaskDoHandler,
   TAnyTaskTrigger,
@@ -303,7 +287,6 @@ export type {
   TOnHandlerContext,
   TOnHandlerResult,
   TPot,
-  // New v1.0 types
   TPotData,
   TPotInstanceOf,
   TPotPack,

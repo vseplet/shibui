@@ -456,3 +456,40 @@ export function isPotFactory<T extends { [key: string]: unknown }>(
  * Predicate function for .when() trigger filtering
  */
 export type TWhenPredicate<T> = (data: T) => boolean;
+
+// ============================================================================
+// Type helpers for task()/workflow() to accept both PotFactory and Constructor
+// ============================================================================
+
+/**
+ * Input for execute() - can be PotFactory, PotInstance, or TPot
+ */
+// deno-lint-ignore no-explicit-any
+export type PotLike = TPot | PotInstance<any> | PotFactory<any>;
+
+/**
+ * Input type for task(): either a Pot class constructor or a PotFactory
+ */
+// deno-lint-ignore no-explicit-any
+export type PotInput = Constructor<Pot<any>> | PotFactory<any>;
+
+/**
+ * Convert a single PotInput to its Pot type
+ */
+// deno-lint-ignore no-explicit-any
+export type ToPot<S> = S extends Constructor<infer P extends Pot<any>> ? P
+  // deno-lint-ignore no-explicit-any
+  : S extends PotFactory<infer D> ? Pot<D & { [key: string]: any }>
+  : never;
+
+/**
+ * Convert array of PotInputs to array of Pot types
+ */
+export type ToPots<Sources extends PotInput[]> = {
+  [K in keyof Sources]: ToPot<Sources[K]>;
+};
+
+/**
+ * Type helper to create a Pot type from data type (for workflow context)
+ */
+export type PotWithData<D extends object> = Pot<D & { [key: string]: unknown }>;
