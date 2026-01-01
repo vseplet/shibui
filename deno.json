@@ -48,6 +48,12 @@
     "@std/flags": "jsr:@std/flags@0.224.0",
     "@vseplet/luminous": "jsr:@vseplet/luminous@1.0.3"
   },
+  "fmt": {
+    "exclude": [
+      "deno.json",
+      "source/versions.ts"
+    ]
+  },
   "lint": {
     "rules": {
       "exclude": [
@@ -58,7 +64,9 @@
     },
     "exclude": [
       "tests/",
-      "examples/"
+      "examples/",
+      "deno.json",
+      "source/versions.ts"
     ]
   }
 }
