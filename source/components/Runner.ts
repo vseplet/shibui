@@ -33,19 +33,22 @@ import { promiseWithTimeout } from "$helpers";
 
 export default class Runner {
   #core: TAnyCore;
-  #kv: Deno.Kv;
+  #kv: Deno.Kv | null = null;
   #log: TEventDrivenLogger;
   #spicy: TSpicy;
   #tasks: { [name: string]: TTask } = {};
 
-  constructor(core: TAnyCore, kv: Deno.Kv, spicy: any = {}) {
+  constructor(core: TAnyCore, spicy: any = {}) {
     this.#spicy = spicy;
     this.#core = core;
-    this.#kv = kv;
     this.#log = core.createLogger({
       sourceType: SourceType.Core,
       sourceName: "Runner",
     });
+  }
+
+  init(kv: Deno.Kv): void {
+    this.#kv = kv;
   }
 
   registerTask(task: TTask) {

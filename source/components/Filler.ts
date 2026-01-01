@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import type { Pot } from "$shibui/entities";
+import { Pot } from "$shibui/entities";
 import {
   SourceType,
   type TAnyCore,
@@ -19,29 +19,91 @@ import {
   type TTask,
 } from "$shibui/types";
 
+const KV_PREFIX = ["shibui", "filler", "slots"] as const;
+
 export class Filler {
   #core: TAnyCore;
-  #kv: Deno.Kv;
+  #kv: Deno.Kv | null = null;
   #log: TEventDrivenLogger;
 
   #slots: {
     [taskName: string]: {
       slots: Array<Array<TPot | undefined>>;
+      slotsCount: number;
     };
   } = {};
 
-  constructor(core: TAnyCore, kv: Deno.Kv) {
+  constructor(core: TAnyCore) {
     this.#core = core;
-    this.#kv = kv;
     this.#log = core.createLogger({
       sourceType: SourceType.Core,
       sourceName: "Filler",
     });
   }
 
+  async init(kv: Deno.Kv): Promise<void> {
+    this.#kv = kv;
+    await this.#restoreSlots();
+  }
+
+  async #restoreSlots(): Promise<void> {
+    if (!this.#kv) return;
+
+    const entries = this.#kv.list<TPot>({ prefix: [...KV_PREFIX] });
+
+    for await (const entry of entries) {
+      // Key format: ["shibui", "filler", "slots", taskName, slot, row]
+      const key = entry.key as string[];
+      const taskName = key[3] as string;
+      const slot = Number(key[4]);
+      const row = Number(key[5]);
+
+      if (!this.#slots[taskName]) {
+        this.#log.wrn(
+          `Found orphaned slot data for unregistered task '${taskName}', skipping`,
+        );
+        continue;
+      }
+
+      const pot = new Pot().deserialize(entry.value);
+      if (pot) {
+        // Ensure array is large enough
+        while (this.#slots[taskName].slots[slot].length <= row) {
+          this.#slots[taskName].slots[slot].push(undefined);
+        }
+        this.#slots[taskName].slots[slot][row] = pot;
+        this.#log.vrb(
+          `Restored pot '${pot.name}' for task '${taskName}' slot ${slot} row ${row}`,
+        );
+      }
+    }
+  }
+
+  async #persistSlot(
+    taskName: string,
+    slot: number,
+    row: number,
+    pot: TPot,
+  ): Promise<void> {
+    if (!this.#kv) return;
+    const key = [...KV_PREFIX, taskName, slot, row];
+    await this.#kv.set(key, pot);
+  }
+
+  async #removeSlotRow(taskName: string, row: number): Promise<void> {
+    if (!this.#kv) return;
+    const slotsCount = this.#slots[taskName]?.slotsCount || 0;
+    const ops = this.#kv.atomic();
+    for (let slot = 0; slot < slotsCount; slot++) {
+      ops.delete([...KV_PREFIX, taskName, slot, row]);
+    }
+    await ops.commit();
+  }
+
   private allocateSlots(task: TTask) {
     this.#slots[task.name] = {
       slots: Array.from({ length: task.slotsCount }, () => []),
+      slotsCount: task.slotsCount,
     };
   }
 
@@ -49,27 +111,40 @@ export class Filler {
     this.allocateSlots(task);
   }
 
-  fill(taskName: string, pot: Pot, slot: number, row?: number): {
+  async fill(taskName: string, pot: Pot, slot: number, row?: number): Promise<{
     taskName: string;
     pots: Array<Pot>;
-  } | null {
+  } | null> {
     try {
+      const actualRow = row !== undefined
+        ? row
+        : this.#slots[taskName].slots[slot].length;
+
       if (row !== undefined) {
         this.#slots[taskName].slots[slot][row] = pot;
-      } else this.#slots[taskName].slots[slot].push(pot);
+      } else {
+        this.#slots[taskName].slots[slot].push(pot);
+      }
 
-      const rowIndex = row || this.#slots[taskName].slots[slot].length - 1;
+      // Persist to KV
+      await this.#persistSlot(taskName, slot, actualRow, pot);
+
       const rowIsFilled = this.#slots[taskName].slots.every((arr) =>
-        arr[rowIndex]
+        arr[actualRow]
       );
 
       if (rowIsFilled) {
-        const row = this.#slots[taskName].slots.map((arr) => arr[rowIndex]);
-        // remove row before run do handler
-        this.#slots[taskName].slots.forEach((arr) => arr.splice(rowIndex, 1));
+        const filledRow = this.#slots[taskName].slots.map((arr) =>
+          arr[actualRow]
+        );
+        // Remove row from memory
+        this.#slots[taskName].slots.forEach((arr) => arr.splice(actualRow, 1));
+        // Remove row from KV
+        await this.#removeSlotRow(taskName, actualRow);
+
         return {
           taskName,
-          pots: row.filter((pot) => pot !== undefined) as Array<Pot>,
+          pots: filledRow.filter((pot) => pot !== undefined) as Array<Pot>,
         };
       }
 
