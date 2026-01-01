@@ -111,10 +111,12 @@ export class Filler {
     this.allocateSlots(task);
   }
 
-  async fill(taskName: string, pot: Pot, slot: number, row?: number): Promise<{
-    taskName: string;
-    pots: Array<Pot>;
-  } | null> {
+  async fill(taskName: string, pot: Pot, slot: number, row?: number): Promise<
+    {
+      taskName: string;
+      pots: Array<Pot>;
+    } | null
+  > {
     try {
       const actualRow = row !== undefined
         ? row

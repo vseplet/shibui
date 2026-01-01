@@ -326,7 +326,11 @@ Deno.test("Crash Recovery - slots persist and restore after crash", async () => 
 
   // Verify task executed after restart with restored data
   assertEquals(executedAfterRestart, true, "Task should execute after restart");
-  assertEquals(receivedValues, ["A-saved", "B-new"], "Should have restored pot A and new pot B");
+  assertEquals(
+    receivedValues,
+    ["A-saved", "B-new"],
+    "Should have restored pot A and new pot B",
+  );
 });
 
 Deno.test("Crash Recovery - three slots with partial data", async () => {

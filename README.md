@@ -54,15 +54,18 @@ import { context, core, execute, pot, task, workflow } from "@vseplet/shibui";
 ### When to Use What
 
 Use **task** for:
+
 - Simple data processing
 - One-off operations
 - Independent units of work
 
 Use **task with multiple pots** for:
+
 - Operations that need data from multiple sources
 - Aggregation and combining data
 
 Use **workflow** for:
+
 - Multi-step processes with shared state
 - Pipelines where steps depend on previous results
 - Complex business logic with branching
@@ -78,7 +81,8 @@ const Message = pot("Message", { text: "" }, { ttl: 3 });
 const instance = Counter.create({ value: 42 });
 ```
 
-The `ttl` option controls how many times the pot can be resent if no task handles it.
+The `ttl` option controls how many times the pot can be resent if no task
+handles it.
 
 ### Task
 
@@ -94,7 +98,8 @@ const myTask = task(Counter)
   });
 ```
 
-Tasks can depend on multiple pots. The task will wait until all required pots arrive:
+Tasks can depend on multiple pots. The task will wait until all required pots
+arrive:
 
 ```typescript
 const combiner = task(PotA, PotB, PotC)
@@ -145,11 +150,11 @@ Creates a pot factory.
 ```typescript
 const User = pot("User", { name: "", age: 0 }, { ttl: 3 });
 
-User.create();              // create with defaults
-User.create({ age: 25 });   // create with overrides
-User.name;                  // "User"
-User.defaults;              // { name: "", age: 0 }
-User.ttl;                   // 3
+User.create(); // create with defaults
+User.create({ age: 25 }); // create with overrides
+User.name; // "User"
+User.defaults; // { name: "", age: 0 }
+User.ttl; // 3
 ```
 
 ### context(name, defaults)
@@ -168,6 +173,7 @@ const MyContext = context("MyContext", {
 Creates a task builder.
 
 Methods:
+
 - `.name(string)` - set task name (required)
 - `.when(predicate)` - filter by data condition
 - `.on(Pot, handler)` - custom trigger handler
@@ -177,6 +183,7 @@ Methods:
 - `.catch(handler)` - error handler
 
 The `.do()` handler receives:
+
 - `pots` - array of input pots
 - `ctx` - workflow context (in workflows)
 - `log` - logger with methods: `trc`, `dbg`, `vrb`, `inf`, `wrn`, `err`, `flt`
@@ -239,7 +246,9 @@ core({ storage: "memory" });
 core({ storage: "./data/app.db" });
 ```
 
-With file-based storage, dependent tasks (tasks waiting for multiple pots) will recover their state after a crash. If your process restarts, partially filled slots are restored from the database.
+With file-based storage, dependent tasks (tasks waiting for multiple pots) will
+recover their state after a crash. If your process restarts, partially filled
+slots are restored from the database.
 
 ### Logging
 
@@ -253,13 +262,14 @@ core({ logging: false });
 // Configure level and sources
 core({
   logging: {
-    level: "info",  // trace, debug, verbose, info, warn, error, fatal
-    sources: ["task", "workflow"],  // core, task, workflow, framework, plugin
+    level: "info", // trace, debug, verbose, info, warn, error, fatal
+    sources: ["task", "workflow"], // core, task, workflow, framework, plugin
   },
 });
 ```
 
-Log levels from lowest to highest: trace (1), debug (2), verbose (3), info (4), warn (5), error (6), fatal (7).
+Log levels from lowest to highest: trace (1), debug (2), verbose (3), info (4),
+warn (5), error (6), fatal (7).
 
 ### Custom Context
 
