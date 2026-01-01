@@ -1,20 +1,28 @@
 # SHIBUI
 
-**Universal workflow automation engine for Deno**
+Universal workflow automation engine for Deno.
 
 [![JSR](https://jsr.io/badges/@vseplet/shibui)](https://jsr.io/@vseplet/shibui)
 
 > **Warning**: This package is under active development. API may change.
+
+## Contents
+
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Core Concepts](#core-concepts)
+- [API Reference](#api-reference)
+- [Configuration](#configuration)
+- [Examples](#examples)
+- [License](#license)
 
 ## Quick Start
 
 ```typescript
 import { execute, pot, task } from "@vseplet/shibui";
 
-// 1. Define data with pot()
 const Message = pot("Message", { text: "" });
 
-// 2. Create a task
 const printTask = task(Message)
   .name("Print Message")
   .do(async ({ pots, log, finish }) => {
@@ -22,17 +30,14 @@ const printTask = task(Message)
     return finish();
   });
 
-// 3. Execute
 await execute(printTask, [Message.create({ text: "Hello!" })]);
 ```
 
-**Run with:**
+Run with:
 
 ```bash
 deno run --allow-all --unstable-kv your_script.ts
 ```
-
----
 
 ## Installation
 
@@ -44,240 +49,360 @@ deno add jsr:@vseplet/shibui
 import { context, core, execute, pot, task, workflow } from "@vseplet/shibui";
 ```
 
----
-
 ## Core Concepts
+
+### When to Use What
+
+Use **task** for:
+- Simple data processing
+- One-off operations
+- Independent units of work
+
+Use **task with multiple pots** for:
+- Operations that need data from multiple sources
+- Aggregation and combining data
+
+Use **workflow** for:
+- Multi-step processes with shared state
+- Pipelines where steps depend on previous results
+- Complex business logic with branching
 
 ### Pot
 
-**Pot** is a data container. Create pots using the `pot()` factory:
+Pot is a typed data container. Think of it as a message or event payload.
 
 ```typescript
-// Simple pot
 const Counter = pot("Counter", { value: 0 });
-
-// With TTL (retry count)
 const Message = pot("Message", { text: "" }, { ttl: 3 });
 
-// Create instances
 const instance = Counter.create({ value: 42 });
 ```
 
+The `ttl` option controls how many times the pot can be resent if no task handles it.
+
 ### Task
 
-**Task** processes pots. Tasks have triggers, handlers, and result operations:
+Task processes pots. It defines what data it accepts and how to handle it.
 
 ```typescript
 const myTask = task(Counter)
   .name("My Task")
-  .when((data) => data.value > 0) // Trigger condition
-  .retry({ attempts: 3, timeout: 5000 }) // Retry config
+  .when((data) => data.value > 0)
   .do(async ({ pots, log, finish }) => {
     log.inf(`Processing: ${pots[0].data.value}`);
     return finish();
-  })
-  .catch(async (error) => { // Error handler
-    console.error(error.message);
+  });
+```
+
+Tasks can depend on multiple pots. The task will wait until all required pots arrive:
+
+```typescript
+const combiner = task(PotA, PotB, PotC)
+  .name("Combiner")
+  .do(async ({ pots, finish }) => {
+    // pots[0] is PotA, pots[1] is PotB, pots[2] is PotC
+    return finish();
   });
 ```
 
 ### Workflow
 
-**Workflow** orchestrates tasks with shared context:
+Workflow orchestrates multiple tasks with shared typed context.
 
 ```typescript
-// Define typed context with context()
-const MyContext = context("MyContext", {
-  count: 0,
+const OrderContext = context("OrderContext", {
+  orderId: "",
   status: "pending",
 });
 
-const myWorkflow = workflow(MyContext)
-  .name("My Workflow")
+const orderWorkflow = workflow(OrderContext)
+  .name("Order Processing")
   .sq(({ task }) => {
-    const step2 = task()
-      .name("Step 2")
+    const complete = task()
+      .name("Complete")
       .do(async ({ ctx, finish }) => {
-        ctx.data.status = "done"; // TypeScript knows the type!
+        ctx.data.status = "done";
         return finish();
       });
 
-    const step1 = task()
-      .name("Step 1")
+    const start = task()
+      .name("Start")
       .do(async ({ ctx, next }) => {
-        ctx.data.count++;
-        return next(step2);
+        ctx.data.orderId = "ORD-001";
+        return next(complete);
       });
 
-    return step1;
+    return start;
   });
 ```
-
----
 
 ## API Reference
 
 ### pot(name, defaults, options?)
 
-Create a pot factory:
+Creates a pot factory.
 
 ```typescript
-const User = pot("User", {
-  name: "Anonymous",
-  age: 0,
-}, { ttl: 3 });
+const User = pot("User", { name: "", age: 0 }, { ttl: 3 });
 
-// Methods
-User.create(); // Create with defaults
-User.create({ age: 25 }); // Create with overrides
-User.name; // "User"
-User.defaults; // { name: "Anonymous", age: 0 }
-User.ttl; // 3
+User.create();              // create with defaults
+User.create({ age: 25 });   // create with overrides
+User.name;                  // "User"
+User.defaults;              // { name: "", age: 0 }
+User.ttl;                   // 3
 ```
 
 ### context(name, defaults)
 
-Create a workflow context factory (typed):
+Creates a typed workflow context factory.
 
 ```typescript
-const OrderContext = context("OrderContext", {
-  orderId: "",
+const MyContext = context("MyContext", {
   items: [] as string[],
   total: 0,
-});
-
-// Use with workflow for full type inference
-workflow(OrderContext).sq(({ task }) => {
-  task().do(({ ctx }) => {
-    ctx.data.orderId = "ORD-001"; // TypeScript knows the type!
-    ctx.data.items.push("item");
-  });
 });
 ```
 
 ### task(...pots)
 
-Create a task builder:
+Creates a task builder.
+
+Methods:
+- `.name(string)` - set task name (required)
+- `.when(predicate)` - filter by data condition
+- `.on(Pot, handler)` - custom trigger handler
+- `.onRule(rule, Pot)` - built-in trigger rule
+- `.do(handler)` - execution handler (required)
+- `.retry({ attempts, interval, timeout })` - retry configuration
+- `.catch(handler)` - error handler
+
+The `.do()` handler receives:
+- `pots` - array of input pots
+- `ctx` - workflow context (in workflows)
+- `log` - logger with methods: `trc`, `dbg`, `vrb`, `inf`, `wrn`, `err`, `flt`
+- `finish()` - complete successfully
+- `fail(reason)` - complete with error
+- `next(task, data?)` - chain to another task
+- `repeat()` - retry the task
+
+### workflow(contextFactory?)
+
+Creates a workflow builder.
 
 ```typescript
-// Single pot
-task(Counter).name("Task").do(...)
-
-// Multiple pots (dependent task - waits for all)
-task(PotA, PotB, PotC).name("Combiner").do(...)
-```
-
-#### Task Builder Methods
-
-| Method                                    | Description                  |
-| ----------------------------------------- | ---------------------------- |
-| `.name(string)`                           | Set task name (required)     |
-| `.when(predicate)`                        | Filter by data condition     |
-| `.on(Pot, handler)`                       | Custom trigger handler       |
-| `.onRule(rule, Pot)`                      | Built-in trigger rule        |
-| `.do(handler)`                            | Execution handler (required) |
-| `.retry({ attempts, interval, timeout })` | Retry configuration          |
-| `.catch(handler)`                         | Error handler                |
-
-#### .when() - Simple Trigger
-
-```typescript
-task(Counter)
-  .when(data => data.value > 0)  // Only execute if value > 0
-  .do(...)
-```
-
-#### .do() Handler
-
-```typescript
-task(Counter)
-  .do(async ({ pots, log, next, finish, fail, repeat }) => {
-    // pots - array of input pots
-    // log - logger (dbg, inf, wrn, err, etc.)
-
-    // Return one of:
-    return finish(); // Complete successfully
-    return fail("reason"); // Complete with error
-    return next(otherTask, data); // Chain to another task
-    return repeat(); // Retry (uses TTL)
-  });
-```
-
-#### .retry() - Resilience
-
-```typescript
-task(Counter)
-  .retry({
-    attempts: 3,      // Retry up to 3 times
-    interval: 1000,   // Wait 1s between retries
-    timeout: 5000     // Timeout after 5s
-  })
-  .do(...)
-  .catch(async (error) => {
-    // Called after all retries fail
+workflow(MyContext)
+  .name("My Workflow")
+  .sq(({ task }) => {
+    // define tasks, return the first one
+    return firstTask;
   });
 ```
 
 ### execute(builder, pots?, options?)
 
-Execute a task or workflow:
+Executes a task or workflow.
 
 ```typescript
-// Execute task with pot factory (auto-creates instance)
-await execute(myTask, [Counter]);
-
-// Execute with custom data
 await execute(myTask, [Counter.create({ value: 42 })]);
-
-// Execute workflow
 await execute(myWorkflow);
-
-// With options
-await execute(myTask, [Counter], {
-  storage: "memory",
-  logging: false,
-});
+await execute(myTask, [Counter], { storage: "memory", logging: false });
 ```
 
 ### core(options?)
 
-Create an engine instance for manual control:
+Creates an engine instance for manual control.
 
 ```typescript
 const app = core({
-  storage: "memory", // or "./data/app.db" for persistent storage
-  logging: false, // disable logging
-  context: { // custom data for handlers
-    apiKey: "...",
-  },
+  storage: "memory",
+  logging: false,
+  context: { apiKey: "..." },
 });
 
 app.register(myTask);
 await app.start();
-app.send(Counter, myTask); // Auto-creates pot instance
+app.send(Counter.create({ value: 1 }));
 app.close();
 ```
 
-### workflow(contextFactory?)
+## Configuration
 
-Create a workflow:
+### Storage
+
+Storage controls where the engine keeps its queue and state.
 
 ```typescript
-import { context, workflow } from "@vseplet/shibui";
+// In-memory (data lost on restart)
+core({ storage: "memory" });
 
-// With typed context
-const BuildContext = context("BuildContext", {
-  steps: [] as string[],
-  status: "pending",
+// File-based (persistent, survives restarts)
+core({ storage: "./data/app.db" });
+```
+
+With file-based storage, dependent tasks (tasks waiting for multiple pots) will recover their state after a crash. If your process restarts, partially filled slots are restored from the database.
+
+### Logging
+
+```typescript
+// Enable all logging
+core({ logging: true });
+
+// Disable logging
+core({ logging: false });
+
+// Configure level and sources
+core({
+  logging: {
+    level: "info",  // trace, debug, verbose, info, warn, error, fatal
+    sources: ["task", "workflow"],  // core, task, workflow, framework, plugin
+  },
+});
+```
+
+Log levels from lowest to highest: trace (1), debug (2), verbose (3), info (4), warn (5), error (6), fatal (7).
+
+### Custom Context
+
+Pass custom data available in all handlers:
+
+```typescript
+const app = core({
+  context: {
+    db: databaseConnection,
+    config: appConfig,
+  },
 });
 
-const myWorkflow = workflow(BuildContext)
-  .name("Build Pipeline")
+const myTask = app.task(Data)
+  .name("Task")
+  .do(async ({ db, config, finish }) => {
+    // db and config are available here
+    return finish();
+  });
+```
+
+## Examples
+
+### Basic Task
+
+```typescript
+import { execute, pot, task } from "@vseplet/shibui";
+
+const Counter = pot("Counter", { value: 0 });
+
+const increment = task(Counter)
+  .name("Increment")
+  .do(async ({ pots, log, finish }) => {
+    log.inf(`Value: ${pots[0].data.value}`);
+    return finish();
+  });
+
+await execute(increment, [Counter.create({ value: 10 })]);
+```
+
+### Conditional Execution
+
+```typescript
+const Counter = pot("Counter", { value: 0 });
+
+const onlyPositive = task(Counter)
+  .name("Only Positive")
+  .when((data) => data.value > 0)
+  .do(async ({ pots, log, finish }) => {
+    log.inf(`Positive: ${pots[0].data.value}`);
+    return finish();
+  });
+```
+
+### Task Chaining
+
+```typescript
+import { core, pot, TriggerRule } from "@vseplet/shibui";
+
+const Data = pot("Data", { value: 0 });
+const app = core({ storage: "memory", logging: false });
+
+const step2 = app.task(Data)
+  .name("Step 2")
+  .onRule(TriggerRule.ForThisTask, Data)
+  .do(async ({ pots, log, finish }) => {
+    log.inf(`Final: ${pots[0].data.value}`);
+    return finish();
+  });
+
+const step1 = app.task(Data)
+  .name("Step 1")
+  .onRule(TriggerRule.ForThisTask, Data)
+  .do(async ({ pots, next }) => {
+    return next(step2, { value: pots[0].data.value + 1 });
+  });
+
+app.register(step1);
+app.register(step2);
+await app.start();
+app.send(Data.create({ value: 1 }), step1);
+```
+
+### Dependent Task (Multiple Inputs)
+
+```typescript
+const PotA = pot("PotA", { a: 0 });
+const PotB = pot("PotB", { b: 0 });
+
+const combiner = task(PotA, PotB)
+  .name("Combiner")
+  .do(async ({ pots, log, finish }) => {
+    const sum = pots[0].data.a + pots[1].data.b;
+    log.inf(`Sum: ${sum}`);
+    return finish();
+  });
+
+const app = core({ storage: "memory" });
+app.register(combiner);
+await app.start();
+
+app.send(PotA.create({ a: 10 }));
+app.send(PotB.create({ b: 20 }));
+// Task executes when both pots arrive
+```
+
+### Retry with Timeout
+
+```typescript
+const Job = pot("Job", { id: 0 });
+
+const resilientTask = task(Job)
+  .name("Resilient Task")
+  .retry({
+    attempts: 3,
+    interval: 2000,
+    timeout: 5000,
+  })
+  .do(async ({ pots, log, finish }) => {
+    log.inf(`Processing job ${pots[0].data.id}`);
+    return finish();
+  })
+  .catch(async (error) => {
+    console.error(`Job failed: ${error.message}`);
+  });
+```
+
+### Simple Workflow
+
+```typescript
+import { context, execute, workflow } from "@vseplet/shibui";
+
+const BuildContext = context("BuildContext", {
+  steps: [] as string[],
+});
+
+const buildWorkflow = workflow(BuildContext)
+  .name("Build")
   .sq(({ task }) => {
     const deploy = task()
       .name("Deploy")
       .do(async ({ ctx, log, finish }) => {
-        ctx.data.status = "deployed";
+        ctx.data.steps.push("deploy");
         log.inf(`Steps: ${ctx.data.steps.join(" -> ")}`);
         return finish();
       });
@@ -299,217 +424,8 @@ const myWorkflow = workflow(BuildContext)
     return checkout;
   });
 
-await execute(myWorkflow);
+await execute(buildWorkflow, undefined, { storage: "memory", logging: false });
 ```
-
----
-
-## Configuration
-
-```typescript
-const app = core({
-  // Storage: "memory" for in-memory, or file path for persistent
-  storage: "memory",
-  // storage: "./data/shibui.db",
-
-  // Logging: boolean or detailed config
-  logging: true,
-  // logging: false,
-  // logging: {
-  //   level: "info",                    // "trace" | "debug" | "verbose" | "info" | "warn" | "error" | "fatal"
-  //   sources: ["task", "workflow"]     // filter by source type
-  // },
-
-  // Context: custom data available in all handlers
-  context: {
-    apiKey: "secret",
-    config: { ... }
-  }
-});
-```
-
-### Log Levels
-
-| Level | Name    | Method      |
-| ----- | ------- | ----------- |
-| 1     | TRACE   | `log.trc()` |
-| 2     | DEBUG   | `log.dbg()` |
-| 3     | VERBOSE | `log.vrb()` |
-| 4     | INFO    | `log.inf()` |
-| 5     | WARN    | `log.wrn()` |
-| 6     | ERROR   | `log.err()` |
-| 7     | FATAL   | `log.flt()` |
-
----
-
-## Examples
-
-### Task Chaining
-
-```typescript
-import { core, pot, TriggerRule } from "@vseplet/shibui";
-
-const Data = pot("Data", { value: 0 }, { ttl: 1 });
-
-const app = core({ storage: "memory", logging: false });
-
-const step3 = app.task(Data)
-  .name("Step 3")
-  .onRule(TriggerRule.ForThisTask, Data)
-  .do(async ({ pots, log, finish }) => {
-    log.inf(`Final: ${pots[0].data.value}`);
-    return finish();
-  });
-
-const step2 = app.task(Data)
-  .name("Step 2")
-  .onRule(TriggerRule.ForThisTask, Data)
-  .do(async ({ pots, next }) => {
-    return next(step3, { value: pots[0].data.value + 1 });
-  });
-
-const step1 = app.task(Data)
-  .name("Step 1")
-  .onRule(TriggerRule.ForThisTask, Data)
-  .do(async ({ pots, next }) => {
-    return next(step2, { value: pots[0].data.value + 1 });
-  });
-
-app.register(step1);
-app.register(step2);
-app.register(step3);
-
-await app.start();
-app.send(Data, step1); // Output: Final: 3
-```
-
-### Dependent Task (Multiple Inputs)
-
-```typescript
-const PotA = pot("PotA", { value: 1 });
-const PotB = pot("PotB", { value: 2 });
-const PotC = pot("PotC", { value: 3 });
-
-// Task waits for ALL pots before executing
-const combiner = task(PotA, PotB, PotC)
-  .name("Combiner")
-  .do(async ({ pots, log, finish }) => {
-    const sum = pots.reduce((acc, p) => acc + p.data.value, 0);
-    log.inf(`Sum: ${sum}`); // Sum: 6
-    return finish();
-  });
-
-const app = core({ storage: "memory" });
-app.register(combiner);
-await app.start();
-
-// Send pots separately
-app.send(PotA);
-app.send(PotB);
-app.send(PotC); // Task executes now
-```
-
-### Conditional Execution
-
-```typescript
-const Counter = pot("Counter", { value: Math.random() });
-
-const conditionalTask = task(Counter)
-  .name("Conditional Task")
-  .when((data) => data.value > 0.5) // Only runs ~50% of time
-  .do(async ({ pots, log, finish }) => {
-    log.inf(`Value ${pots[0].data.value} passed the check!`);
-    return finish();
-  });
-
-await execute(conditionalTask, [Counter]);
-```
-
-### Retry with Timeout
-
-```typescript
-const Job = pot("Job", { id: 0 });
-
-const resilientTask = task(Job)
-  .name("Resilient Task")
-  .retry({
-    attempts: 3,
-    interval: 2000,
-    timeout: 5000,
-  })
-  .do(async ({ pots, log, finish }) => {
-    log.inf(`Processing job ${pots[0].data.id}`);
-    // This will timeout and retry
-    await new Promise((r) => setTimeout(r, 10000));
-    return finish();
-  })
-  .catch(async (error) => {
-    console.error(`Job failed: ${error.message}`);
-  });
-```
-
-### Task Pipelines
-
-```typescript
-import { chain, pot, task } from "@vseplet/shibui";
-
-const Counter = pot("Counter", { value: 0 });
-
-// chain() - create task pipelines
-const pipeline = chain(
-  task(Counter).name("Start").do(({ finish }) => finish()),
-  task(Counter).name("Process").do(({ finish }) => finish()),
-  task(Counter).name("End").do(({ finish }) => finish()),
-);
-
-console.log(pipeline.name); // "Chain[Start -> Process -> End]"
-```
-
-### Workflow with Typed Context
-
-```typescript
-import { context, execute, workflow } from "@vseplet/shibui";
-
-const OrderContext = context("OrderContext", {
-  orderId: "",
-  status: "pending" as "pending" | "processing" | "completed",
-  items: [] as string[],
-  total: 0,
-});
-
-const orderWorkflow = workflow(OrderContext)
-  .name("Order Processing")
-  .sq(({ task }) => {
-    const complete = task()
-      .name("Complete")
-      .do(async ({ ctx, finish }) => {
-        ctx.data.status = "completed";
-        return finish();
-      });
-
-    const process = task()
-      .name("Process")
-      .do(async ({ ctx, next }) => {
-        ctx.data.status = "processing";
-        ctx.data.items.push("item1", "item2");
-        ctx.data.total = 100;
-        return next(complete);
-      });
-
-    const init = task()
-      .name("Init")
-      .do(async ({ ctx, next }) => {
-        ctx.data.orderId = "ORD-001";
-        return next(process);
-      });
-
-    return init;
-  });
-
-await execute(orderWorkflow, undefined, { storage: "memory", logging: false });
-```
-
----
 
 ## License
 
