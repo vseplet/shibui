@@ -3,10 +3,45 @@
  *
  * Demonstrates:
  * - Workflow with typed context
- * - Parallel data fetching
- * - Sequential aggregation and notification
+ * - Sequential data fetching from multiple APIs
+ * - Error handling with fallbacks
+ * - Telegram notification
  *
- * Run: TELEGRAM_CHAT_ID=xxx deno task example:aggregator
+ * APIs used:
+ * - wttr.in - weather data
+ * - open.er-api.com - currency rates
+ * - uselessfacts.jsph.pl - random facts
+ *
+ * How to run:
+ *
+ * 1. Get your Telegram chat_id:
+ *    - Message @userinfobot in Telegram
+ *    - Or use: curl "https://api.telegram.org/bot<TOKEN>/getUpdates"
+ *
+ * 2. Run with environment variables:
+ *    TELEGRAM_BOT_TOKEN="your_bot_token" \
+ *    TELEGRAM_CHAT_ID="your_chat_id" \
+ *    deno task example:aggregator
+ *
+ * 3. Without Telegram (prints to console):
+ *    deno task example:aggregator
+ *
+ * Example output in Telegram:
+ *
+ *    📊 Daily Digest
+ *
+ *    🌤 Weather in Tallinn
+ *    -10°C — Partly cloudy
+ *
+ *    💰 Currency Rates (USD)
+ *    EUR: 0.8516
+ *    GBP: 0.7429
+ *    JPY: 156.70
+ *
+ *    💡 Random Fact
+ *    The giant squid has the largest eyes in the world.
+ *
+ *    ⏱ 23:35:06
  */
 
 import { context, execute, workflow } from "$shibui";
