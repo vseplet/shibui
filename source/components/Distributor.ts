@@ -39,15 +39,15 @@ export default class Distributor {
       sourceName: "Distributor",
     });
 
-    this.#tester = new Tester(core, this.#kv, context);
+    this.#tester = new Tester(core, context);
   }
 
-  #test(rawPotObj: TPot) {
+  async #test(rawPotObj: TPot) {
     try {
       const pot = new Pot().deserialize(rawPotObj);
       if (!pot) return;
       this.#log.vrb(`received a pot '${pot.name}', ttl:{${pot.ttl}}`);
-      if (!this.#tester.test(pot) && pot.ttl > 0) {
+      if (!await this.#tester.test(pot) && pot.ttl > 0) {
         this.resend(pot);
       } else {
         this.#log.vrb(`drop the pot '${pot.name}' from queue`);
@@ -64,6 +64,7 @@ export default class Distributor {
   async start() {
     this.#log.trc(`starting update cycle...`);
     this.#kv = await Deno.openKv(this.#storagePath);
+    await this.#tester.init(this.#kv);
     this.#kv.listenQueue((rawPotObj: TPot) => this.#test(rawPotObj));
     this.send(new CoreStartPot());
   }
