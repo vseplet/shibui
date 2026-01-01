@@ -3,8 +3,10 @@
 Universal workflow automation engine for Deno.
 
 [![JSR](https://jsr.io/badges/@vseplet/shibui)](https://jsr.io/@vseplet/shibui)
+[![GitHub commit activity](https://img.shields.io/github/commit-activity/m/vseplet/shibui)](https://github.com/vseplet/shibui/pulse)
+[![GitHub last commit](https://img.shields.io/github/last-commit/vseplet/shibui)](https://github.com/vseplet/shibui/commits/main)
 
-> **Warning**: This package is under active development. API may change.
+> **Note:** This package is under active development. Contributions, feedback, and pull requests are welcome!
 
 ## Contents
 
@@ -472,4 +474,4 @@ deno task example:aggregator
 
 ## License
 
-CC BY-NC 3.0 - Copyright 2023-2025 Vsevolod Plentev
+[MIT](./LICENSE)
