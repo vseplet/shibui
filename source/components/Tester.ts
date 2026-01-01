@@ -30,7 +30,7 @@ import { Filler, Runner } from "$shibui/components";
 
 export class Tester {
   #core: TAnyCore;
-  #kv: Deno.Kv;
+  #kv: Deno.Kv | null = null;
   #log: TEventDrivenLogger;
   #filler: Filler;
   #runner: Runner;
@@ -42,19 +42,24 @@ export class Tester {
   #taskTriggers: TTaskTriggerStorage = {}; // запускаются от одного пота
   #dependentTaskTriggers: TTaskTriggerStorage = {}; // запускаются от нескольких потов
   #workflowTriggers: TWorkflowTriggersStorage = {}; // запускаются от одного пота и генерирует контекст в очередь
-  #workflowTaskTriggers: TTaskTriggerStorage = {}; // зап��скаются от одного контекстного пота
+  #workflowTaskTriggers: TTaskTriggerStorage = {}; // запускаются от одного контекстного пота
   #workflowDependentTaskTriggers: TTaskTriggerStorage = {}; // запускаются от нескольких потов, но при наличии контекста
 
-  constructor(core: TAnyCore, kv: Deno.Kv, spicy = {}) {
+  constructor(core: TAnyCore, spicy = {}) {
     this.#spicy = spicy;
     this.#core = core;
-    this.#kv = kv;
     this.#log = core.createLogger({
       sourceType: SourceType.Core,
       sourceName: "Tester",
     });
-    this.#filler = new Filler(core, kv);
-    this.#runner = new Runner(core, kv, this.#spicy);
+    this.#filler = new Filler(core);
+    this.#runner = new Runner(core, this.#spicy);
+  }
+
+  async init(kv: Deno.Kv): Promise<void> {
+    this.#kv = kv;
+    await this.#filler.init(kv);
+    this.#runner.init(kv);
   }
 
   registerTask(task: TTask) {
@@ -95,13 +100,13 @@ export class Tester {
     }
   }
 
-  test(pot: Pot): boolean {
+  async test(pot: Pot): Promise<boolean> {
     if (pot.type == PotType.Context) {
       return this.#testWorkflowTaskTriggers(pot) ||
         this.#testWorkflowDependedTaskTriggers(pot);
     } else {
       return this.#testTaskTriggers(pot) ||
-        this.#testDependedTaskTriggers(pot) ||
+        await this.#testDependedTaskTriggers(pot) ||
         this.#testWorkflowTriggers(pot) ||
         this.#testWorkflowTaskTriggers(pot) ||
         this.#testWorkflowDependedTaskTriggers(pot);
@@ -193,7 +198,7 @@ export class Tester {
     }).includes(true);
   }
 
-  #testDependedTaskTriggers(pot: Pot): boolean {
+  async #testDependedTaskTriggers(pot: Pot): Promise<boolean> {
     const triggers = this.#dependentTaskTriggers[pot.name];
 
     if (!triggers) {
@@ -201,7 +206,7 @@ export class Tester {
       return false;
     }
 
-    return triggers.some((trigger) => {
+    for (const trigger of triggers) {
       this.#log.trc(
         `trying to exec depended task trigger handler '${trigger.taskName}' by pot '${pot.name}'...`,
       );
@@ -220,7 +225,7 @@ export class Tester {
           `allow run depended task '${trigger.taskName}' by pot '${pot.name}'`,
         );
 
-        const pack = this.#filler.fill(
+        const pack = await this.#filler.fill(
           trigger.taskName,
           pot,
           result?.potIndex || 0,
@@ -236,8 +241,8 @@ export class Tester {
           `deny run depended task '${trigger.taskName}' by pot '${pot.name}'`,
         );
       }
-      return false;
-    });
+    }
+    return false;
   }
 
   #testWorkflowTriggers(pot: Pot): boolean {
