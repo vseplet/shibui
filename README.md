@@ -437,6 +437,39 @@ const buildWorkflow = workflow(BuildContext)
 await execute(buildWorkflow, undefined, { storage: "memory", logging: false });
 ```
 
+### Runnable Examples
+
+The `examples/` directory contains ready-to-run scripts:
+
+```bash
+# Basic task with conditional trigger
+deno task example:simple-task
+
+# Task chaining with next()
+deno task example:task-chaining
+
+# Minimal workflow
+deno task example:simple-workflow
+
+# Workflow with sequential tasks
+deno task example:workflow-sequence
+
+# Reusable shared task across workflows
+deno task example:shared-task
+
+# Task waiting for multiple pots
+deno task example:dependent-task
+
+# Retry and timeout configuration
+deno task example:timeout-retry
+
+# Custom context injection
+deno task example:custom-context
+
+# Multi-API aggregator with Telegram notification
+deno task example:aggregator
+```
+
 ## License
 
 CC BY-NC 3.0 - Copyright 2023-2025 Vsevolod Plentev
