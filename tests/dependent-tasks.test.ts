@@ -255,3 +255,200 @@ Deno.test("Dependent Tasks - different pot types", async () => {
 
   c.close();
 });
+
+// ============================================================================
+// CRASH RECOVERY TESTS - verify Filler persistence to Deno KV
+// ============================================================================
+
+const CrashPotA = pot("CrashPotA", { value: "A" });
+const CrashPotB = pot("CrashPotB", { value: "B" });
+const CrashPotC = pot("CrashPotC", { value: "C" });
+
+Deno.test("Crash Recovery - slots persist and restore after crash", async () => {
+  const kvPath = await Deno.makeTempFile({ suffix: ".db" });
+
+  // Track execution across "restarts"
+  let executedAfterRestart = false;
+  let receivedValues: string[] = [];
+
+  // === PHASE 1: Start core, send first pot, then "crash" ===
+  {
+    const c1 = core({ storage: kvPath, logging: false });
+
+    const combiner = c1.task(CrashPotA, CrashPotB)
+      .name("CrashRecoveryCombiner")
+      .do(async ({ pots, finish }) => {
+        // This should NOT execute in phase 1 - only one pot sent
+        receivedValues = pots.map((p) => p.data.value);
+        return finish();
+      });
+
+    c1.register(combiner);
+    await c1.start();
+
+    // Send only first pot
+    c1.send(CrashPotA.create({ value: "A-saved" }));
+
+    // Wait for pot to be processed and saved to KV
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // "Crash" - close without sending second pot
+    c1.close();
+  }
+
+  // === PHASE 2: Restart core, slots should restore from KV ===
+  {
+    const c2 = core({ storage: kvPath, logging: false });
+
+    const combiner = c2.task(CrashPotA, CrashPotB)
+      .name("CrashRecoveryCombiner")
+      .do(async ({ pots, finish }) => {
+        executedAfterRestart = true;
+        receivedValues = pots.map((p) => p.data.value);
+        return finish();
+      });
+
+    c2.register(combiner);
+    await c2.start(); // Should restore CrashPotA from KV
+
+    // Send second pot - should complete the task with restored first pot
+    c2.send(CrashPotB.create({ value: "B-new" }));
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    c2.close();
+  }
+
+  // Cleanup
+  try {
+    await Deno.remove(kvPath);
+  } catch { /* ignore */ }
+
+  // Verify task executed after restart with restored data
+  assertEquals(executedAfterRestart, true, "Task should execute after restart");
+  assertEquals(receivedValues, ["A-saved", "B-new"], "Should have restored pot A and new pot B");
+});
+
+Deno.test("Crash Recovery - three slots with partial data", async () => {
+  const kvPath = await Deno.makeTempFile({ suffix: ".db" });
+
+  let executedAfterRestart = false;
+  let receivedValues: string[] = [];
+
+  // === PHASE 1: Send 2 out of 3 pots, then crash ===
+  {
+    const c1 = core({ storage: kvPath, logging: false });
+
+    const combiner = c1.task(CrashPotA, CrashPotB, CrashPotC)
+      .name("ThreeSlotRecovery")
+      .do(async ({ pots, finish }) => {
+        receivedValues = pots.map((p) => p.data.value);
+        return finish();
+      });
+
+    c1.register(combiner);
+    await c1.start();
+
+    // Send first two pots
+    c1.send(CrashPotA.create({ value: "first" }));
+    c1.send(CrashPotC.create({ value: "third" }));
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    c1.close();
+  }
+
+  // === PHASE 2: Restart and send missing pot ===
+  {
+    const c2 = core({ storage: kvPath, logging: false });
+
+    const combiner = c2.task(CrashPotA, CrashPotB, CrashPotC)
+      .name("ThreeSlotRecovery")
+      .do(async ({ pots, finish }) => {
+        executedAfterRestart = true;
+        receivedValues = pots.map((p) => p.data.value);
+        return finish();
+      });
+
+    c2.register(combiner);
+    await c2.start();
+
+    // Send the missing middle pot
+    c2.send(CrashPotB.create({ value: "second" }));
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    c2.close();
+  }
+
+  try {
+    await Deno.remove(kvPath);
+  } catch { /* ignore */ }
+
+  assertEquals(executedAfterRestart, true);
+  assertEquals(receivedValues, ["first", "second", "third"]);
+});
+
+Deno.test("Crash Recovery - multiple rows in slots", async () => {
+  const kvPath = await Deno.makeTempFile({ suffix: ".db" });
+
+  let executionCount = 0;
+  const receivedPairs: string[][] = [];
+
+  // === PHASE 1: Send multiple PotA instances, no PotB ===
+  {
+    const c1 = core({ storage: kvPath, logging: false });
+
+    const combiner = c1.task(CrashPotA, CrashPotB)
+      .name("MultiRowRecovery")
+      .do(async ({ pots, finish }) => {
+        receivedPairs.push(pots.map((p) => p.data.value));
+        return finish();
+      });
+
+    c1.register(combiner);
+    await c1.start();
+
+    // Send 3 PotA instances - they should queue up in slot 0
+    c1.send(CrashPotA.create({ value: "A1" }));
+    c1.send(CrashPotA.create({ value: "A2" }));
+    c1.send(CrashPotA.create({ value: "A3" }));
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    c1.close();
+  }
+
+  // === PHASE 2: Send matching PotB instances ===
+  {
+    const c2 = core({ storage: kvPath, logging: false });
+
+    const combiner = c2.task(CrashPotA, CrashPotB)
+      .name("MultiRowRecovery")
+      .do(async ({ pots, finish }) => {
+        executionCount++;
+        receivedPairs.push(pots.map((p) => p.data.value));
+        return finish();
+      });
+
+    c2.register(combiner);
+    await c2.start();
+
+    // Send 3 PotB instances to match the restored PotA instances
+    c2.send(CrashPotB.create({ value: "B1" }));
+    c2.send(CrashPotB.create({ value: "B2" }));
+    c2.send(CrashPotB.create({ value: "B3" }));
+
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    c2.close();
+  }
+
+  try {
+    await Deno.remove(kvPath);
+  } catch { /* ignore */ }
+
+  assertEquals(executionCount, 3, "Should execute 3 times");
+  assertEquals(receivedPairs.length, 3, "Should have 3 pairs");
+  // Order may vary due to async, but all A's should pair with B's
+  const allAs = receivedPairs.map((p) => p[0]).sort();
+  const allBs = receivedPairs.map((p) => p[1]).sort();
+  assertEquals(allAs, ["A1", "A2", "A3"]);
+  assertEquals(allBs, ["B1", "B2", "B3"]);
+});
