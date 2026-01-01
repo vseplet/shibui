@@ -25,7 +25,8 @@
     "example:shared-task": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/05-workflow-with-shared-task.ts",
     "example:dependent-task": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/06-dependent-task-multiple-pots.ts",
     "example:timeout-retry": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/07-timeout-and-retry.ts",
-    "example:custom-context": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/08-custom-context-injection.ts"
+    "example:custom-context": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/08-custom-context-injection.ts",
+    "example:aggregator": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/10-multi-api-aggregator.ts"
   },
   "imports": {
     "$versions": "./source/versions.ts",
