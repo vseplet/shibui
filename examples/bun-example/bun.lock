@@ -1,0 +1,23 @@
+{
+  "lockfileVersion": 1,
+  "configVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "shibui-bun-example",
+      "dependencies": {
+        "@vseplet/shibui": "npm:@jsr/vseplet__shibui",
+      },
+    },
+  },
+  "packages": {
+    "@jsr/std__assert": ["@jsr/std__assert@0.224.0", "https://npm.jsr.io/~/11/@jsr/std__assert/0.224.0.tgz", { "dependencies": { "@jsr/std__fmt": "^0.224.0", "@jsr/std__internal": "^0.224.0" } }, "sha512-RB0p0ydybgKSfTba6kHWytfpEJ0CBPi+byxZikLYa51L9uLINW52/j6n4KuiLFoh2cdFfpNZSNMY/dzQPW90DQ=="],
+
+    "@jsr/std__async": ["@jsr/std__async@0.224.0", "https://npm.jsr.io/~/11/@jsr/std__async/0.224.0.tgz", { "dependencies": { "@jsr/std__assert": "^0.224.0" } }, "sha512-sUru1U9LxiBOEWO8UJ946VpUPcPTPDbyKGlTXCb2kjsHu8hDILMPijDq1c4PhK65pKPg63Qssro863dz84dCxA=="],
+
+    "@jsr/std__fmt": ["@jsr/std__fmt@0.224.0", "https://npm.jsr.io/~/11/@jsr/std__fmt/0.224.0.tgz", {}, "sha512-lyrH5LesMB897QW0NIbZlGp72Ucopj2hMZW2wqB0NyZhuXfLH2sPBIUpCSf87kRKTGnx90JV905w4iTp0TD+Sg=="],
+
+    "@jsr/std__internal": ["@jsr/std__internal@0.224.0", "https://npm.jsr.io/~/11/@jsr/std__internal/0.224.0.tgz", { "dependencies": { "@jsr/std__fmt": "^0.224.0" } }, "sha512-inYzKOGAFK2tyy1D4NfwlbPiqEcSaXfOms3Tm4Y+1LmKSYOeB9wjqWHF4y/BJuYj8XUv61F7eaHaIw6NIlhBWg=="],
+
+    "@vseplet/shibui": ["@jsr/vseplet__shibui@1.2.0", "https://npm.jsr.io/~/11/@jsr/vseplet__shibui/1.2.0.tgz", { "dependencies": { "@jsr/std__async": "0.224.0", "@jsr/std__fmt": "0.224.0" } }, "sha512-Xf+kXhvMkNhCZ/GLQHb/Dbr/g35IfbshqJb6AfEFjjubBt2Hiw02nPqLu+8wZS7AdOtut12ZY7rU2mnFqfQdAQ=="],
+  }
+}

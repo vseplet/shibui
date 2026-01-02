@@ -1,0 +1,11 @@
+{
+  "name": "shibui-bun-example",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "bun run main.ts"
+  },
+  "dependencies": {
+    "@vseplet/shibui": "npm:@jsr/vseplet__shibui"
+  }
+}

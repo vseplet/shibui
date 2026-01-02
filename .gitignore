@@ -6,3 +6,10 @@ shibui-project
 TAG-NAME.txt
 .drafts
 apify.ts
+
+# Dependencies
+node_modules/
+bun.lockb
+package-lock.json
+.npmrc
+coverage/
