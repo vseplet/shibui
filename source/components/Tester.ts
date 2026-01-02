@@ -16,6 +16,7 @@ import type { Pot } from "$shibui/entities";
 import STRS from "$shibui/strings";
 import {
   SourceType,
+  type StorageProvider,
   type TAnyCore,
   type TasksStorage,
   type TEventDrivenLogger,
@@ -30,7 +31,7 @@ import { Filler, Runner } from "$shibui/components";
 
 export class Tester {
   #core: TAnyCore;
-  #kv: Deno.Kv | null = null;
+  #provider: StorageProvider | null = null;
   #log: TEventDrivenLogger;
   #filler: Filler;
   #runner: Runner;
@@ -56,10 +57,10 @@ export class Tester {
     this.#runner = new Runner(core, this.#spicy);
   }
 
-  async init(kv: Deno.Kv): Promise<void> {
-    this.#kv = kv;
-    await this.#filler.init(kv);
-    this.#runner.init(kv);
+  async init(provider: StorageProvider): Promise<void> {
+    this.#provider = provider;
+    await this.#filler.init(provider);
+    this.#runner.init(provider);
   }
 
   registerTask(task: TTask) {

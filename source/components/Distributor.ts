@@ -14,6 +14,7 @@ import { CoreStartPot } from "$shibui/pots";
 import { Pot } from "$shibui/entities";
 import {
   SourceType,
+  type StorageProvider,
   type TAnyCore,
   type TEventDrivenLogger,
   type TPot,
@@ -25,14 +26,13 @@ import { TaskBuilder } from "../entities/TaskBuilder.ts";
 import { WorkflowBuilder } from "../entities/WorkflowBuilder.ts";
 
 export default class Distributor {
-  #kv: Deno.Kv = undefined as unknown as Deno.Kv;
+  #provider: StorageProvider;
   #core: TAnyCore;
-  #storagePath: string | undefined;
   #log: TEventDrivenLogger;
   #tester: Tester;
 
-  constructor(storagePath: string | undefined, core: TAnyCore, context = {}) {
-    this.#storagePath = storagePath;
+  constructor(provider: StorageProvider, core: TAnyCore, context = {}) {
+    this.#provider = provider;
     this.#core = core;
     this.#log = core.createLogger({
       sourceType: SourceType.Core,
@@ -63,9 +63,9 @@ export default class Distributor {
 
   async start() {
     this.#log.trc(`starting update cycle...`);
-    this.#kv = await Deno.openKv(this.#storagePath);
-    await this.#tester.init(this.#kv);
-    this.#kv.listenQueue((rawPotObj: TPot) => this.#test(rawPotObj));
+    await this.#provider.open();
+    await this.#tester.init(this.#provider);
+    this.#provider.listen((rawPotObj: TPot) => this.#test(rawPotObj));
     this.send(new CoreStartPot());
   }
 
@@ -101,7 +101,7 @@ export default class Distributor {
         `return pot '${pot.name}' with ttl:{${pot.ttl}} back to the queue`,
       );
       pot.ttl--;
-      this.#kv.enqueue(pot);
+      this.#provider.enqueue(pot);
     } else {
       this.#log.wrn(
         `pot '${pot.name}' ran out of ttl =(`,
@@ -111,11 +111,11 @@ export default class Distributor {
 
   send(pot: TPot) {
     this.#log.trc(`sending pot '${pot.name} to queue'`);
-    this.#kv.enqueue(pot);
+    this.#provider.enqueue(pot);
   }
 
   close(): void {
-    this.#kv?.close();
+    this.#provider.close();
   }
 }
 

@@ -6,7 +6,8 @@ Universal workflow automation engine for Deno.
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/m/vseplet/shibui)](https://github.com/vseplet/shibui/pulse)
 [![GitHub last commit](https://img.shields.io/github/last-commit/vseplet/shibui)](https://github.com/vseplet/shibui/commits/main)
 
-> **Note:** This package is under active development. Contributions, feedback, and pull requests are welcome!
+> **Note:** This package is under active development. Contributions, feedback,
+> and pull requests are welcome!
 
 ## Contents
 

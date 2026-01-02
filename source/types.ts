@@ -275,11 +275,14 @@ export type TLoggingConfig = {
  *
  * @example
  * ```typescript
- * // Minimal config for tests
+ * // Minimal config for tests (uses MemoryProvider by default)
  * core({ storage: "memory", logging: false })
  *
- * // Production with file storage
+ * // Production with file storage (uses DenoKvProvider)
  * core({ storage: "./data/shibui.db" })
+ *
+ * // With custom provider
+ * core({ provider: new RedisProvider() })
  *
  * // With custom logging
  * core({
@@ -290,11 +293,18 @@ export type TLoggingConfig = {
  */
 export type TCoreOptions<S = TSpicy> = {
   /**
-   * Storage configuration
-   * - "memory" for in-memory storage (good for tests)
-   * - file path string for persistent storage
+   * Custom storage provider instance.
+   * If provided, `storage` option is ignored.
    */
-  storage?: "memory" | string;
+  provider?: StorageProvider;
+
+  /**
+   * Storage configuration (used when provider is not specified)
+   * - "auto" - DenoKvProvider for Deno, MemoryProvider for others
+   * - "memory" - in-memory storage (good for tests)
+   * - file path string - persistent Deno KV storage
+   */
+  storage?: "auto" | "memory" | string;
 
   /**
    * Logging configuration
@@ -493,3 +503,69 @@ export type ToPots<Sources extends PotInput[]> = {
  * Type helper to create a Pot type from data type (for workflow context)
  */
 export type PotWithData<D extends object> = Pot<D & { [key: string]: unknown }>;
+
+// ============================================================================
+// Storage Provider Interface
+// ============================================================================
+
+/**
+ * Entry returned by scan()
+ */
+export type StorageEntry = {
+  key: string[];
+  pot: TPot;
+};
+
+/**
+ * Storage provider interface for queue and pot persistence.
+ * Implement this interface to use custom backends (Redis, RabbitMQ, PostgreSQL, etc.)
+ *
+ * All serialization/deserialization is handled internally by the provider.
+ *
+ * @example
+ * ```typescript
+ * import type { StorageProvider } from "@vseplet/shibui";
+ *
+ * class RedisProvider implements StorageProvider {
+ *   async open() { await this.client.connect(); }
+ *   close() { this.client.disconnect(); }
+ *   async enqueue(pot) { await this.client.lpush("queue", JSON.stringify(pot)); }
+ *   listen(handler) { this.client.blpop("queue", (msg) => handler(JSON.parse(msg))); }
+ *   async store(key, pot) { await this.client.hset("pots", key.join(":"), JSON.stringify(pot)); }
+ *   async retrieve(key) { const v = await this.client.hget("pots", key.join(":")); return v ? JSON.parse(v) : null; }
+ *   async remove(key) { await this.client.hdel("pots", key.join(":")); }
+ *   async *scan(prefix) { ... }
+ *   async removeMany(keys) { ... }
+ * }
+ *
+ * core({ provider: new RedisProvider() })
+ * ```
+ */
+export interface StorageProvider {
+  /** Initialize connection */
+  open(): Promise<void>;
+
+  /** Close connection and cleanup */
+  close(): void;
+
+  /** Add pot to processing queue */
+  enqueue(pot: TPot): Promise<void>;
+
+  /** Subscribe to queue messages */
+  listen(handler: (pot: TPot) => void): void;
+
+  /** Store pot by composite key */
+  store(key: string[], pot: TPot): Promise<void>;
+
+  /** Retrieve pot by key, null if not found */
+  retrieve(key: string[]): Promise<TPot | null>;
+
+  /** Remove pot by key */
+  remove(key: string[]): Promise<void>;
+
+  /** Iterate over all pots matching key prefix */
+  scan(prefix: string[]): AsyncIterableIterator<StorageEntry>;
+
+  /** Remove multiple pots atomically */
+  removeMany(keys: string[][]): Promise<void>;
+}

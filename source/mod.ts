@@ -22,6 +22,7 @@ import type {
   TTaskBuilder,
   TWorkflowBuilder,
 } from "$shibui/types";
+import { exit } from "$helpers";
 import type { Constructor } from "$helpers/types";
 import type { Pot } from "$shibui/entities";
 import {
@@ -131,7 +132,7 @@ export const runCI = <S extends TSpicy>(
     storage: "memory",
     logging: false,
   }).then((value) => {
-    Deno.exit(value ? 0 : -1);
+    exit(value ? 0 : 1);
   });
 };
 
@@ -222,6 +223,22 @@ export {
 // New v1.0 API - chain and pipe utilities
 export { chain, type ChainConfig, pipe, type Transform } from "./chain.ts";
 
+// Storage providers
+export { DenoKvProvider, MemoryProvider } from "$shibui/providers";
+
+// Runtime detection
+export {
+  detectRuntime,
+  exit,
+  getRuntimeInfo,
+  getRuntimeVersion,
+  isBun,
+  isDeno,
+  isNode,
+  type Runtime,
+  runtime,
+} from "$helpers";
+
 // Re-export everything from submodules for convenience
 export { ContextPot, CoreStartPot } from "$shibui/pots";
 
@@ -269,6 +286,9 @@ export type {
   PotInput,
   PotLike,
   PotWithData,
+  // Storage provider
+  StorageEntry,
+  StorageProvider,
   // Core types
   TAnyCore,
   TAnyTaskDoHandler,
