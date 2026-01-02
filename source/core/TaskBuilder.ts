@@ -10,8 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import type { Pot } from "$shibui/entities";
-import { TaskNameMissingError } from "$shibui/errors";
+import type { Pot } from "$shibui/core";
 import type { Constructor } from "$helpers/types";
 import type {
   TOnHandlerContext,
@@ -24,8 +23,8 @@ import type {
   TWorkflowBuilder,
 } from "$shibui/types";
 import { TriggerRule, UNKNOWN_TARGET } from "$shibui/types";
-import { CoreStartPot } from "$shibui/pots";
-import type { PotFactory } from "../pot.ts";
+import type { PotFactory } from "$shibui/types";
+import { CoreStartPot } from "$shibui/api";
 
 // Helper to check if input is PotFactory
 // deno-lint-ignore no-explicit-any
@@ -278,7 +277,7 @@ export class TaskBuilder<
 
   build(): TTask {
     if (this.task.name == UNKNOWN_TARGET) {
-      throw new TaskNameMissingError();
+      throw new Error("Task name is required for task building!");
     }
 
     if (this.potsConstructors.length == 0) {

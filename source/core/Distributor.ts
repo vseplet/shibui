@@ -10,8 +10,8 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { CoreStartPot } from "$shibui/pots";
-import { Pot } from "$shibui/entities";
+import { CoreStartPot } from "$shibui/api";
+import { Pot } from "$shibui/core";
 import {
   SourceType,
   type StorageProvider,
@@ -21,9 +21,7 @@ import {
   type TTaskBuilder,
   type TWorkflowBuilder,
 } from "$shibui/types";
-import { Tester } from "$shibui/components";
-import { TaskBuilder } from "../entities/TaskBuilder.ts";
-import { WorkflowBuilder } from "../entities/WorkflowBuilder.ts";
+import { TaskBuilder, Tester, WorkflowBuilder } from "$shibui/core";
 
 export default class Distributor {
   #provider: StorageProvider;
@@ -66,7 +64,7 @@ export default class Distributor {
     await this.#provider.open();
     await this.#tester.init(this.#provider);
     this.#provider.listen((rawPotObj: TPot) => this.#test(rawPotObj));
-    this.send(new CoreStartPot());
+    this.send(CoreStartPot.create() as TPot);
   }
 
   register(builder: TTaskBuilder | TWorkflowBuilder) {

@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { Pot } from "$shibui/entities";
+import { Pot } from "$shibui/core";
 import {
   SourceType,
   type StorageProvider,

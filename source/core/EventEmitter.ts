@@ -11,7 +11,7 @@
  */
 
 import type { Constructor } from "$helpers/types";
-import type { SEvent } from "$shibui/entities";
+import type { SEvent } from "$shibui/core";
 
 export class EventEmitter<
   T extends SEvent,

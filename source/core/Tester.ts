@@ -11,9 +11,8 @@
  */
 
 // deno-lint-ignore-file no-unused-vars
-import { PotType, TriggerOperation } from "$shibui/constants";
-import type { Pot } from "$shibui/entities";
-import STRS from "$shibui/strings";
+import { PotType, TriggerOperation } from "$shibui/types";
+import type { Pot } from "$shibui/core";
 import {
   SourceType,
   type StorageProvider,
@@ -27,7 +26,7 @@ import {
   type TWorkflowTriggersStorage,
   type WorkflowsStorage,
 } from "$shibui/types";
-import { Filler, Runner } from "$shibui/components";
+import { Filler, Runner } from "$shibui/core";
 
 export class Tester {
   #core: TAnyCore;
@@ -89,7 +88,11 @@ export class Tester {
       storage[potName].push(...task.triggers[potName]);
     }
 
-    this.#log.vrb(STRS.rtn$own(task));
+    this.#log.vrb(
+      `registered task '${task.name}'${
+        task.belongsToWorkflow ? ` of workflow '${task.belongsToWorkflow}'` : ""
+      }`,
+    );
   }
 
   registerWorkflow(workflow: TWorkflow) {

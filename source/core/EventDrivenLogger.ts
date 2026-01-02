@@ -28,7 +28,7 @@ import {
   UNKNOWN_TARGET,
 } from "$shibui/types";
 import * as colors from "@std/fmt/colors";
-import type { EventEmitter } from "$shibui/components";
+import type { EventEmitter } from "$shibui/core";
 
 const colorizeByLevel = {
   [LogLevel.Unknown]: colors.dim,

@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import type { Pot } from "$shibui/entities";
+import type { Pot } from "$shibui/core";
 import {
   SourceType,
   type StorageProvider,
@@ -28,7 +28,7 @@ import {
   WorkflowFailedEvent,
   WorkflowFinishedEvent,
 } from "$shibui/events";
-import { DoOperation, UNKNOWN_TARGET } from "$shibui/constants";
+import { DoOperation, UNKNOWN_TARGET } from "$shibui/types";
 import { delay } from "@std/async";
 import { promiseWithTimeout } from "$helpers";
 

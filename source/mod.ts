@@ -10,223 +10,64 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import { Core } from "$shibui/components";
-import type {
-  PotInput,
-  PotLike,
-  PotWithData,
-  TCoreOptions,
-  ToPots,
-  TPot,
-  TSpicy,
-  TTaskBuilder,
-  TWorkflowBuilder,
-} from "$shibui/types";
-import { exit } from "$helpers";
-import type { Constructor } from "$helpers/types";
-import type { Pot } from "$shibui/entities";
-import {
-  TaskFailedEvent,
-  TaskFinishedEvent,
-  WorkflowFailedEvent,
-  WorkflowFinishedEvent,
-} from "$shibui/events";
-import { delay } from "@std/async";
-import { TaskBuilder } from "./entities/TaskBuilder.ts";
-import { WorkflowBuilder } from "./entities/WorkflowBuilder.ts";
-import { ContextPot } from "$shibui/pots";
-import { createRandomContext } from "./helpers/createRandomContext.ts";
-import { emitters } from "$shibui/emitters";
-import { levelName } from "./components/EventDrivenLogger.ts";
-import type { PotFactory } from "./pot.ts";
-
-/** Check if input is a PotFactory */
-// deno-lint-ignore no-explicit-any
-function isPotFactoryInput(input: PotLike): input is PotFactory<any> {
-  return typeof input === "object" && input !== null && "create" in input &&
-    "_class" in input;
-}
-
-/** Convert PotLike to TPot */
-function toPot(input: PotLike): TPot {
-  if (isPotFactoryInput(input)) {
-    return input.create() as unknown as TPot;
-  }
-  return input as TPot;
-}
-
 /**
- * Executes a task or workflow using the provided builder.
- * @param {TTaskBuilder | TWorkflowBuilder} builder - The task or workflow builder.
- * @param {Array<PotLike>} [pots] - Pot factories, instances, or raw pots.
- * @param {TCoreOptions<S>} [_options] - Core options.
- * @returns {Promise<boolean>} - Returns true if execution is successful, otherwise false.
+ * Shibui - Workflow Automation Engine
  *
- * @example
- * const Counter = pot("Counter", { value: 0 });
- * // All these work:
- * await execute(myTask, [Counter]);                    // Factory - auto-creates
- * await execute(myTask, [Counter.create({ value: 5 })]);  // Instance
+ * Main entry point - re-exports everything from submodules.
  */
-export const execute = async <S extends TSpicy>(
-  builder: TTaskBuilder | TWorkflowBuilder,
-  pots?: Array<PotLike>,
-  options?: TCoreOptions<S>,
-): Promise<boolean> => {
-  let isComplete = false;
-  let isOk = true;
 
-  const tmpCore = new Core(options || {});
-  tmpCore.register(builder);
+// ============================================================================
+// Public API (v1.0)
+// ============================================================================
 
-  const finish = () => {
-    isComplete = true;
-  };
-
-  const fail = () => {
-    isComplete = true;
-    isOk = false;
-  };
-
-  if (builder instanceof TaskBuilder) {
-    tmpCore.emitters.coreEventEmitter.addListenerByName(
-      TaskFinishedEvent,
-      finish,
-    );
-    tmpCore.emitters.coreEventEmitter.addListenerByName(TaskFailedEvent, fail);
-  } else {
-    tmpCore.emitters.coreEventEmitter.addListenerByName(
-      WorkflowFinishedEvent,
-      finish,
-    );
-    tmpCore.emitters.coreEventEmitter.addListenerByName(
-      WorkflowFailedEvent,
-      fail,
-    );
-  }
-
-  await tmpCore.start();
-  if (pots) pots.forEach((pot) => tmpCore.send(toPot(pot)));
-  while (!isComplete) await delay(0);
-  tmpCore.close();
-  return isOk;
-};
-
-export const runCI = <S extends TSpicy>(
-  builder: TTaskBuilder | TWorkflowBuilder,
-  pots?: Array<TPot>,
-): void => {
-  emitters.logEventEmitter.addListener((event) => {
-    if (event.level > 3) {
-      if (event.sourceType === "TASK") {
-        console.log(
-          `${levelName[event.level]} (${event.sourceName}): ${event.msg}`,
-        );
-      } else if (event.sourceType === "CORE") {
-        console.log(`${levelName[event.level]} (SYSTEM): ${event.msg}`);
-      }
-    }
-  });
-
-  execute(builder, pots, {
-    storage: "memory",
-    logging: false,
-  }).then((value) => {
-    exit(value ? 0 : 1);
-  });
-};
-
-/** Check if input is a PotFactory */
-// deno-lint-ignore no-explicit-any
-function isPotFactory(input: PotInput): input is PotFactory<any> {
-  return typeof input === "object" && input !== null && "_class" in input &&
-    "create" in input;
-}
-
-/** Convert PotInput to Constructor */
-// deno-lint-ignore no-explicit-any
-function toConstructor(input: PotInput): Constructor<Pot<any>> {
-  if (isPotFactory(input)) {
-    return input._class;
-  }
-  return input;
-}
-
-/**
- * Creates a new task builder
- *
- * @example
- * // With pot() factory (v1.0 - recommended)
- * const Counter = pot("Counter", { value: 0 });
- * task(Counter).name("Task").do(...)
- *
- * // With class (legacy)
- * task(MyPot).name("Task").do(...)
- */
-export const task = <
-  Sources extends PotInput[],
-  CPot extends ContextPot<{}> | undefined = undefined,
->(
-  ...sources: Sources
-): TaskBuilder<{}, ToPots<Sources>, CPot> => {
-  const constructors = sources.map(toConstructor);
-  // deno-lint-ignore no-explicit-any
-  return new TaskBuilder<{}, ToPots<Sources>, CPot>(...constructors as any);
-};
-
-// Overloads for proper type inference
-export function workflow<CP extends ContextPot<{}>>(
-  contextPotConstructor: Constructor<CP>,
-): WorkflowBuilder<TSpicy, CP>;
-export function workflow<D extends object>(
-  contextPotFactory: PotFactory<D>,
-): WorkflowBuilder<TSpicy, PotWithData<D>>;
-export function workflow(): WorkflowBuilder<TSpicy, ContextPot<{}>>;
-// Implementation
-export function workflow(
-  contextPotSource?: Constructor<ContextPot<{}>> | PotFactory<object>,
-): WorkflowBuilder<TSpicy, Pot> {
-  return new WorkflowBuilder<TSpicy, Pot>(
-    contextPotSource || createRandomContext(ContextPot),
-  );
-}
-
-/**
- * Creates and returns a new instance of ShibuiCore.
- * @param {TCoreOptions} [config={ }] - Configuration for ShibuiCore.
- * @returns {TCore} - A new instance of ShibuiCore.
- */
-export const core = <S extends TSpicy = {}>(
-  config: TCoreOptions<S> = {},
-  // TODO: fix TCore type, add settings
-): Core<S> => {
-  return new Core<S>(config);
-};
-
-export default core;
-
-// Alias: shibui = core
-export const shibui = core;
-
-// New v1.0 API - pot factory
 export {
+  // Chain & Pipe utilities
+  chain,
+  // Pot factories
   context,
-  CoreStartPot as CoreStart,
+  // Core creation
+  core,
+  CoreStartPot,
+  // Execution utilities
+  execute,
+  pipe,
   pot,
-  type PotData,
-  type PotFactory,
-  type PotInstance,
-  type PotOf,
-  type PotOptions,
-} from "./pot.ts";
+  runCI,
+  shibui,
+  // Task & Workflow builders
+  task,
+  workflow,
+} from "$shibui/api";
 
-// New v1.0 API - chain and pipe utilities
-export { chain, type ChainConfig, pipe, type Transform } from "./chain.ts";
+// Alias for backwards compatibility
+export { CoreStartPot as CoreStart } from "$shibui/api";
 
-// Storage providers
+// Default export
+export { core as default } from "$shibui/api";
+
+// ============================================================================
+// Core Classes
+// ============================================================================
+
+export {
+  ContextPot,
+  Core,
+  Pot,
+  SEvent,
+  TaskBuilder,
+  WorkflowBuilder,
+} from "$shibui/core";
+
+// ============================================================================
+// Storage Providers
+// ============================================================================
+
 export { DenoKvProvider, MemoryProvider } from "$shibui/providers";
 
-// Runtime detection
+// ============================================================================
+// Runtime Detection
+// ============================================================================
+
 export {
   detectRuntime,
   exit,
@@ -235,20 +76,12 @@ export {
   isBun,
   isDeno,
   isNode,
-  type Runtime,
   runtime,
 } from "$helpers";
 
-// Re-export everything from submodules for convenience
-export { ContextPot, CoreStartPot } from "$shibui/pots";
-
-export {
-  Pot,
-  SError,
-  SEvent,
-  TaskBuilder,
-  WorkflowBuilder,
-} from "$shibui/entities";
+// ============================================================================
+// Events
+// ============================================================================
 
 export {
   CoreEvent,
@@ -267,7 +100,9 @@ export {
   WorkflowStartedEvent,
 } from "$shibui/events";
 
-export { TaskNameMissingError, TaskTriggersMissingError } from "$shibui/errors";
+// ============================================================================
+// Enums
+// ============================================================================
 
 export {
   DoOperation,
@@ -279,16 +114,34 @@ export {
   TriggerOperation,
   TriggerRule,
   UNKNOWN_TARGET,
-} from "$shibui/constants";
+} from "$shibui/types";
+
+// ============================================================================
+// Types
+// ============================================================================
 
 export type {
+  // Chain & Pipe
+  ChainConfig,
   // Type helpers
+  Constructor,
+  Equal,
+  // Pot factory types
+  PotClass,
+  PotData,
+  PotFactory,
   PotInput,
+  PotInstance,
   PotLike,
+  PotOf,
+  PotOptions,
   PotWithData,
+  // Runtime
+  Runtime,
   // Storage provider
   StorageEntry,
   StorageProvider,
+  Tail,
   // Core types
   TAnyCore,
   TAnyTaskDoHandler,
@@ -312,7 +165,7 @@ export type {
   TPotPack,
   TPotsConstructorsList,
   TPotSource,
-  TSError,
+  Transform,
   TSEvent,
   TSpicy,
   TTask,

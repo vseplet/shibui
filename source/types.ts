@@ -11,13 +11,109 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-import type { Constructor, Equal, Tail } from "$helpers/types";
 import type { emitters } from "$shibui/emitters";
-import type { EventDrivenLogger } from "$shibui/components";
-import type { TaskBuilder } from "./entities/TaskBuilder.ts";
-import type { Pot, WorkflowBuilder } from "$shibui/entities";
-import type { ContextPot } from "$shibui/pots";
-import type { PotFactory, PotInstance } from "./pot.ts";
+import type { EventDrivenLogger } from "./core/EventDrivenLogger.ts";
+import type { TaskBuilder } from "./core/TaskBuilder.ts";
+import type { ContextPot, Pot } from "./core/Pot.ts";
+import type { WorkflowBuilder } from "./core/WorkflowBuilder.ts";
+
+// ============================================================================
+// Type Helpers
+// ============================================================================
+
+export type Constructor<C> = new () => C;
+export type Tail<T extends any[]> = T extends [any, ...infer Rest] ? Rest
+  : never;
+export type Equal<X, Y> = (<T>() => T extends X ? 1 : 2) extends
+  (<T>() => T extends Y ? 1 : 2) ? true : false;
+
+// ============================================================================
+// Runtime Types
+// ============================================================================
+
+export type Runtime = "deno" | "bun" | "node" | "unknown";
+
+// ============================================================================
+// Chain & Pipe Types
+// ============================================================================
+
+/**
+ * Chain configuration returned by chain()
+ */
+export interface ChainConfig {
+  /** List of task builders in order */
+  readonly tasks: TTaskBuilder[];
+  /** Name of the chain */
+  readonly name: string;
+}
+
+/**
+ * Transform function type for pipe()
+ */
+export type Transform<In, Out> = (input: In) => Out;
+
+// ============================================================================
+// Pot Factory Types (v1.0 API)
+// ============================================================================
+
+/** Options for pot creation */
+export interface PotOptions {
+  /** Time-to-live for the pot (number of processing attempts) */
+  ttl?: number;
+}
+
+/** Runtime pot instance - compatible with TPot */
+export interface PotInstance<T> {
+  /** Unique identifier */
+  uuid: `${string}-${string}-${string}-${string}-${string}`;
+  /** Pot name */
+  name: string;
+  /** Pot type */
+  type: PotType;
+  /** Time of creation */
+  toc: number;
+  /** Time-to-live */
+  ttl: number;
+  /** Actual data */
+  data: T;
+  /** Routing: where this pot came from */
+  from: {
+    task: string;
+    workflow: string;
+  };
+  /** Routing: where this pot should go */
+  to: {
+    task: string;
+    workflow: string;
+  };
+}
+
+/** Internal Pot class type for TaskBuilder compatibility */
+export type PotClass<T extends object> = new () => Pot<
+  T & { [key: string]: any }
+>;
+
+/** Pot factory returned by pot() function */
+export interface PotFactory<T extends object> {
+  /** Type name for identification */
+  readonly name: string;
+  /** Default values */
+  readonly defaults: T;
+  /** TTL setting */
+  readonly ttl: number;
+  /** Create a new pot instance with optional data override */
+  create(data?: Partial<T>): PotInstance<T>;
+  /** Initialize existing data (for compatibility) */
+  init(data: Partial<T>): PotInstance<T>;
+  /** Internal: class constructor for TaskBuilder compatibility */
+  readonly _class: PotClass<T>;
+}
+
+/** Type helper to extract data type from a pot factory */
+export type PotData<F> = F extends PotFactory<infer T> ? T : never;
+
+/** Type helper to extract pot instance type from a pot factory */
+export type PotOf<F> = F extends PotFactory<infer T> ? PotInstance<T> : never;
 
 // ============================================================================
 // Enums
@@ -143,10 +239,6 @@ export type TPot = {
 };
 
 export type TPotPack = Array<TPot>;
-
-export type TSError = {
-  createdAt: number;
-};
 
 export type TSEvent = {
   type: EventType;

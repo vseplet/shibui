@@ -24,12 +24,16 @@ import {
   type TTaskBuilder,
   type TWorkflowBuilder,
 } from "$shibui/types";
-import { Distributor, EventDrivenLogger } from "$shibui/components";
-import { type Pot, WorkflowBuilder } from "$shibui/entities";
+import {
+  ContextPot,
+  Distributor,
+  EventDrivenLogger,
+  type Pot,
+  TaskBuilder,
+  WorkflowBuilder,
+} from "$shibui/core";
 import type { Constructor } from "$helpers/types";
-import { TaskBuilder } from "../entities/TaskBuilder.ts";
-import { ContextPot } from "$shibui/pots";
-import type { PotFactory, PotInstance } from "../pot.ts";
+import type { PotFactory, PotInstance } from "$shibui/types";
 import { DenoKvProvider, MemoryProvider } from "$shibui/providers";
 import { isDeno } from "$helpers";
 

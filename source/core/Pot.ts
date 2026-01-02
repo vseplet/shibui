@@ -11,7 +11,7 @@
  */
 
 import type { TPot } from "$shibui/types";
-import { PotType, UNKNOWN_TARGET } from "$shibui/constants";
+import { PotType, UNKNOWN_TARGET } from "$shibui/types";
 
 export class Pot<
   D extends { [key: string]: unknown } = { [key: string]: unknown },
@@ -92,4 +92,8 @@ export class Pot<
 
     return this;
   }
+}
+
+export class ContextPot<T extends { [key: string]: unknown }> extends Pot<T> {
+  override type = PotType.Context;
 }

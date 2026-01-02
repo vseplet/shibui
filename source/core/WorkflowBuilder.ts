@@ -18,9 +18,9 @@ import type {
   TWorkflowBuilder,
 } from "$shibui/types";
 import { UNKNOWN_TARGET } from "$shibui/types";
-import { type Pot, TaskBuilder } from "$shibui/entities";
-import { CoreStartPot } from "$shibui/pots";
-import type { PotFactory } from "../pot.ts";
+import { type Pot, TaskBuilder } from "$shibui/core";
+import type { PotFactory } from "$shibui/types";
+import { CoreStartPot } from "$shibui/api";
 
 // Helper to check if input is PotFactory
 // deno-lint-ignore no-explicit-any
