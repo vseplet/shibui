@@ -14,6 +14,7 @@ import { emitters } from "$shibui/emitters";
 import {
   LogLevel,
   SourceType,
+  type StorageProvider,
   type TCore,
   type TCoreOptions,
   type TLoggerOptions,
@@ -29,6 +30,8 @@ import type { Constructor } from "$helpers/types";
 import { TaskBuilder } from "../entities/TaskBuilder.ts";
 import { ContextPot } from "$shibui/pots";
 import type { PotFactory, PotInstance } from "../pot.ts";
+import { DenoKvProvider, MemoryProvider } from "$shibui/providers";
+import { isDeno } from "$helpers";
 
 // Type helpers for task() to accept both PotFactory and Constructor
 // deno-lint-ignore no-explicit-any
@@ -94,14 +97,39 @@ function normalizeSourceType(source: SourceType | string): SourceType {
   return map[source] ?? SourceType.Unknown;
 }
 
+// Create provider based on options
+function createProvider<S>(options: TCoreOptions<S>): StorageProvider {
+  if (options.provider) {
+    return options.provider;
+  }
+
+  const storage = options.storage ?? "auto";
+
+  if (storage === "memory") {
+    return new MemoryProvider();
+  }
+
+  if (storage === "auto") {
+    return isDeno ? new DenoKvProvider() : new MemoryProvider();
+  }
+
+  // File path - only works in Deno
+  if (!isDeno) {
+    throw new Error(
+      `File-based storage "${storage}" is only supported in Deno. Use "memory" or a custom provider.`,
+    );
+  }
+  return new DenoKvProvider(storage);
+}
+
 // Normalize options to internal format
 function normalizeOptions<S>(options: TCoreOptions<S>): {
-  kvPath: string | undefined;
+  provider: StorageProvider;
   settings: TInternalSettings;
   context: S | undefined;
 } {
-  // Storage
-  const kvPath = options.storage === "memory" ? ":memory:" : options.storage;
+  // Provider
+  const provider = createProvider(options);
 
   // Logging
   let loggingEnabled = true;
@@ -129,7 +157,7 @@ function normalizeOptions<S>(options: TCoreOptions<S>): {
   }
 
   return {
-    kvPath,
+    provider,
     settings: {
       DEFAULT_LOGGING_ENABLED: loggingEnabled,
       DEFAULT_LOGGING_LEVEL: loggingLevel,
@@ -150,7 +178,7 @@ export class Core<S extends TSpicy> implements TCore<S> {
     this.#settings = normalized.settings;
 
     this.#globalPotDistributor = new Distributor(
-      normalized.kvPath,
+      normalized.provider,
       this,
       normalized.context,
     );

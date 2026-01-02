@@ -13,6 +13,7 @@
 import type { Pot } from "$shibui/entities";
 import {
   SourceType,
+  type StorageProvider,
   type TAnyCore,
   type TDoHandlerResult,
   type TEventDrivenLogger,
@@ -33,7 +34,7 @@ import { promiseWithTimeout } from "$helpers";
 
 export default class Runner {
   #core: TAnyCore;
-  #kv: Deno.Kv | null = null;
+  #provider: StorageProvider | null = null;
   #log: TEventDrivenLogger;
   #spicy: TSpicy;
   #tasks: { [name: string]: TTask } = {};
@@ -47,8 +48,8 @@ export default class Runner {
     });
   }
 
-  init(kv: Deno.Kv): void {
-    this.#kv = kv;
+  init(provider: StorageProvider): void {
+    this.#provider = provider;
   }
 
   registerTask(task: TTask) {

@@ -17,6 +17,7 @@
   },
   "tasks": {
     "test": "deno test --allow-all --unstable-broadcast-channel --unstable-kv ./tests/",
+    "test:coverage": "deno test --allow-all --unstable-broadcast-channel --unstable-kv --coverage=coverage ./tests/",
     "pub-dry": "deno publish --dry-run --allow-slow-types",
     "example:simple-task": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/01-simple-task-with-trigger.ts",
     "example:task-chaining": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/02-task-chaining.ts",
@@ -40,6 +41,7 @@
     "$shibui/emitters": "./source/emitters.ts",
     "$shibui/constants": "./source/constants.ts",
     "$shibui/components": "./source/components/mod.ts",
+    "$shibui/providers": "./source/providers/mod.ts",
     "$helpers/types": "./source/helpers/types.ts",
     "$helpers": "./source/helpers/mod.ts",
     "@std/path": "jsr:@std/path@0.224.0",

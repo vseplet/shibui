@@ -13,17 +13,18 @@
 import { Pot } from "$shibui/entities";
 import {
   SourceType,
+  type StorageProvider,
   type TAnyCore,
   type TEventDrivenLogger,
   type TPot,
   type TTask,
 } from "$shibui/types";
 
-const KV_PREFIX = ["shibui", "filler", "slots"] as const;
+const STORAGE_PREFIX = ["shibui", "filler", "slots"] as const;
 
 export class Filler {
   #core: TAnyCore;
-  #kv: Deno.Kv | null = null;
+  #provider: StorageProvider | null = null;
   #log: TEventDrivenLogger;
 
   #slots: {
@@ -41,19 +42,19 @@ export class Filler {
     });
   }
 
-  async init(kv: Deno.Kv): Promise<void> {
-    this.#kv = kv;
+  async init(provider: StorageProvider): Promise<void> {
+    this.#provider = provider;
     await this.#restoreSlots();
   }
 
   async #restoreSlots(): Promise<void> {
-    if (!this.#kv) return;
+    if (!this.#provider) return;
 
-    const entries = this.#kv.list<TPot>({ prefix: [...KV_PREFIX] });
+    const entries = this.#provider.scan([...STORAGE_PREFIX]);
 
     for await (const entry of entries) {
       // Key format: ["shibui", "filler", "slots", taskName, slot, row]
-      const key = entry.key as string[];
+      const key = entry.key;
       const taskName = key[3] as string;
       const slot = Number(key[4]);
       const row = Number(key[5]);
@@ -65,7 +66,7 @@ export class Filler {
         continue;
       }
 
-      const pot = new Pot().deserialize(entry.value);
+      const pot = new Pot().deserialize(entry.pot);
       if (pot) {
         // Ensure array is large enough
         while (this.#slots[taskName].slots[slot].length <= row) {
@@ -85,19 +86,19 @@ export class Filler {
     row: number,
     pot: TPot,
   ): Promise<void> {
-    if (!this.#kv) return;
-    const key = [...KV_PREFIX, taskName, slot, row];
-    await this.#kv.set(key, pot);
+    if (!this.#provider) return;
+    const key = [...STORAGE_PREFIX, taskName, String(slot), String(row)];
+    await this.#provider.store(key, pot);
   }
 
   async #removeSlotRow(taskName: string, row: number): Promise<void> {
-    if (!this.#kv) return;
+    if (!this.#provider) return;
     const slotsCount = this.#slots[taskName]?.slotsCount || 0;
-    const ops = this.#kv.atomic();
+    const keys: string[][] = [];
     for (let slot = 0; slot < slotsCount; slot++) {
-      ops.delete([...KV_PREFIX, taskName, slot, row]);
+      keys.push([...STORAGE_PREFIX, taskName, String(slot), String(row)]);
     }
-    await ops.commit();
+    await this.#provider.removeMany(keys);
   }
 
   private allocateSlots(task: TTask) {
