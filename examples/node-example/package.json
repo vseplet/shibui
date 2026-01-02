@@ -1,0 +1,11 @@
+{
+  "name": "shibui-node-example",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node main.ts"
+  },
+  "dependencies": {
+    "@vseplet/shibui": "npm:@jsr/vseplet__shibui@^1.2.0"
+  }
+}

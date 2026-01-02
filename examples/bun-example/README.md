@@ -31,5 +31,7 @@ Success: true
 
 ## Notes
 
-- Shibui automatically uses `MemoryProvider` in Bun (since Deno KV is not available)
-- For persistent storage in Bun, implement a custom `StorageProvider` (e.g., Redis, SQLite)
+- Shibui automatically uses `MemoryProvider` in Bun (since Deno KV is not
+  available)
+- For persistent storage in Bun, implement a custom `StorageProvider` (e.g.,
+  Redis, SQLite)

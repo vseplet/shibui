@@ -4,5 +4,8 @@
   "type": "module",
   "scripts": {
     "start": "bun run main.ts"
+  },
+  "dependencies": {
+    "@vseplet/shibui": "npm:@jsr/vseplet__shibui"
   }
 }
