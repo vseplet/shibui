@@ -456,3 +456,56 @@ Deno.test("Crash Recovery - multiple rows in slots", async () => {
   assertEquals(allAs, ["A1", "A2", "A3"]);
   assertEquals(allBs, ["B1", "B2", "B3"]);
 });
+
+// ============================================================================
+// 10 SLOTS TEST - verify unlimited pot dependencies
+// ============================================================================
+
+const P1 = pot("P1", { n: 1 });
+const P2 = pot("P2", { n: 2 });
+const P3 = pot("P3", { n: 3 });
+const P4 = pot("P4", { n: 4 });
+const P5 = pot("P5", { n: 5 });
+const P6 = pot("P6", { n: 6 });
+const P7 = pot("P7", { n: 7 });
+const P8 = pot("P8", { n: 8 });
+const P9 = pot("P9", { n: 9 });
+const P10 = pot("P10", { n: 10 });
+
+Deno.test("Dependent Tasks - ten slots (unlimited)", async () => {
+  const c = core({ storage: "memory", logging: false });
+
+  let executed = false;
+  let result = 0;
+
+  const combiner = c.task(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10)
+    .name("Ten Combiner")
+    .do(async ({ pots, finish }) => {
+      executed = true;
+      // Sum all values: 1+2+3+4+5+6+7+8+9+10 = 55
+      result = pots.reduce((sum, pot) => sum + pot.data.n, 0);
+      return finish();
+    });
+
+  c.register(combiner);
+  await c.start();
+
+  // Send all 10 pots
+  c.send(P1.create({ n: 1 }));
+  c.send(P2.create({ n: 2 }));
+  c.send(P3.create({ n: 3 }));
+  c.send(P4.create({ n: 4 }));
+  c.send(P5.create({ n: 5 }));
+  c.send(P6.create({ n: 6 }));
+  c.send(P7.create({ n: 7 }));
+  c.send(P8.create({ n: 8 }));
+  c.send(P9.create({ n: 9 }));
+  c.send(P10.create({ n: 10 }));
+
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  assertEquals(executed, true);
+  assertEquals(result, 55);
+
+  c.close();
+});

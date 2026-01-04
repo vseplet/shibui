@@ -34,7 +34,7 @@ import type {
   TTaskBuilder,
   TWorkflowBuilder,
 } from "$shibui/types";
-import { PotType } from "$shibui/types";
+import { isPotFactory, PotType } from "$shibui/types";
 import { createRandomContext, exit } from "$helpers";
 import {
   TaskFailedEvent,
@@ -268,13 +268,6 @@ export function pipe(
 // ============================================================================
 // Task and Workflow Builders
 // ============================================================================
-
-/** Check if input is a PotFactory */
-// deno-lint-ignore no-explicit-any
-function isPotFactory(input: PotInput): input is PotFactory<any> {
-  return typeof input === "object" && input !== null && "_class" in input &&
-    "create" in input;
-}
 
 /** Convert PotInput to Constructor */
 // deno-lint-ignore no-explicit-any

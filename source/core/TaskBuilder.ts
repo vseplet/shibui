@@ -1,6 +1,7 @@
 import type { Pot } from "$shibui/core";
 import type { Constructor } from "$helpers/types";
 import type {
+  PotFactory,
   TOnHandlerContext,
   TPotsConstructorsList,
   TSpicy,
@@ -10,16 +11,8 @@ import type {
   TWhenPredicate,
   TWorkflowBuilder,
 } from "$shibui/types";
-import { TriggerRule, UNKNOWN_TARGET } from "$shibui/types";
-import type { PotFactory } from "$shibui/types";
+import { isPotFactory, TriggerRule, UNKNOWN_TARGET } from "$shibui/types";
 import { CoreStartPot } from "$shibui/api";
-
-// Helper to check if input is PotFactory
-// deno-lint-ignore no-explicit-any
-function isPotFactory(input: any): input is PotFactory<any> {
-  return typeof input === "object" && input !== null && "_class" in input &&
-    "create" in input;
-}
 
 // Get constructor from either PotFactory or Constructor
 // deno-lint-ignore no-explicit-any
@@ -99,7 +92,6 @@ export class TaskBuilder<
   constructor(
     ..._constructors: { [K in keyof Pots]: Constructor<Pots[K]> | null }
   ) {
-    if (arguments.length > 5) throw new Error("over 5 pots!");
     this.potsConstructors = arguments as unknown as TPotsConstructorsList;
 
     this.task.slotsCount =
