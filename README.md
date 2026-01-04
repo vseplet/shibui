@@ -22,7 +22,7 @@ Universal workflow automation engine for Deno.
 ## Quick Start
 
 ```typescript
-import { execute, pot, task } from "@vseplet/shibui";
+import { pot, shibui, task } from "@vseplet/shibui";
 
 const Message = pot("Message", { text: "" });
 
@@ -33,7 +33,10 @@ const printTask = task(Message)
     return finish();
   });
 
-await execute(printTask, [Message.create({ text: "Hello!" })]);
+const app = shibui();
+app.register(printTask);
+await app.start();
+app.send(Message.create({ text: "Hello!" }));
 ```
 
 Run with:
@@ -49,7 +52,7 @@ deno add jsr:@vseplet/shibui
 ```
 
 ```typescript
-import { context, core, execute, pot, task, workflow } from "@vseplet/shibui";
+import { context, execute, pot, shibui, task, workflow } from "@vseplet/shibui";
 ```
 
 ## Core Concepts
@@ -215,19 +218,24 @@ Executes a task or workflow.
 ```typescript
 await execute(myTask, [Counter.create({ value: 42 })]);
 await execute(myWorkflow);
-await execute(myTask, [Counter], { storage: "memory", logging: false });
+await execute(myTask, [Counter], { logger: false });
 ```
 
-### core(options?)
+### shibui(options?)
 
-Creates an engine instance for manual control.
+Creates an engine instance with sensible defaults.
 
 ```typescript
-const app = core({
-  storage: "memory",
-  logging: false,
-  context: { apiKey: "..." },
-});
+import { shibui } from "@vseplet/shibui";
+
+// Minimal - uses Memory providers and ConsoleLogger
+const app = shibui();
+
+// Without logging
+const app = shibui({ logger: false });
+
+// With custom context
+const app = shibui({ context: { apiKey: "..." } });
 
 app.register(myTask);
 await app.start();
@@ -237,34 +245,61 @@ app.close();
 
 ## Configuration
 
-### Storage
+### Providers
 
-Storage controls where the engine keeps its queue and state.
+Shibui uses separate providers for queue (message passing) and storage
+(persistence):
 
 ```typescript
-// In-memory (data lost on restart)
-core({ storage: "memory" });
+import {
+  DenoKvQueueProvider,
+  DenoKvStorageProvider,
+  MemoryQueueProvider,
+  MemoryStorageProvider,
+  shibui,
+} from "@vseplet/shibui";
 
-// File-based (persistent, survives restarts)
-core({ storage: "./data/app.db" });
+// Default: in-memory (data lost on restart)
+const app = shibui();
+
+// Persistent with Deno KV
+const app = shibui({
+  queue: new DenoKvQueueProvider("./data.db"),
+  storage: new DenoKvStorageProvider("./data.db"),
+});
 ```
 
-With file-based storage, dependent tasks (tasks waiting for multiple pots) will
+With Deno KV storage, dependent tasks (tasks waiting for multiple pots) will
 recover their state after a crash. If your process restarts, partially filled
 slots are restored from the database.
 
-### Storage Provider
+### Queue Provider
 
-Use a custom storage backend by implementing the `StorageProvider` interface:
+Implement `QueueProvider` for custom message queue backends:
 
 ```typescript
-import type { StorageProvider } from "@vseplet/shibui";
+import type { QueueProvider } from "@vseplet/shibui";
 
-class RedisProvider implements StorageProvider {
+class RedisQueueProvider implements QueueProvider {
   async open() {/* connect */}
   close() {/* disconnect */}
   async enqueue(pot) {/* push to queue */}
   listen(handler) {/* subscribe to queue */}
+}
+
+shibui({ queue: new RedisQueueProvider() });
+```
+
+### Storage Provider
+
+Implement `StorageProvider` for custom KV persistence:
+
+```typescript
+import type { StorageProvider } from "@vseplet/shibui";
+
+class RedisStorageProvider implements StorageProvider {
+  async open() {/* connect */}
+  close() {/* disconnect */}
   async store(key, pot) {/* save pot */}
   async retrieve(key) {/* load pot */}
   async remove(key) {/* delete pot */}
@@ -272,29 +307,28 @@ class RedisProvider implements StorageProvider {
   async removeMany(keys) {/* batch delete */}
 }
 
-core({ provider: new RedisProvider() });
+shibui({ storage: new RedisStorageProvider() });
 ```
 
 Built-in providers:
 
-- `MemoryProvider` — in-memory, for tests
-- `DenoKvProvider` — persistent, uses Deno KV
+- `MemoryQueueProvider` / `MemoryStorageProvider` — in-memory, for tests
+- `DenoKvQueueProvider` / `DenoKvStorageProvider` — persistent, uses Deno KV
 
 ### Logging
 
 ```typescript
-// Enable all logging
-core({ logging: true });
+import { ConsoleLogger, shibui } from "@vseplet/shibui";
+
+// Default: ConsoleLogger enabled
+const app = shibui();
 
 // Disable logging
-core({ logging: false });
+const app = shibui({ logger: false });
 
-// Configure level and sources
-core({
-  logging: {
-    level: "info", // trace, debug, verbose, info, warn, error, fatal
-    sources: ["task", "workflow"], // core, task, workflow, framework, plugin
-  },
+// Configure logger level
+const app = shibui({
+  logger: new ConsoleLogger({ level: "info" }),
 });
 ```
 
@@ -306,11 +340,11 @@ warn (5), error (6), fatal (7).
 Use a custom logging backend instead of the default console output:
 
 ```typescript
-import { core, LuminousProvider } from "@vseplet/shibui";
+import { LuminousProvider, shibui } from "@vseplet/shibui";
 
 // Use luminous logger with colored terminal output
-const app = core({
-  loggingProvider: new LuminousProvider(),
+const app = shibui({
+  logger: new LuminousProvider(),
 });
 ```
 
@@ -327,11 +361,12 @@ class FileLoggingProvider implements LoggingProvider {
   }
 }
 
-core({ loggingProvider: new FileLoggingProvider() });
+shibui({ logger: new FileLoggingProvider() });
 ```
 
 Built-in providers:
 
+- `ConsoleLogger` — default, simple console output
 - `LuminousProvider` — colored terminal output via `@vseplet/luminous`
 
 ### Custom Context
@@ -339,7 +374,7 @@ Built-in providers:
 Pass custom data available in all handlers:
 
 ```typescript
-const app = core({
+const app = shibui({
   context: {
     db: databaseConnection,
     config: appConfig,
@@ -390,10 +425,10 @@ const onlyPositive = task(Counter)
 ### Task Chaining
 
 ```typescript
-import { core, pot, TriggerRule } from "@vseplet/shibui";
+import { pot, shibui, TriggerRule } from "@vseplet/shibui";
 
 const Data = pot("Data", { value: 0 });
-const app = core({ storage: "memory", logging: false });
+const app = shibui({ logger: false });
 
 const step2 = app.task(Data)
   .name("Step 2")
@@ -430,7 +465,7 @@ const combiner = task(PotA, PotB)
     return finish();
   });
 
-const app = core({ storage: "memory" });
+const app = shibui();
 app.register(combiner);
 await app.start();
 
@@ -497,7 +532,7 @@ const buildWorkflow = workflow(BuildContext)
     return checkout;
   });
 
-await execute(buildWorkflow, undefined, { storage: "memory", logging: false });
+await execute(buildWorkflow, undefined, { logger: false });
 ```
 
 ### Runnable Examples
@@ -528,6 +563,9 @@ deno task example:timeout-retry
 
 # Custom context injection
 deno task example:custom-context
+
+# Provider configuration (Memory, DenoKV, logging)
+deno task example:providers
 
 # Multi-API aggregator with Telegram notification
 deno task example:aggregator
