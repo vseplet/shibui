@@ -504,11 +504,6 @@ export type TWorkflowBuilder = {
 export type TPotsConstructorsList = Array<Constructor<Pot>>;
 
 /**
- * Predicate function for .when() trigger filtering
- */
-export type TWhenPredicate<T> = (data: T) => boolean;
-
-/**
  * Input type for task(): either a Pot class constructor or a PotFactory
  */
 // deno-lint-ignore no-explicit-any

@@ -22,12 +22,12 @@ console.log("\npipe() examples:");
 console.log("Transform 10:", transform({ value: 10 }));
 console.log("Transform 50:", transform({ value: 50 }));
 
-// Task with .when(), .retry(), .catch()
+// Task with .on(), .retry(), .catch()
 const NumberPot = pot("NumberPot", { value: 0 });
 
 const processTask = task(NumberPot)
   .name("Process Number")
-  .when((data) => data.value > 0)
+  .on(NumberPot, ({ pot, allow, deny }) => pot.data.value > 0 ? allow() : deny())
   .retry({ attempts: 3, interval: 100, timeout: 5000 })
   .do(async ({ pots, finish, log }) => {
     const value = pots[0].data.value;

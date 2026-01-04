@@ -8,7 +8,6 @@ import type {
   TTask,
   TTaskDoHandler,
   TTaskTriggerHandler,
-  TWhenPredicate,
   TWorkflowBuilder,
 } from "$shibui/types";
 import { isPotFactory, TriggerRule, UNKNOWN_TARGET } from "$shibui/types";
@@ -147,9 +146,23 @@ export class TaskBuilder<
     return this;
   }
 
+  // Overload for Constructor
   on<TP extends Pots[number]>(
-    potSource: Constructor<TP> | PotFactory<TP["data"]>,
+    potSource: Constructor<TP>,
     handler?: TTaskTriggerHandler<Spicy, CTX, TP>,
+    slot?: number,
+  ): this;
+  // Overload for PotFactory - D must be one of Pots data types
+  on<D extends Pots[number]["data"]>(
+    potSource: PotFactory<D>,
+    handler?: TTaskTriggerHandler<Spicy, CTX, Pot<D>>,
+    slot?: number,
+  ): this;
+  // Implementation
+  on(
+    potSource: Constructor<Pot> | PotFactory<object>,
+    // deno-lint-ignore no-explicit-any
+    handler?: TTaskTriggerHandler<any, any, any>,
     slot?: number,
   ): this {
     const pot = getConstructor(potSource);
@@ -171,41 +184,6 @@ export class TaskBuilder<
 
     this.task.triggers[potConstructor.name].push(
       this.createTrigger(potConstructor, handler, slot),
-    );
-    return this;
-  }
-
-  /**
-   * Simple predicate-based trigger filter
-   * @example
-   * task(Counter)
-   *   .when(data => data.value > 0.5)
-   *   .do(...)
-   */
-  when<TP extends Pots[number] = Pots[0]>(
-    predicate: TWhenPredicate<TP["data"]>,
-    potConstructor?: Constructor<TP>,
-    slot?: number,
-  ): this {
-    // If no pot constructor provided, use the first one from constructor args
-    const targetPot = potConstructor || this.potsConstructors[0];
-    if (!targetPot) {
-      throw new Error(
-        "No pot constructor available for .when() - provide one as second argument",
-      );
-    }
-
-    const handler = (args: TOnHandlerContext<Spicy, CTX, TP>) => {
-      const pot = "ctx" in args ? args.ctx : args.pot;
-      return predicate(pot.data) ? args.allow() : args.deny();
-    };
-
-    if (!this.task.triggers[targetPot.name]) {
-      this.task.triggers[targetPot.name] = [];
-    }
-
-    this.task.triggers[targetPot.name].push(
-      this.createTrigger(targetPot as Constructor<TP>, handler, slot),
     );
     return this;
   }

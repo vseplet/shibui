@@ -187,7 +187,6 @@ export type {
   TTaskTrigger,
   TTaskTriggerHandler,
   TTaskTriggerStorage,
-  TWhenPredicate,
   TWorkflow,
   TWorkflowBuilder,
   TWorkflowTrigger,

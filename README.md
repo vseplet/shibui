@@ -97,7 +97,7 @@ Task processes pots. It defines what data it accepts and how to handle it.
 ```typescript
 const myTask = task(Counter)
   .name("My Task")
-  .when((data) => data.value > 0)
+  .on(Counter, ({ pot, allow, deny }) => pot.data.value > 0 ? allow() : deny())
   .do(async ({ pots, log, finish }) => {
     log.inf(`Processing: ${pots[0].data.value}`);
     return finish();
@@ -181,7 +181,6 @@ Creates a task builder.
 Methods:
 
 - `.name(string)` - set task name (required)
-- `.when(predicate)` - filter by data condition
 - `.on(Pot, handler)` - custom trigger handler
 - `.onRule(rule, Pot)` - built-in trigger rule
 - `.do(handler)` - execution handler (required)
@@ -415,7 +414,7 @@ const Counter = pot("Counter", { value: 0 });
 
 const onlyPositive = task(Counter)
   .name("Only Positive")
-  .when((data) => data.value > 0)
+  .on(Counter, ({ pot, allow, deny }) => pot.data.value > 0 ? allow() : deny())
   .do(async ({ pots, log, finish }) => {
     log.inf(`Positive: ${pots[0].data.value}`);
     return finish();

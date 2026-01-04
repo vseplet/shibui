@@ -188,41 +188,6 @@ Deno.test("Task - logger available in do handler", async () => {
   assertEquals(loggerWorks, true);
 });
 
-Deno.test("Task - .when() predicate trigger", async () => {
-  let executed = false;
-
-  const t = task(TestPot)
-    .name("When Test")
-    .when((data) => data.value > 10)
-    .do(async ({ finish }) => {
-      executed = true;
-      return finish();
-    });
-
-  const success = await execute(t, [TestPot.create({ value: 20 })], {
-    logger: false,
-  });
-
-  assertEquals(success, true);
-  assertEquals(executed, true);
-});
-
-Deno.test("Task - .when() denies when predicate returns false", async () => {
-  let executed = false;
-
-  const t = task(TestPot)
-    .name("When Deny Test")
-    .when((data) => data.value > 100)
-    .do(async ({ finish }) => {
-      executed = true;
-      return finish();
-    });
-
-  // We verify the trigger is created correctly
-  assertEquals(t.task.triggers["TestPot"].length, 1);
-  assertEquals(executed, false);
-});
-
 Deno.test("Task - .retry() configuration", () => {
   const t = task(TestPot)
     .name("Retry Test")

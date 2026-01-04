@@ -4,7 +4,7 @@ const SimplePot = pot("SimplePot", { value: Math.random() }, { ttl: 100 });
 
 const mySimpleTask = task(SimplePot)
   .name("Simple Task")
-  .when((data) => data.value > 0.5)
+  .on(SimplePot, ({ pot, allow, deny }) => pot.data.value > 0.5 ? allow() : deny())
   .do(async ({ finish, pots, log }) => {
     log.dbg(`Processing value: ${pots[0].data.value}`);
     return finish();
