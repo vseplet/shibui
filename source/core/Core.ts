@@ -1,12 +1,17 @@
 import { emitters } from "$shibui/emitters";
 import {
+  isPotFactory,
   LogLevel,
+  type PotFactory,
+  type PotInput,
+  type PotInstance,
   SourceType,
   type StorageProvider,
   type TCore,
   type TCoreOptions,
   type TLoggerOptions,
   type TLoggingConfig,
+  type ToPots,
   type TPot,
   type TSpicy,
   type TTaskBuilder,
@@ -21,29 +26,8 @@ import {
   WorkflowBuilder,
 } from "$shibui/core";
 import type { Constructor } from "$helpers/types";
-import type { PotFactory, PotInstance } from "$shibui/types";
 import { DenoKvProvider, MemoryProvider } from "$shibui/providers";
 import { isDeno } from "$helpers";
-
-// Type helpers for task() to accept both PotFactory and Constructor
-// deno-lint-ignore no-explicit-any
-type PotInput = Constructor<Pot<any>> | PotFactory<any>;
-
-// deno-lint-ignore no-explicit-any
-type ToPot<S> = S extends Constructor<infer P extends Pot<any>> ? P
-  // deno-lint-ignore no-explicit-any
-  : S extends PotFactory<infer D> ? Pot<D & { [key: string]: any }>
-  : never;
-
-type ToPots<Sources extends PotInput[]> = {
-  [K in keyof Sources]: ToPot<Sources[K]>;
-};
-
-// deno-lint-ignore no-explicit-any
-function isPotFactory(input: PotInput): input is PotFactory<any> {
-  return typeof input === "object" && input !== null && "_class" in input &&
-    "create" in input;
-}
 
 // deno-lint-ignore no-explicit-any
 function toConstructor(input: PotInput): Constructor<Pot<any>> {
@@ -164,10 +148,12 @@ export class Core<S extends TSpicy> implements TCore<S> {
 
   #globalPotDistributor: Distributor;
   #settings: TInternalSettings;
+  #loggingProvider: import("$shibui/types").LoggingProvider | undefined;
 
   constructor(options: TCoreOptions<S>) {
     const normalized = normalizeOptions(options);
     this.#settings = normalized.settings;
+    this.#loggingProvider = options.loggingProvider;
 
     this.#globalPotDistributor = new Distributor(
       normalized.provider,
@@ -216,6 +202,7 @@ export class Core<S extends TSpicy> implements TCore<S> {
       emitters.logEventEmitter,
       this.#settings,
       options,
+      this.#loggingProvider,
     );
   };
 

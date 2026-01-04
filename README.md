@@ -253,6 +253,33 @@ With file-based storage, dependent tasks (tasks waiting for multiple pots) will
 recover their state after a crash. If your process restarts, partially filled
 slots are restored from the database.
 
+### Storage Provider
+
+Use a custom storage backend by implementing the `StorageProvider` interface:
+
+```typescript
+import type { StorageProvider } from "@vseplet/shibui";
+
+class RedisProvider implements StorageProvider {
+  async open() {/* connect */}
+  close() {/* disconnect */}
+  async enqueue(pot) {/* push to queue */}
+  listen(handler) {/* subscribe to queue */}
+  async store(key, pot) {/* save pot */}
+  async retrieve(key) {/* load pot */}
+  async remove(key) {/* delete pot */}
+  async *scan(prefix) {/* iterate pots */}
+  async removeMany(keys) {/* batch delete */}
+}
+
+core({ provider: new RedisProvider() });
+```
+
+Built-in providers:
+
+- `MemoryProvider` — in-memory, for tests
+- `DenoKvProvider` — persistent, uses Deno KV
+
 ### Logging
 
 ```typescript
@@ -273,6 +300,39 @@ core({
 
 Log levels from lowest to highest: trace (1), debug (2), verbose (3), info (4),
 warn (5), error (6), fatal (7).
+
+### Logging Provider
+
+Use a custom logging backend instead of the default console output:
+
+```typescript
+import { core, LuminousProvider } from "@vseplet/shibui";
+
+// Use luminous logger with colored terminal output
+const app = core({
+  loggingProvider: new LuminousProvider(),
+});
+```
+
+Create your own provider by implementing the `LoggingProvider` interface:
+
+```typescript
+import type { LogEntry, LoggingProvider } from "@vseplet/shibui";
+
+class FileLoggingProvider implements LoggingProvider {
+  log(entry: LogEntry): void {
+    const line =
+      `${entry.timestamp.toISOString()} [${entry.level}] ${entry.message}`;
+    Deno.writeTextFileSync("app.log", line + "\n", { append: true });
+  }
+}
+
+core({ loggingProvider: new FileLoggingProvider() });
+```
+
+Built-in providers:
+
+- `LuminousProvider` — colored terminal output via `@vseplet/luminous`
 
 ### Custom Context
 

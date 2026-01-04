@@ -395,6 +395,12 @@ export type TCoreOptions<S = TSpicy> = {
   logging?: boolean | TLoggingConfig;
 
   /**
+   * Custom logging provider instance.
+   * If provided, logs will be sent to this provider instead of console.
+   */
+  loggingProvider?: LoggingProvider;
+
+  /**
    * Custom context data available in tasks
    */
   context?: S;
@@ -648,4 +654,38 @@ export interface StorageProvider {
 
   /** Remove multiple pots atomically */
   removeMany(keys: string[][]): Promise<void>;
+}
+
+/**
+ * Log entry passed to LoggingProvider
+ */
+export interface LogEntry {
+  level: LogLevel;
+  sourceType: SourceType;
+  sourceName: string;
+  message: string;
+  timestamp: Date;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Logging provider interface for pluggable log backends.
+ * Implement this interface to use custom loggers (file, external services, etc.)
+ *
+ * @example
+ * ```typescript
+ * import type { LoggingProvider } from "@vseplet/shibui";
+ *
+ * class FileLoggingProvider implements LoggingProvider {
+ *   log(entry) {
+ *     fs.appendFileSync("app.log", JSON.stringify(entry) + "\n");
+ *   }
+ * }
+ *
+ * core({ logging: new FileLoggingProvider() })
+ * ```
+ */
+export interface LoggingProvider {
+  /** Log an entry */
+  log(entry: LogEntry): void;
 }

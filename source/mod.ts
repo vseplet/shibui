@@ -47,10 +47,14 @@ export {
 } from "$shibui/core";
 
 // ============================================================================
-// Storage Providers
+// Providers
 // ============================================================================
 
-export { DenoKvProvider, MemoryProvider } from "$shibui/providers";
+export {
+  DenoKvProvider,
+  LuminousProvider,
+  MemoryProvider,
+} from "$shibui/providers";
 
 // ============================================================================
 // Runtime Detection
@@ -114,6 +118,9 @@ export type {
   // Type helpers
   Constructor,
   Equal,
+  // Logging provider
+  LogEntry,
+  LoggingProvider,
   // Pot factory types
   PotClass,
   PotData,

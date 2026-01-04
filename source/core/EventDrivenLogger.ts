@@ -9,6 +9,7 @@ import {
   WarnLogEvent,
 } from "$shibui/events";
 import {
+  type LoggingProvider,
   LogLevel,
   SourceType,
   type TEventDrivenLogger,
@@ -50,21 +51,27 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   };
 
   #emitter: EventEmitter<LogEvent<unknown>>;
-
   #settings;
+  #provider: LoggingProvider | null;
 
   constructor(
     emitter: EventEmitter<LogEvent<unknown>>,
     settings: any,
     args?: TLoggerOptions,
+    provider?: LoggingProvider,
   ) {
     this.#settings = settings;
     this.#emitter = emitter;
+    this.#provider = provider ?? null;
     if (args?.sourceName) this.#options.sourceName = args.sourceName;
     if (args?.sourceType) this.#options.sourceType = args.sourceType;
   }
 
-  private log(level: LogLevel, msg: string) {
+  private log(
+    level: LogLevel,
+    msg: string,
+    metadata?: Record<string, unknown>,
+  ) {
     if (
       !this.#settings.ALLOWED_LOGGING_SOURCE_TYPES.includes(
         this.#options.sourceType,
@@ -76,15 +83,26 @@ export class EventDrivenLogger implements TEventDrivenLogger {
       level < this.#settings.DEFAULT_LOGGING_LEVEL
     ) return;
 
-    const date = new Date();
-    const time =
-      `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}.${date.getMilliseconds()}`;
+    if (this.#provider) {
+      this.#provider.log({
+        level,
+        sourceType: this.#options.sourceType,
+        sourceName: this.#options.sourceName,
+        message: msg,
+        timestamp: new Date(),
+        metadata,
+      });
+    } else {
+      const date = new Date();
+      const time =
+        `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}.${date.getMilliseconds()}`;
 
-    console.log(colorizeByLevel[level](
-      `${time} ${this.#options.sourceType} [${
-        levelName[level]
-      }] ${this.#options.sourceName} : ${msg}`,
-    ));
+      console.log(colorizeByLevel[level](
+        `${time} ${this.#options.sourceType} [${
+          levelName[level]
+        }] ${this.#options.sourceName} : ${msg}`,
+      ));
+    }
   }
 
   dbg(msg: string) {
