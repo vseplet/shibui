@@ -1,14 +1,3 @@
-/**
- * Shibui v1.0 Public API
- *
- * This module contains all public API functions:
- * - pot(), context() - data container factories
- * - task(), workflow() - builders
- * - core(), shibui() - core instance creation
- * - execute(), runCI() - execution utilities
- * - chain(), pipe() - composition utilities
- */
-
 import {
   ContextPot,
   Core,
@@ -45,10 +34,6 @@ import {
 import { delay } from "@std/async";
 import { emitters } from "$shibui/emitters";
 import { levelName } from "./providers/ConsoleLogger.ts";
-
-// ============================================================================
-// Pot Factory (v1.0 API)
-// ============================================================================
 
 const UNKNOWN = "unknown";
 
@@ -168,12 +153,7 @@ export function context<T extends object>(
   return factory;
 }
 
-// CoreStartPot is re-exported from core to avoid circular dependencies
 export { CoreStartPot } from "$shibui/core";
-
-// ============================================================================
-// Chain and Pipe Utilities
-// ============================================================================
 
 /**
  * Creates a declarative chain of tasks
@@ -265,10 +245,6 @@ export function pipe(
   return (input) => transforms.reduce((acc, fn) => fn(acc), input);
 }
 
-// ============================================================================
-// Task and Workflow Builders
-// ============================================================================
-
 /** Convert PotInput to Constructor */
 // deno-lint-ignore no-explicit-any
 function toConstructor(input: PotInput): Constructor<Pot<any>> {
@@ -282,12 +258,8 @@ function toConstructor(input: PotInput): Constructor<Pot<any>> {
  * Creates a new task builder
  *
  * @example
- * // With pot() factory (v1.0 - recommended)
  * const Counter = pot("Counter", { value: 0 });
  * task(Counter).name("Task").do(...)
- *
- * // With class (legacy)
- * task(MyPot).name("Task").do(...)
  */
 export const task = <
   Sources extends PotInput[],
@@ -304,12 +276,8 @@ export const task = <
  * Creates a new workflow builder
  *
  * @example
- * // With context() factory (v1.0 - recommended)
  * const OrderCtx = context("OrderCtx", { orderId: "" });
  * workflow(OrderCtx).name("ProcessOrder").do(...)
- *
- * // Without context (auto-generated)
- * workflow().name("SimpleWorkflow").do(...)
  */
 // Overloads for proper type inference
 export function workflow<CP extends ContextPot<{}>>(
@@ -327,10 +295,6 @@ export function workflow(
     contextPotSource || createRandomContext(ContextPot),
   );
 }
-
-// ============================================================================
-// Execution Utilities
-// ============================================================================
 
 import { MemoryQueueProvider } from "./providers/MemoryQueueProvider.ts";
 import { MemoryStorageProvider } from "./providers/MemoryStorageProvider.ts";

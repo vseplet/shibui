@@ -10,10 +10,6 @@ import { MemoryQueueProvider } from "./providers/MemoryQueueProvider.ts";
 import { MemoryStorageProvider } from "./providers/MemoryStorageProvider.ts";
 import { ConsoleLogger } from "./providers/ConsoleLogger.ts";
 
-// ============================================================================
-// Main Entry Point
-// ============================================================================
-
 /**
  * Creates and returns a new instance of Shibui Core with sensible defaults.
  *
@@ -57,12 +53,7 @@ export function shibui<S extends TSpicy = {}>(
   });
 }
 
-// Default export
 export default shibui;
-
-// ============================================================================
-// Public API (v1.0)
-// ============================================================================
 
 export {
   // Chain & Pipe utilities
@@ -80,12 +71,7 @@ export {
   workflow,
 } from "$shibui/api";
 
-// Alias for backwards compatibility
 export { CoreStartPot as CoreStart } from "$shibui/api";
-
-// ============================================================================
-// Core Classes
-// ============================================================================
 
 export {
   ContextPot,
@@ -96,25 +82,12 @@ export {
   WorkflowBuilder,
 } from "$shibui/core";
 
-// ============================================================================
-// Providers
-// ============================================================================
-
-// Queue providers
 export { MemoryQueueProvider } from "./providers/MemoryQueueProvider.ts";
 export { DenoKvQueueProvider } from "./providers/DenoKvQueueProvider.ts";
-
-// Storage providers
 export { MemoryStorageProvider } from "./providers/MemoryStorageProvider.ts";
 export { DenoKvStorageProvider } from "./providers/DenoKvStorageProvider.ts";
-
-// Logging providers
 export { ConsoleLogger } from "./providers/ConsoleLogger.ts";
 export { LuminousProvider } from "./providers/LuminousProvider.ts";
-
-// ============================================================================
-// Runtime Detection
-// ============================================================================
 
 export {
   detectRuntime,
@@ -126,10 +99,6 @@ export {
   isNode,
   runtime,
 } from "$helpers";
-
-// ============================================================================
-// Events
-// ============================================================================
 
 export {
   CoreEvent,
@@ -148,10 +117,6 @@ export {
   WorkflowStartedEvent,
 } from "$shibui/events";
 
-// ============================================================================
-// Enums
-// ============================================================================
-
 export {
   DoOperation,
   EventType,
@@ -164,10 +129,6 @@ export {
   TriggerRule,
   UNKNOWN_TARGET,
 } from "$shibui/types";
-
-// ============================================================================
-// Types
-// ============================================================================
 
 export type {
   // Chain & Pipe

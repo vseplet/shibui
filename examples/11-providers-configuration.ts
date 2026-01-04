@@ -30,9 +30,6 @@ const incrementTask = task(Counter)
     return finish();
   });
 
-// ============================================================================
-// Example 1: Default configuration (Memory + ConsoleLogger)
-// ============================================================================
 console.log("=== Example 1: Default configuration ===\n");
 
 const app1 = shibui();
@@ -42,9 +39,6 @@ app1.send(Counter.create({ value: 1 }));
 await new Promise((r) => setTimeout(r, 100));
 app1.close();
 
-// ============================================================================
-// Example 2: Without logging
-// ============================================================================
 console.log("\n=== Example 2: No logging ===\n");
 
 await execute(incrementTask, [Counter.create({ value: 10 })], {
@@ -52,18 +46,12 @@ await execute(incrementTask, [Counter.create({ value: 10 })], {
 });
 console.log("(no log output expected)");
 
-// ============================================================================
-// Example 3: Custom logger level
-// ============================================================================
 console.log("\n=== Example 3: Info level only ===\n");
 
 await execute(incrementTask, [Counter.create({ value: 20 })], {
   logger: new ConsoleLogger({ level: "info" }),
 });
 
-// ============================================================================
-// Example 4: DenoKV for persistence
-// ============================================================================
 console.log("\n=== Example 4: DenoKV persistence ===\n");
 
 const kvPath = await Deno.makeTempFile({ suffix: ".db" });

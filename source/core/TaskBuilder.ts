@@ -176,7 +176,7 @@ export class TaskBuilder<
   }
 
   /**
-   * Simple predicate-based trigger filter (v1.0 API)
+   * Simple predicate-based trigger filter
    * @example
    * task(Counter)
    *   .when(data => data.value > 0.5)
@@ -227,7 +227,7 @@ export class TaskBuilder<
   }
 
   /**
-   * Alias for fail() - more familiar naming (v1.0 API)
+   * Alias for fail()
    * @example
    * task("Name", Counter)
    *   .do(...)
@@ -238,7 +238,7 @@ export class TaskBuilder<
   }
 
   /**
-   * Configure retry behavior with a single object (v1.0 API)
+   * Configure retry behavior
    * @example
    * task("Name", Counter)
    *   .retry({ attempts: 3, interval: 1000, timeout: 5000 })

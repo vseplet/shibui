@@ -2,10 +2,6 @@
 
 import type { Runtime } from "$shibui/types";
 
-// ============================================================================
-// Runtime Detection
-// ============================================================================
-
 export function detectRuntime(): Runtime {
   // @ts-ignore: Deno global
   if (typeof Deno !== "undefined" && Deno.version?.deno) {
@@ -69,10 +65,6 @@ export function getRuntimeInfo() {
   };
 }
 
-// ============================================================================
-// Promise Utilities
-// ============================================================================
-
 export async function promiseWithTimeout<T>(
   promise: Promise<T>,
   timeout: number,
@@ -134,10 +126,6 @@ export function syncPromiseWithTimeout<T>(
 
   return result!;
 }
-
-// ============================================================================
-// Context Utilities
-// ============================================================================
 
 export function createRandomContext(BaseClass: any) {
   const className = "CTX_" + Math.random().toString(36).substring(2, 15);

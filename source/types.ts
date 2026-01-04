@@ -5,25 +5,13 @@ import type { TaskBuilder } from "./core/TaskBuilder.ts";
 import type { ContextPot, Pot } from "./core/Pot.ts";
 import type { WorkflowBuilder } from "./core/WorkflowBuilder.ts";
 
-// ============================================================================
-// Type Helpers
-// ============================================================================
-
 export type Constructor<C> = new () => C;
 export type Tail<T extends any[]> = T extends [any, ...infer Rest] ? Rest
   : never;
 export type Equal<X, Y> = (<T>() => T extends X ? 1 : 2) extends
   (<T>() => T extends Y ? 1 : 2) ? true : false;
 
-// ============================================================================
-// Runtime Types
-// ============================================================================
-
 export type Runtime = "deno" | "bun" | "node" | "unknown";
-
-// ============================================================================
-// Chain & Pipe Types
-// ============================================================================
 
 /**
  * Chain configuration returned by chain()
@@ -39,10 +27,6 @@ export interface ChainConfig {
  * Transform function type for pipe()
  */
 export type Transform<In, Out> = (input: In) => Out;
-
-// ============================================================================
-// Pot Factory Types (v1.0 API)
-// ============================================================================
 
 /** Options for pot creation */
 export interface PotOptions {
@@ -106,10 +90,6 @@ export type PotData<P> = P extends Constructor<Pot<infer D>> ? D
 export type PotOf<P> = P extends Constructor<Pot<infer D>> ? Pot<D>
   : P extends PotFactory<infer D> ? PotInstance<D>
   : never;
-
-// ============================================================================
-// Enums
-// ============================================================================
 
 /**
  * Pot types categorize data containers by their origin and purpose
@@ -208,10 +188,6 @@ export enum EventType {
  * Special constant for unknown targets
  */
 export const UNKNOWN_TARGET = "unknown" as const;
-
-// ============================================================================
-// Types
-// ============================================================================
 
 export type TPot = {
   toc: number;
@@ -532,10 +508,6 @@ export type TPotsConstructorsList = Array<Constructor<Pot>>;
  */
 export type TWhenPredicate<T> = (data: T) => boolean;
 
-// ============================================================================
-// Pot Input Types
-// ============================================================================
-
 /**
  * Input type for task(): either a Pot class constructor or a PotFactory
  */
@@ -576,10 +548,6 @@ export type ToPots<Sources extends PotInput[]> = {
  * Type helper to create a Pot type from data type (for workflow context)
  */
 export type PotWithData<D extends object> = Pot<D & { [key: string]: unknown }>;
-
-// ============================================================================
-// Provider Interfaces
-// ============================================================================
 
 /**
  * Entry returned by scan()
