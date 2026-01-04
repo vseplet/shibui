@@ -99,7 +99,6 @@ export class TaskBuilder<
   constructor(
     ..._constructors: { [K in keyof Pots]: Constructor<Pots[K]> | null }
   ) {
-    if (arguments.length > 5) throw new Error("over 5 pots!");
     this.potsConstructors = arguments as unknown as TPotsConstructorsList;
 
     this.task.slotsCount =
