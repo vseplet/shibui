@@ -4,7 +4,7 @@
  * Main entry point - re-exports everything from submodules.
  */
 
-import { Core } from "$shibui/core";
+import { Core } from "$shibui/runtime";
 import type { TShibuiOptions, TSpicy } from "$shibui/types";
 import { MemoryQueueProvider } from "./providers/MemoryQueueProvider.ts";
 import { MemoryStorageProvider } from "./providers/MemoryStorageProvider.ts";
@@ -80,7 +80,7 @@ export {
   SEvent,
   TaskBuilder,
   WorkflowBuilder,
-} from "$shibui/core";
+} from "$shibui/runtime";
 
 export { MemoryQueueProvider } from "./providers/MemoryQueueProvider.ts";
 export { DenoKvQueueProvider } from "./providers/DenoKvQueueProvider.ts";

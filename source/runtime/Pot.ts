@@ -1,9 +1,7 @@
 import type { TPot } from "$shibui/types";
 import { PotType, UNKNOWN_TARGET } from "$shibui/types";
 
-export class Pot<
-  D extends { [key: string]: unknown } = { [key: string]: unknown },
-> implements TPot {
+export class Pot<D extends object = object> implements TPot {
   toc: number = new Date().getTime();
   uuid: `${string}-${string}-${string}-${string}-${string}` = crypto
     .randomUUID();
@@ -82,6 +80,6 @@ export class Pot<
   }
 }
 
-export class ContextPot<T extends { [key: string]: unknown }> extends Pot<T> {
+export class ContextPot<T extends object = object> extends Pot<T> {
   override type = PotType.Context;
 }

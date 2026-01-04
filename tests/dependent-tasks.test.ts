@@ -262,6 +262,84 @@ Deno.test("Dependent Tasks - different pot types", async () => {
   c.close();
 });
 
+Deno.test("Dependent Tasks - three slots with custom triggers", async () => {
+  const c = shibui({ logger: false });
+
+  let executed = false;
+  let result = "";
+
+  const combiner = task(TypePotA, TypePotB, TypePotC)
+    .name("Three Slot Custom Triggers")
+    .on(TypePotA, ({ pot, allow, deny }) => {
+      // Accept only if type is "A"
+      return pot.data.type === "A" ? allow(0) : deny();
+    }, 0)
+    .on(TypePotB, ({ pot, allow, deny }) => {
+      // Accept only if type is "B"
+      return pot.data.type === "B" ? allow(1) : deny();
+    }, 1)
+    .on(TypePotC, ({ pot, allow, deny }) => {
+      // Accept only if type is "C"
+      return pot.data.type === "C" ? allow(2) : deny();
+    }, 2)
+    .do(async ({ pots, finish }) => {
+      executed = true;
+      result = pots.map((p) => p.data.type).join("-");
+      return finish();
+    });
+
+  c.register(combiner);
+  await c.start();
+
+  c.send(TypePotA.create({ type: "A" }));
+  c.send(TypePotB.create({ type: "B" }));
+  c.send(TypePotC.create({ type: "C" }));
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  assertEquals(executed, true);
+  assertEquals(result, "A-B-C");
+
+  c.close();
+});
+
+Deno.test("Dependent Tasks - three slots rejects if any trigger denies", async () => {
+  const c = shibui({ logger: false });
+
+  let executed = false;
+
+  const combiner = task(TypePotA, TypePotB, TypePotC)
+    .name("Three Slot Deny Test")
+    .on(TypePotA, ({ pot, allow, deny }) => {
+      return pot.data.type === "A" ? allow(0) : deny();
+    }, 0)
+    .on(TypePotB, ({ pot, allow, deny }) => {
+      // This will deny - expecting "B" but sending "X"
+      return pot.data.type === "B" ? allow(1) : deny();
+    }, 1)
+    .on(TypePotC, ({ pot, allow, deny }) => {
+      return pot.data.type === "C" ? allow(2) : deny();
+    }, 2)
+    .do(async ({ finish }) => {
+      executed = true;
+      return finish();
+    });
+
+  c.register(combiner);
+  await c.start();
+
+  c.send(TypePotA.create({ type: "A" }));
+  c.send(TypePotB.create({ type: "X" })); // Wrong type - should be denied
+  c.send(TypePotC.create({ type: "C" }));
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  // Should not execute because TypePotB was denied
+  assertEquals(executed, false);
+
+  c.close();
+});
+
 // ============================================================================
 // CRASH RECOVERY TESTS - verify Filler persistence to Deno KV
 // ============================================================================

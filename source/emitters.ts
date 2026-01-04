@@ -1,4 +1,4 @@
-import { EventEmitter } from "$shibui/core";
+import { EventEmitter } from "$shibui/runtime";
 import type { CoreEvent, LogEvent } from "$shibui/events";
 
 export const emitters: {

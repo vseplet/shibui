@@ -6,7 +6,7 @@ import type {
   TWorkflowBuilder,
 } from "$shibui/types";
 import { UNKNOWN_TARGET } from "$shibui/types";
-import { type Pot, TaskBuilder } from "$shibui/core";
+import { type Pot, TaskBuilder } from "$shibui/runtime";
 import type { PotFactory } from "$shibui/types";
 import { CoreStartPot } from "./CoreStartPot.ts";
 

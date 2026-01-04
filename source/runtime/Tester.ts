@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-unused-vars
 import { PotType, TriggerOperation } from "$shibui/types";
-import type { Pot } from "$shibui/core";
+import type { Pot } from "$shibui/runtime";
 import {
   SourceType,
   type StorageProvider,
@@ -14,7 +14,7 @@ import {
   type TWorkflowTriggersStorage,
   type WorkflowsStorage,
 } from "$shibui/types";
-import { Filler, Runner } from "$shibui/core";
+import { Filler, Runner } from "$shibui/runtime";
 
 export class Tester {
   #core: TAnyCore;

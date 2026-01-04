@@ -28,7 +28,8 @@
     "example:timeout-retry": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/07-timeout-and-retry.ts",
     "example:custom-context": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/08-custom-context-injection.ts",
     "example:providers": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/11-providers-configuration.ts",
-    "example:aggregator": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/10-multi-api-aggregator.ts"
+    "example:aggregator": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/10-multi-api-aggregator.ts",
+    "example:custom-triggers": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/12-dependent-task-custom-triggers.ts"
   },
   "imports": {
     "$versions": "./source/versions.ts",
@@ -36,7 +37,7 @@
     "$shibui/types": "./source/types.ts",
     "$shibui/events": "./source/events.ts",
     "$shibui/emitters": "./source/emitters.ts",
-    "$shibui/core": "./source/core/mod.ts",
+    "$shibui/runtime": "./source/runtime/mod.ts",
     "$shibui/providers": "./source/providers/mod.ts",
     "$shibui/api": "./source/api.ts",
     "$helpers/types": "./source/types.ts",

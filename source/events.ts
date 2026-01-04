@@ -1,5 +1,5 @@
 // deno-lint-ignore-file
-import { SEvent } from "./core/SEvent.ts";
+import { SEvent } from "./runtime/SEvent.ts";
 import {
   EventType,
   LogLevel,

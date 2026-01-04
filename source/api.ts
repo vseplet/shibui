@@ -4,7 +4,7 @@ import {
   Pot,
   TaskBuilder,
   WorkflowBuilder,
-} from "$shibui/core";
+} from "$shibui/runtime";
 import type {
   ChainConfig,
   Constructor,
@@ -62,11 +62,10 @@ export function pot<T extends object>(
   const ttl = options?.ttl ?? 0;
 
   // Create a dynamic class extending Pot for full TaskBuilder compatibility
-  // deno-lint-ignore no-explicit-any
-  const DynamicPot = class extends Pot<T & { [key: string]: any }> {
+  const DynamicPot = class extends Pot<T> {
     override type = PotType.Internal;
     override ttl = ttl;
-    override data = { ...defaults } as T & { [key: string]: unknown };
+    override data = { ...defaults } as T;
   };
   // Set the class name to match pot name
   Object.defineProperty(DynamicPot, "name", { value: name });
@@ -118,11 +117,10 @@ export function context<T extends object>(
   const ttl = 0;
 
   // Create a dynamic class with PotType.Context
-  // deno-lint-ignore no-explicit-any
-  const DynamicContextPot = class extends Pot<T & { [key: string]: any }> {
+  const DynamicContextPot = class extends Pot<T> {
     override type = PotType.Context;
     override ttl = ttl;
-    override data = { ...defaults } as T & { [key: string]: unknown };
+    override data = { ...defaults } as T;
   };
   Object.defineProperty(DynamicContextPot, "name", { value: name });
 
@@ -153,7 +151,7 @@ export function context<T extends object>(
   return factory;
 }
 
-export { CoreStartPot } from "$shibui/core";
+export { CoreStartPot } from "$shibui/runtime";
 
 /**
  * Creates a declarative chain of tasks

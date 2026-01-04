@@ -1,4 +1,4 @@
-import type { Pot } from "$shibui/core";
+import type { Pot } from "$shibui/runtime";
 import {
   SourceType,
   type StorageProvider,

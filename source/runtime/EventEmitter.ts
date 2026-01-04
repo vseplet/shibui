@@ -1,5 +1,5 @@
 import type { Constructor } from "$helpers/types";
-import type { SEvent } from "$shibui/core";
+import type { SEvent } from "$shibui/runtime";
 
 export class EventEmitter<
   T extends SEvent,

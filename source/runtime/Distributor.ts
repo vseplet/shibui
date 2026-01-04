@@ -1,5 +1,5 @@
 import { CoreStartPot } from "./CoreStartPot.ts";
-import { Pot } from "$shibui/core";
+import { Pot } from "$shibui/runtime";
 import {
   type QueueProvider,
   SourceType,
@@ -10,7 +10,7 @@ import {
   type TTaskBuilder,
   type TWorkflowBuilder,
 } from "$shibui/types";
-import { TaskBuilder, Tester, WorkflowBuilder } from "$shibui/core";
+import { TaskBuilder, Tester, WorkflowBuilder } from "$shibui/runtime";
 
 export default class Distributor {
   #queue: QueueProvider;

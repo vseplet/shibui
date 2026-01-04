@@ -21,7 +21,7 @@ import {
   type Pot,
   TaskBuilder,
   WorkflowBuilder,
-} from "$shibui/core";
+} from "$shibui/runtime";
 import type { Constructor } from "$helpers/types";
 
 // deno-lint-ignore no-explicit-any
@@ -55,7 +55,7 @@ export class Core<S extends TSpicy> implements TCore<S> {
   ): WorkflowBuilder<S, CP>;
   workflow<D extends object>(
     contextPotFactory: PotFactory<D>,
-  ): WorkflowBuilder<S, Pot<D & { [key: string]: unknown }>>;
+  ): WorkflowBuilder<S, Pot<D>>;
   workflow(): WorkflowBuilder<S, ContextPot<{}>>;
   workflow(
     contextPotSource?: Constructor<ContextPot<{}>> | PotFactory<object>,

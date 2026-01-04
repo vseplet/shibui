@@ -1,4 +1,4 @@
-import type { Pot } from "$shibui/core";
+import type { Pot } from "$shibui/runtime";
 import type { Constructor } from "$helpers/types";
 import type {
   PotFactory,

@@ -1,9 +1,9 @@
 // deno-lint-ignore-file no-explicit-any
 import type { emitters } from "$shibui/emitters";
-import type { EventDrivenLogger } from "./core/EventDrivenLogger.ts";
-import type { TaskBuilder } from "./core/TaskBuilder.ts";
-import type { ContextPot, Pot } from "./core/Pot.ts";
-import type { WorkflowBuilder } from "./core/WorkflowBuilder.ts";
+import type { EventDrivenLogger } from "./runtime/EventDrivenLogger.ts";
+import type { TaskBuilder } from "./runtime/TaskBuilder.ts";
+import type { ContextPot, Pot } from "./runtime/Pot.ts";
+import type { WorkflowBuilder } from "./runtime/WorkflowBuilder.ts";
 
 export type Constructor<C> = new () => C;
 export type Tail<T extends any[]> = T extends [any, ...infer Rest] ? Rest
@@ -267,7 +267,7 @@ export type TCore<S extends TSpicy> = {
   ): WorkflowBuilder<S, CP>;
   workflow<D extends object>(
     contextPotFactory: PotFactory<D>,
-  ): WorkflowBuilder<S, Pot<D & { [key: string]: unknown }>>;
+  ): WorkflowBuilder<S, Pot<D>>;
   workflow(): WorkflowBuilder<S, ContextPot<{}>>;
 
   task<Pots extends Pot[]>(
@@ -534,7 +534,7 @@ export function isPotFactory(input: any): input is PotFactory<any> {
  */
 // deno-lint-ignore no-explicit-any
 export type ToPot<S> = S extends Constructor<infer P extends Pot<any>> ? P
-  : S extends PotFactory<infer D> ? Pot<D & { [key: string]: unknown }>
+  : S extends PotFactory<infer D> ? Pot<D>
   : never;
 
 /**
@@ -547,7 +547,7 @@ export type ToPots<Sources extends PotInput[]> = {
 /**
  * Type helper to create a Pot type from data type (for workflow context)
  */
-export type PotWithData<D extends object> = Pot<D & { [key: string]: unknown }>;
+export type PotWithData<D extends object> = Pot<D>;
 
 /**
  * Entry returned by scan()

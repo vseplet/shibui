@@ -16,7 +16,7 @@ import {
   type TLoggerOptions,
   UNKNOWN_TARGET,
 } from "$shibui/types";
-import type { EventEmitter } from "$shibui/core";
+import type { EventEmitter } from "$shibui/runtime";
 
 export class EventDrivenLogger implements TEventDrivenLogger {
   #options: {
