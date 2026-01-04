@@ -99,6 +99,7 @@ export {
 export {
   DoOperation,
   EventType,
+  isPotFactory,
   LogLevel,
   PotType,
   SourceType,
@@ -155,11 +156,8 @@ export type {
   ToPot,
   ToPots,
   TPot,
-  TPotData,
-  TPotInstanceOf,
   TPotPack,
   TPotsConstructorsList,
-  TPotSource,
   Transform,
   TSEvent,
   TSpicy,
@@ -178,5 +176,3 @@ export type {
   TWorkflowTriggersStorage,
   WorkflowsStorage,
 } from "$shibui/types";
-
-export { isPotFactory } from "$shibui/types";

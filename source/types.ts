@@ -97,11 +97,15 @@ export interface PotFactory<T extends object> {
   readonly _class: PotClass<T>;
 }
 
-/** Type helper to extract data type from a pot factory */
-export type PotData<F> = F extends PotFactory<infer T> ? T : never;
+/** Type helper to extract data type from a Pot class or PotFactory */
+export type PotData<P> = P extends Constructor<Pot<infer D>> ? D
+  : P extends PotFactory<infer D> ? D
+  : never;
 
-/** Type helper to extract pot instance type from a pot factory */
-export type PotOf<F> = F extends PotFactory<infer T> ? PotInstance<T> : never;
+/** Type helper to extract pot instance type from a Pot class or PotFactory */
+export type PotOf<P> = P extends Constructor<Pot<infer D>> ? Pot<D>
+  : P extends PotFactory<infer D> ? PotInstance<D>
+  : never;
 
 // ============================================================================
 // Enums
@@ -512,56 +516,14 @@ export type TWorkflowBuilder = {
 
 export type TPotsConstructorsList = Array<Constructor<Pot>>;
 
-// ============================================================================
-// New v1.0 Pot Factory Types
-// ============================================================================
-
-/**
- * Union type that accepts either a Pot class constructor or a PotFactory
- */
-export type TPotSource<
-  T extends { [key: string]: unknown } = { [key: string]: unknown },
-> =
-  | Constructor<Pot<T>>
-  | PotFactory<T>;
-
-/**
- * Extract data type from either Pot class or PotFactory
- */
-export type TPotData<P> = P extends Constructor<Pot<infer D>> ? D
-  : P extends PotFactory<infer D> ? D
-  : never;
-
-/**
- * Extract pot instance type from either Pot class or PotFactory
- */
-export type TPotInstanceOf<P> = P extends Constructor<Pot<infer D>> ? Pot<D>
-  : P extends PotFactory<infer D> ? PotInstance<D>
-  : never;
-
-/**
- * Type guard to check if a pot source is a PotFactory
- */
-export function isPotFactory<T extends { [key: string]: unknown }>(
-  source: TPotSource<T>,
-): source is PotFactory<T> {
-  return typeof source === "object" && "create" in source && "name" in source;
-}
-
 /**
  * Predicate function for .when() trigger filtering
  */
 export type TWhenPredicate<T> = (data: T) => boolean;
 
 // ============================================================================
-// Type helpers for task()/workflow() to accept both PotFactory and Constructor
+// Pot Input Types
 // ============================================================================
-
-/**
- * Input for execute() - can be PotFactory, PotInstance, or TPot
- */
-// deno-lint-ignore no-explicit-any
-export type PotLike = TPot | PotInstance<any> | PotFactory<any>;
 
 /**
  * Input type for task(): either a Pot class constructor or a PotFactory
@@ -570,12 +532,26 @@ export type PotLike = TPot | PotInstance<any> | PotFactory<any>;
 export type PotInput = Constructor<Pot<any>> | PotFactory<any>;
 
 /**
+ * Input for send()/execute(): can be PotFactory, PotInstance, or TPot
+ */
+// deno-lint-ignore no-explicit-any
+export type PotLike = TPot | PotInstance<any> | PotFactory<any>;
+
+/**
+ * Type guard to check if input is a PotFactory
+ */
+// deno-lint-ignore no-explicit-any
+export function isPotFactory(input: any): input is PotFactory<any> {
+  return typeof input === "object" && input !== null && "create" in input &&
+    "name" in input && "_class" in input;
+}
+
+/**
  * Convert a single PotInput to its Pot type
  */
 // deno-lint-ignore no-explicit-any
 export type ToPot<S> = S extends Constructor<infer P extends Pot<any>> ? P
-  // deno-lint-ignore no-explicit-any
-  : S extends PotFactory<infer D> ? Pot<D & { [key: string]: any }>
+  : S extends PotFactory<infer D> ? Pot<D & { [key: string]: unknown }>
   : never;
 
 /**
