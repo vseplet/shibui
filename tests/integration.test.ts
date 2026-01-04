@@ -1,9 +1,9 @@
 import { assertEquals } from "jsr:@std/assert";
 import {
   context,
-  core,
   execute,
   pot,
+  shibui,
   task,
   TriggerRule,
   workflow,
@@ -44,8 +44,7 @@ Deno.test("Integration - simple task with conditional trigger", async () => {
     });
 
   const res = await execute(mySimpleTask, [SimplePot.create({ value: 0.8 })], {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(res, true);
@@ -55,11 +54,11 @@ Deno.test("Integration - simple task with conditional trigger", async () => {
 
 // Based on ex2.ts - task chaining
 Deno.test("Integration - task chain with data passing", async () => {
-  const c = core({ storage: "memory", logging: false });
+  const c = shibui({ logger: false });
 
   const results: number[] = [];
 
-  const task3 = c.task(ChainPot)
+  const task3 = task(ChainPot)
     .name("Task 3")
     .onRule(TriggerRule.ForThisTask, ChainPot)
     .do(async ({ pots, finish }) => {
@@ -67,7 +66,7 @@ Deno.test("Integration - task chain with data passing", async () => {
       return finish();
     });
 
-  const task2 = c.task(ChainPot)
+  const task2 = task(ChainPot)
     .name("Task 2")
     .onRule(TriggerRule.ForThisTask, ChainPot)
     .do(async ({ pots, next }) => {
@@ -75,7 +74,7 @@ Deno.test("Integration - task chain with data passing", async () => {
       return next(task3, { value: pots[0].data.value + 1 });
     });
 
-  const task1 = c.task(ChainPot)
+  const task1 = task(ChainPot)
     .name("Task 1")
     .onRule(TriggerRule.ForThisTask, ChainPot)
     .do(async ({ pots, next }) => {
@@ -122,8 +121,7 @@ Deno.test("Integration - simple workflow execution", async () => {
     });
 
   const res = await execute(simpleWorkflow, undefined, {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(res, true);
@@ -132,7 +130,7 @@ Deno.test("Integration - simple workflow execution", async () => {
 
 // Based on ex6.ts - dependent task with 5 pots
 Deno.test("Integration - five slot dependent task", async () => {
-  const c = core({ storage: "memory", logging: false });
+  const c = shibui({ logger: false });
 
   let sum = 0;
 
@@ -194,8 +192,7 @@ Deno.test("Integration - workflow with context mutation", async () => {
     });
 
   const success = await execute(buildWorkflow, undefined, {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(success, true);
@@ -227,8 +224,7 @@ Deno.test("Integration - error handling in workflow", async () => {
     });
 
   const success = await execute(errorWorkflow, undefined, {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(success, false);
@@ -237,11 +233,11 @@ Deno.test("Integration - error handling in workflow", async () => {
 
 // Parallel next() to multiple tasks
 Deno.test("Integration - parallel task execution", async () => {
-  const c = core({ storage: "memory", logging: false });
+  const c = shibui({ logger: false });
 
   const results: string[] = [];
 
-  const taskA = c.task(DataPot)
+  const taskA = task(DataPot)
     .name("Task A")
     .onRule(TriggerRule.ForThisTask, DataPot)
     .do(async ({ finish }) => {
@@ -249,7 +245,7 @@ Deno.test("Integration - parallel task execution", async () => {
       return finish();
     });
 
-  const taskB = c.task(DataPot)
+  const taskB = task(DataPot)
     .name("Task B")
     .onRule(TriggerRule.ForThisTask, DataPot)
     .do(async ({ finish }) => {
@@ -257,7 +253,7 @@ Deno.test("Integration - parallel task execution", async () => {
       return finish();
     });
 
-  const starter = c.task(DataPot)
+  const starter = task(DataPot)
     .name("Starter")
     .onRule(TriggerRule.ForThisTask, DataPot)
     .do(async ({ next }) => {
@@ -298,8 +294,7 @@ Deno.test("Integration - retry mechanism", async () => {
     });
 
   const success = await execute(resilientTask, [RetryPot], {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(success, true);

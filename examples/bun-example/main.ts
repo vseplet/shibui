@@ -1,4 +1,4 @@
-import { core, execute, getRuntimeInfo, pot, task } from "@vseplet/shibui";
+import { execute, getRuntimeInfo, pot, task } from "@vseplet/shibui";
 
 // Show runtime info
 console.log("Runtime:", getRuntimeInfo());
@@ -22,7 +22,6 @@ console.log("\n--- Running task ---\n");
 const result = await execute(
   incrementTask,
   [Counter.create({ value: 42 })],
-  { storage: "memory", logging: true },
 );
 
 console.log("\n--- Result ---");

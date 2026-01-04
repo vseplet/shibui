@@ -12,7 +12,7 @@ import type {
   TWorkflowBuilder,
 } from "$shibui/types";
 import { isPotFactory, TriggerRule, UNKNOWN_TARGET } from "$shibui/types";
-import { CoreStartPot } from "$shibui/api";
+import { CoreStartPot } from "./CoreStartPot.ts";
 
 // Get constructor from either PotFactory or Constructor
 // deno-lint-ignore no-explicit-any

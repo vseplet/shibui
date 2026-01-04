@@ -54,8 +54,7 @@ Deno.test("Workflow - two task sequence", async () => {
     });
 
   const success = await execute(wf, undefined, {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(success, true);
@@ -91,8 +90,7 @@ Deno.test("Workflow - context shared across tasks", async () => {
     });
 
   const success = await execute(wf, undefined, {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(success, true);
@@ -118,8 +116,7 @@ Deno.test("Workflow - custom trigger handler", async () => {
     });
 
   const success = await execute(wf, [TriggerPot.create({ value: 10 })], {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(success, true);
@@ -189,8 +186,7 @@ Deno.test("Workflow - workflow without explicit context", async () => {
     });
 
   const success = await execute(wf, undefined, {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(success, true);
@@ -253,8 +249,7 @@ Deno.test("Workflow - type-safe context with context() factory", async () => {
     });
 
   const success = await execute(wf, undefined, {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(success, true);

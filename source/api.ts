@@ -26,10 +26,10 @@ import type {
   PotLike,
   PotOptions,
   PotWithData,
-  TCoreOptions,
   ToPots,
   TPot,
   Transform,
+  TShibuiOptions,
   TSpicy,
   TTaskBuilder,
   TWorkflowBuilder,
@@ -44,7 +44,7 @@ import {
 } from "$shibui/events";
 import { delay } from "@std/async";
 import { emitters } from "$shibui/emitters";
-import { levelName } from "./core/EventDrivenLogger.ts";
+import { levelName } from "./providers/ConsoleLogger.ts";
 
 // ============================================================================
 // Pot Factory (v1.0 API)
@@ -168,8 +168,8 @@ export function context<T extends object>(
   return factory;
 }
 
-/** CoreStart pot - signals that the core has started */
-export const CoreStartPot = pot("CoreStartPot", {});
+// CoreStartPot is re-exported from core to avoid circular dependencies
+export { CoreStartPot } from "$shibui/core";
 
 // ============================================================================
 // Chain and Pipe Utilities
@@ -329,26 +329,12 @@ export function workflow(
 }
 
 // ============================================================================
-// Core Creation
-// ============================================================================
-
-/**
- * Creates and returns a new instance of ShibuiCore.
- * @param {TCoreOptions} [config={ }] - Configuration for ShibuiCore.
- * @returns {Core} - A new instance of ShibuiCore.
- */
-export const core = <S extends TSpicy = {}>(
-  config: TCoreOptions<S> = {},
-): Core<S> => {
-  return new Core<S>(config);
-};
-
-/** Alias: shibui = core */
-export const shibui = core;
-
-// ============================================================================
 // Execution Utilities
 // ============================================================================
+
+import { MemoryQueueProvider } from "./providers/MemoryQueueProvider.ts";
+import { MemoryStorageProvider } from "./providers/MemoryStorageProvider.ts";
+import { ConsoleLogger } from "./providers/ConsoleLogger.ts";
 
 /** Check if input is a PotFactory */
 // deno-lint-ignore no-explicit-any
@@ -369,7 +355,7 @@ function toPot(input: PotLike): TPot {
  * Executes a task or workflow using the provided builder.
  * @param {TTaskBuilder | TWorkflowBuilder} builder - The task or workflow builder.
  * @param {Array<PotLike>} [pots] - Pot factories, instances, or raw pots.
- * @param {TCoreOptions<S>} [_options] - Core options.
+ * @param {TShibuiOptions<S>} [options] - Shibui options.
  * @returns {Promise<boolean>} - Returns true if execution is successful, otherwise false.
  *
  * @example
@@ -381,12 +367,23 @@ function toPot(input: PotLike): TPot {
 export const execute = async <S extends TSpicy>(
   builder: TTaskBuilder | TWorkflowBuilder,
   pots?: Array<PotLike>,
-  options?: TCoreOptions<S>,
+  options?: TShibuiOptions<S>,
 ): Promise<boolean> => {
   let isComplete = false;
   let isOk = true;
 
-  const tmpCore = new Core(options || {});
+  const queue = options?.queue ?? new MemoryQueueProvider();
+  const storage = options?.storage ?? new MemoryStorageProvider();
+  const logger = options?.logger === false
+    ? null
+    : (options?.logger ?? new ConsoleLogger());
+
+  const tmpCore = new Core({
+    queue,
+    storage,
+    logger,
+    context: options?.context,
+  });
   tmpCore.register(builder);
 
   const finish = () => {
@@ -446,8 +443,7 @@ export const runCI = <S extends TSpicy>(
   });
 
   execute(builder, pots, {
-    storage: "memory",
-    logging: false,
+    logger: false,
   }).then((value) => {
     exit(value ? 0 : 1);
   });

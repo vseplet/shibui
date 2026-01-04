@@ -1,6 +1,6 @@
-import core, { pipe, pot } from "$shibui";
+import shibui, { ConsoleLogger, pipe, pot, task } from "$shibui";
 
-const c = core({ logging: { level: "debug" } });
+const c = shibui({ logger: new ConsoleLogger({ level: "debug" }) });
 
 const PotA = pot("PotA", { value: 1 });
 const PotB = pot("PotB", { value: 2 });
@@ -15,8 +15,7 @@ const doubleAndSum = pipe(
   (values) => values.reduce((a, b) => a + b, 0),
 );
 
-const mySimpleTask = core()
-  .task(PotA, PotB, PotC, PotD, PotE)
+const mySimpleTask = task(PotA, PotB, PotC, PotD, PotE)
   .name("Simple Task")
   .retry({ attempts: 2, timeout: 60000 })
   .do(async ({ finish, pots, log }) => {

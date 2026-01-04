@@ -1,6 +1,7 @@
-import { CoreStartPot } from "$shibui/api";
+import { CoreStartPot } from "./CoreStartPot.ts";
 import { Pot } from "$shibui/core";
 import {
+  type QueueProvider,
   SourceType,
   type StorageProvider,
   type TAnyCore,
@@ -12,13 +13,20 @@ import {
 import { TaskBuilder, Tester, WorkflowBuilder } from "$shibui/core";
 
 export default class Distributor {
-  #provider: StorageProvider;
+  #queue: QueueProvider;
+  #storage: StorageProvider;
   #core: TAnyCore;
   #log: TEventDrivenLogger;
   #tester: Tester;
 
-  constructor(provider: StorageProvider, core: TAnyCore, context = {}) {
-    this.#provider = provider;
+  constructor(
+    queue: QueueProvider,
+    storage: StorageProvider,
+    core: TAnyCore,
+    context = {},
+  ) {
+    this.#queue = queue;
+    this.#storage = storage;
     this.#core = core;
     this.#log = core.createLogger({
       sourceType: SourceType.Core,
@@ -49,9 +57,10 @@ export default class Distributor {
 
   async start() {
     this.#log.trc(`starting update cycle...`);
-    await this.#provider.open();
-    await this.#tester.init(this.#provider);
-    this.#provider.listen((rawPotObj: TPot) => this.#test(rawPotObj));
+    await this.#queue.open();
+    await this.#storage.open();
+    await this.#tester.init(this.#storage);
+    this.#queue.listen((rawPotObj: TPot) => this.#test(rawPotObj));
     this.send(CoreStartPot.create() as TPot);
   }
 
@@ -87,7 +96,7 @@ export default class Distributor {
         `return pot '${pot.name}' with ttl:{${pot.ttl}} back to the queue`,
       );
       pot.ttl--;
-      this.#provider.enqueue(pot);
+      this.#queue.enqueue(pot);
     } else {
       this.#log.wrn(
         `pot '${pot.name}' ran out of ttl =(`,
@@ -97,11 +106,12 @@ export default class Distributor {
 
   send(pot: TPot) {
     this.#log.trc(`sending pot '${pot.name} to queue'`);
-    this.#provider.enqueue(pot);
+    this.#queue.enqueue(pot);
   }
 
   close(): void {
-    this.#provider.close();
+    this.#queue.close();
+    this.#storage.close();
   }
 }
 

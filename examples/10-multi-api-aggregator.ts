@@ -44,7 +44,7 @@
  *    ⏱ 23:35:06
  */
 
-import { context, execute, workflow } from "$shibui";
+import { ConsoleLogger, context, execute, workflow } from "$shibui";
 
 // Configuration
 const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN") || "";
@@ -208,8 +208,7 @@ const aggregatorWorkflow = workflow(AggregatorContext)
 console.log("🚀 Multi-API Aggregator Workflow\n");
 
 const success = await execute(aggregatorWorkflow, undefined, {
-  storage: "memory",
-  logging: { level: "info" },
+  logger: new ConsoleLogger({ level: "info" }),
 });
 
 console.log(success ? "\n✅ Done!" : "\n❌ Failed!");

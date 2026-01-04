@@ -9,10 +9,12 @@ import { ContextPot, Pot } from "./Pot.ts";
 import { SEvent } from "./SEvent.ts";
 import { TaskBuilder } from "./TaskBuilder.ts";
 import { WorkflowBuilder } from "./WorkflowBuilder.ts";
+import { CoreStartPot } from "./CoreStartPot.ts";
 
 export {
   ContextPot,
   Core,
+  CoreStartPot,
   Distributor,
   EventDrivenLogger,
   EventEmitter,

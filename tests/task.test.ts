@@ -29,8 +29,7 @@ Deno.test("Task - simple execution with finish", async () => {
     });
 
   const success = await execute(t, [TestPot.create({ value: 42 })], {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(success, true);
@@ -54,8 +53,7 @@ Deno.test("Task - trigger with custom handler", async () => {
     });
 
   const result = await execute(t, [TestPot.create({ value: 20 })], {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(triggerCalled, true);
@@ -78,8 +76,7 @@ Deno.test("Task - onRule TriggerRule.ForThisTask", async () => {
   instance.to.task = "Target Task";
 
   const success = await execute(t, [instance], {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(success, true);
@@ -101,8 +98,7 @@ Deno.test("Task - onRule TriggerRule.ForUnknown", async () => {
   // instance.to.task is "unknown" by default
 
   const success = await execute(t, [instance], {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(success, true);
@@ -137,8 +133,7 @@ Deno.test("Task - fail handler", async () => {
     });
 
   const success = await execute(t, [TestPot.create()], {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(success, false);
@@ -157,8 +152,7 @@ Deno.test("Task - default trigger on CoreStartPot", async () => {
     });
 
   const success = await execute(t, undefined, {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(success, true);
@@ -187,8 +181,7 @@ Deno.test("Task - logger available in do handler", async () => {
     });
 
   const success = await execute(t, [TestPot.create()], {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(success, true);
@@ -207,8 +200,7 @@ Deno.test("Task - .when() predicate trigger", async () => {
     });
 
   const success = await execute(t, [TestPot.create({ value: 20 })], {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(success, true);
@@ -255,8 +247,7 @@ Deno.test("Task - .catch() alias for .fail()", async () => {
     });
 
   const success = await execute(t, [TestPot.create()], {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(success, false);

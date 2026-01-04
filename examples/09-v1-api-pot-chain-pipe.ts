@@ -72,6 +72,6 @@ console.log("\n--- Executing processTask ---");
 const result = await execute(
   processTask,
   [NumberPot.create({ value: 10 })],
-  { storage: "memory", logging: false },
+  { logger: false },
 );
 console.log(`Execution ${result ? "succeeded" : "failed"}`);

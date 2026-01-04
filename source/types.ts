@@ -355,58 +355,69 @@ export type TLoggingConfig = {
 };
 
 /**
- * Simplified core configuration options
+ * Core configuration options (providers are required).
+ * Use shibui() for convenient defaults.
  *
  * @example
  * ```typescript
- * // Minimal config for tests (uses MemoryProvider by default)
- * core({ storage: "memory", logging: false })
- *
- * // Production with file storage (uses DenoKvProvider)
- * core({ storage: "./data/shibui.db" })
- *
- * // With custom provider
- * core({ provider: new RedisProvider() })
- *
- * // With custom logging
- * core({
- *   storage: "memory",
- *   logging: { level: "info", sources: ["task", "workflow"] }
+ * new Core({
+ *   queue: new MemoryQueueProvider(),
+ *   storage: new MemoryStorageProvider(),
+ *   logger: new ConsoleLogger(),
  * })
  * ```
  */
 export type TCoreOptions<S = TSpicy> = {
-  /**
-   * Custom storage provider instance.
-   * If provided, `storage` option is ignored.
-   */
-  provider?: StorageProvider;
+  /** Queue provider for message passing */
+  queue: QueueProvider;
 
-  /**
-   * Storage configuration (used when provider is not specified)
-   * - "auto" - DenoKvProvider for Deno, MemoryProvider for others
-   * - "memory" - in-memory storage (good for tests)
-   * - file path string - persistent Deno KV storage
-   */
-  storage?: "auto" | "memory" | string;
+  /** Storage provider for KV persistence */
+  storage: StorageProvider;
 
-  /**
-   * Logging configuration
-   * - false: disable logging
-   * - true: enable with defaults (all levels, all sources)
-   * - object: fine-grained control
-   */
-  logging?: boolean | TLoggingConfig;
+  /** Logging provider (null to disable) */
+  logger: LoggingProvider | null;
 
-  /**
-   * Custom logging provider instance.
-   * If provided, logs will be sent to this provider instead of console.
-   */
-  loggingProvider?: LoggingProvider;
+  /** Custom context data available in tasks */
+  context?: S;
+};
 
-  /**
-   * Custom context data available in tasks
-   */
+/**
+ * Shibui configuration options with sensible defaults.
+ *
+ * @example
+ * ```typescript
+ * // Minimal - uses Memory providers and ConsoleLogger
+ * shibui()
+ *
+ * // Without logging
+ * shibui({ logger: false })
+ *
+ * // With DenoKV persistence
+ * shibui({
+ *   queue: new DenoKvQueueProvider("./data.db"),
+ *   storage: new DenoKvStorageProvider("./data.db"),
+ * })
+ *
+ * // Full configuration
+ * shibui({
+ *   queue: new DenoKvQueueProvider("./data.db"),
+ *   storage: new DenoKvStorageProvider("./data.db"),
+ *   logger: new LuminousProvider({ level: "debug" }),
+ *   context: { userId: "123" },
+ * })
+ * ```
+ */
+export type TShibuiOptions<S = TSpicy> = {
+  /** Queue provider (default: MemoryQueueProvider) */
+  queue?: QueueProvider;
+
+  /** Storage provider (default: MemoryStorageProvider) */
+  storage?: StorageProvider;
+
+  /** Logging provider (default: ConsoleLogger, false to disable) */
+  logger?: LoggingProvider | false;
+
+  /** Custom context data available in tasks */
   context?: S;
 };
 
@@ -567,7 +578,7 @@ export type ToPots<Sources extends PotInput[]> = {
 export type PotWithData<D extends object> = Pot<D & { [key: string]: unknown }>;
 
 // ============================================================================
-// Storage Provider Interface
+// Provider Interfaces
 // ============================================================================
 
 /**
@@ -579,31 +590,22 @@ export type StorageEntry = {
 };
 
 /**
- * Storage provider interface for queue and pot persistence.
- * Implement this interface to use custom backends (Redis, RabbitMQ, PostgreSQL, etc.)
- *
- * All serialization/deserialization is handled internally by the provider.
+ * Queue provider interface for message passing.
+ * Implement this interface to use custom queue backends (Redis, RabbitMQ, etc.)
  *
  * @example
  * ```typescript
- * import type { StorageProvider } from "@vseplet/shibui";
+ * import type { QueueProvider } from "@vseplet/shibui";
  *
- * class RedisProvider implements StorageProvider {
+ * class RedisQueueProvider implements QueueProvider {
  *   async open() { await this.client.connect(); }
  *   close() { this.client.disconnect(); }
  *   async enqueue(pot) { await this.client.lpush("queue", JSON.stringify(pot)); }
  *   listen(handler) { this.client.blpop("queue", (msg) => handler(JSON.parse(msg))); }
- *   async store(key, pot) { await this.client.hset("pots", key.join(":"), JSON.stringify(pot)); }
- *   async retrieve(key) { const v = await this.client.hget("pots", key.join(":")); return v ? JSON.parse(v) : null; }
- *   async remove(key) { await this.client.hdel("pots", key.join(":")); }
- *   async *scan(prefix) { ... }
- *   async removeMany(keys) { ... }
  * }
- *
- * core({ provider: new RedisProvider() })
  * ```
  */
-export interface StorageProvider {
+export interface QueueProvider {
   /** Initialize connection */
   open(): Promise<void>;
 
@@ -615,6 +617,33 @@ export interface StorageProvider {
 
   /** Subscribe to queue messages */
   listen(handler: (pot: TPot) => void): void;
+}
+
+/**
+ * Storage provider interface for KV persistence.
+ * Implement this interface to use custom storage backends (Redis, PostgreSQL, etc.)
+ *
+ * @example
+ * ```typescript
+ * import type { StorageProvider } from "@vseplet/shibui";
+ *
+ * class RedisStorageProvider implements StorageProvider {
+ *   async open() { await this.client.connect(); }
+ *   close() { this.client.disconnect(); }
+ *   async store(key, pot) { await this.client.hset("pots", key.join(":"), JSON.stringify(pot)); }
+ *   async retrieve(key) { const v = await this.client.hget("pots", key.join(":")); return v ? JSON.parse(v) : null; }
+ *   async remove(key) { await this.client.hdel("pots", key.join(":")); }
+ *   async *scan(prefix) { ... }
+ *   async removeMany(keys) { ... }
+ * }
+ * ```
+ */
+export interface StorageProvider {
+  /** Initialize connection */
+  open(): Promise<void>;
+
+  /** Close connection and cleanup */
+  close(): void;
 
   /** Store pot by composite key */
   store(key: string[], pot: TPot): Promise<void>;

@@ -1,9 +1,9 @@
-import core, { pot, TriggerRule } from "$shibui";
+import shibui, { pot, task, TriggerRule } from "$shibui";
 
-const c = core();
+const c = shibui();
 const SimplePot = pot("SimplePot", { value: 0 }, { ttl: 1 });
 
-const task3 = c.task(SimplePot)
+const task3 = task(SimplePot)
   .name("Task 3")
   .onRule(TriggerRule.ForThisTask, SimplePot)
   .do(async ({ log, pots, finish }) => {
@@ -11,7 +11,7 @@ const task3 = c.task(SimplePot)
     return finish();
   });
 
-const task2 = c.task(SimplePot)
+const task2 = task(SimplePot)
   .name("Task 2")
   .onRule(TriggerRule.ForThisTask, SimplePot)
   .do(async ({ log, pots, next }) => {
@@ -19,7 +19,7 @@ const task2 = c.task(SimplePot)
     return next(task3, { value: pots[0].data.value + 1 });
   });
 
-const task1 = c.task(SimplePot)
+const task1 = task(SimplePot)
   .name("Task 1")
   .onRule(TriggerRule.ForThisTask, SimplePot)
   .do(async ({ log, pots, next }) => {

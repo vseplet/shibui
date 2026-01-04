@@ -1,12 +1,15 @@
-import shibuiCore, { pot, TriggerRule } from "$shibui";
+import shibui, { pot, task, TriggerRule } from "$shibui";
 
-const core = shibuiCore<{ x: number }>({
-  context: { x: 100 },
+// Custom context that will be available in all task handlers
+const appContext = { x: 100 };
+
+const c = shibui<typeof appContext>({
+  context: appContext,
 });
 
 const SimplePot = pot("SimplePot", { value: 0 }, { ttl: 1 });
 
-const task3 = core.task(SimplePot)
+const task3 = task(SimplePot)
   .name("Task 3")
   .onRule(TriggerRule.ForThisTask, SimplePot)
   .do(async ({ log, finish, pots }) => {
@@ -14,7 +17,7 @@ const task3 = core.task(SimplePot)
     return finish();
   });
 
-const task2 = core.task(SimplePot)
+const task2 = task(SimplePot)
   .name("Task 2")
   .onRule(TriggerRule.ForThisTask, SimplePot)
   .do(async ({ pots, log, next }) => {
@@ -22,17 +25,19 @@ const task2 = core.task(SimplePot)
     return next(task3, { value: pots[0].data.value + 1 });
   });
 
-const task1 = core.task(SimplePot)
+// Access custom context via closure
+const task1 = task(SimplePot)
   .onRule(TriggerRule.ForThisTask, SimplePot)
   .name("Task 1")
-  .do(async ({ log, next, x }) => {
-    log.dbg(`Task 1 - Context value: ${x}`);
-    return next(task2, { value: x + 1 });
+  .do(async ({ log, next }) => {
+    // Access appContext.x via closure
+    log.dbg(`Task 1 - Context value: ${appContext.x}`);
+    return next(task2, { value: appContext.x + 1 });
   });
 
-core.register(task1);
-core.register(task2);
-core.register(task3);
+c.register(task1);
+c.register(task2);
+c.register(task3);
 
-await core.start();
-core.send(SimplePot, task1);
+await c.start();
+c.send(SimplePot, task1);

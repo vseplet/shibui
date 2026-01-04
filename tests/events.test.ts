@@ -1,10 +1,12 @@
 import { assertEquals } from "jsr:@std/assert";
 import {
   context,
-  core,
   pot,
+  shibui,
+  task,
   TaskFailedEvent,
   TaskFinishedEvent,
+  workflow,
   WorkflowFailedEvent,
   WorkflowFinishedEvent,
 } from "$shibui";
@@ -13,7 +15,7 @@ const TestPot = pot("TestPot", { value: 0 });
 const MyContext = context("MyContext", { value: 0 });
 
 Deno.test("Events - TaskFinishedEvent on success", async () => {
-  const c = core({ storage: "memory", logging: false });
+  const c = shibui({ logger: false });
 
   let eventFired = false;
 
@@ -24,7 +26,7 @@ Deno.test("Events - TaskFinishedEvent on success", async () => {
     },
   );
 
-  const t = c.task(TestPot)
+  const t = task(TestPot)
     .name("Event Test Task")
     .do(async ({ finish }) => finish());
 
@@ -40,7 +42,7 @@ Deno.test("Events - TaskFinishedEvent on success", async () => {
 });
 
 Deno.test("Events - TaskFailedEvent on failure", async () => {
-  const c = core({ storage: "memory", logging: false });
+  const c = shibui({ logger: false });
 
   let eventFired = false;
 
@@ -51,7 +53,7 @@ Deno.test("Events - TaskFailedEvent on failure", async () => {
     },
   );
 
-  const t = c.task(TestPot)
+  const t = task(TestPot)
     .name("Failing Task")
     .do(async ({ fail }) => fail("Intentional failure"));
 
@@ -67,7 +69,7 @@ Deno.test("Events - TaskFailedEvent on failure", async () => {
 });
 
 Deno.test("Events - WorkflowFinishedEvent on success", async () => {
-  const c = core({ storage: "memory", logging: false });
+  const c = shibui({ logger: false });
 
   let eventFired = false;
 
@@ -78,7 +80,7 @@ Deno.test("Events - WorkflowFinishedEvent on success", async () => {
     },
   );
 
-  const wf = c.workflow(MyContext)
+  const wf = workflow(MyContext)
     .name("Event Workflow")
     .sq(({ task }) => {
       const t1 = task()
@@ -98,7 +100,7 @@ Deno.test("Events - WorkflowFinishedEvent on success", async () => {
 });
 
 Deno.test("Events - WorkflowFailedEvent on failure", async () => {
-  const c = core({ storage: "memory", logging: false });
+  const c = shibui({ logger: false });
 
   let eventFired = false;
 
@@ -109,7 +111,7 @@ Deno.test("Events - WorkflowFailedEvent on failure", async () => {
     },
   );
 
-  const wf = c.workflow(MyContext)
+  const wf = workflow(MyContext)
     .name("Failing Workflow")
     .sq(({ task }) => {
       const t1 = task()
@@ -129,7 +131,7 @@ Deno.test("Events - WorkflowFailedEvent on failure", async () => {
 });
 
 Deno.test("Events - log events emitted", async () => {
-  const c = core({ storage: "memory", logging: true });
+  const c = shibui();
 
   const logMessages: string[] = [];
 
@@ -139,7 +141,7 @@ Deno.test("Events - log events emitted", async () => {
     }
   });
 
-  const t = c.task(TestPot)
+  const t = task(TestPot)
     .name("Logger Task")
     .do(async ({ log, finish }) => {
       log.inf("Info message");
@@ -162,7 +164,7 @@ Deno.test("Events - log events emitted", async () => {
 });
 
 Deno.test("Events - multiple listeners", async () => {
-  const c = core({ storage: "memory", logging: false });
+  const c = shibui({ logger: false });
 
   let listener1Called = false;
   let listener2Called = false;
@@ -181,7 +183,7 @@ Deno.test("Events - multiple listeners", async () => {
     },
   );
 
-  const t = c.task(TestPot)
+  const t = task(TestPot)
     .name("Multi Listener Task")
     .do(async ({ finish }) => finish());
 
@@ -198,7 +200,7 @@ Deno.test("Events - multiple listeners", async () => {
 });
 
 Deno.test("Events - event contains metadata", async () => {
-  const c = core({ storage: "memory", logging: false });
+  const c = shibui({ logger: false });
 
   let eventData: any = null;
 
@@ -209,7 +211,7 @@ Deno.test("Events - event contains metadata", async () => {
     },
   );
 
-  const t = c.task(TestPot)
+  const t = task(TestPot)
     .name("Metadata Task")
     .do(async ({ finish }) => finish());
 

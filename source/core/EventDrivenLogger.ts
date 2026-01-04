@@ -16,30 +16,7 @@ import {
   type TLoggerOptions,
   UNKNOWN_TARGET,
 } from "$shibui/types";
-import * as colors from "@std/fmt/colors";
 import type { EventEmitter } from "$shibui/core";
-
-const colorizeByLevel = {
-  [LogLevel.Unknown]: colors.dim,
-  [LogLevel.Debug]: colors.blue,
-  [LogLevel.Trace]: colors.gray,
-  [LogLevel.Verbose]: colors.cyan,
-  [LogLevel.Info]: colors.green,
-  [LogLevel.Warn]: colors.yellow,
-  [LogLevel.Error]: colors.red,
-  [LogLevel.Fatal]: colors.bgBrightRed,
-};
-
-export const levelName = [
-  "UKN",
-  "TRC",
-  "DBG",
-  "VRB",
-  "INF",
-  "WRN",
-  "ERR",
-  "FTL",
-];
 
 export class EventDrivenLogger implements TEventDrivenLogger {
   #options: {
@@ -51,18 +28,15 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   };
 
   #emitter: EventEmitter<LogEvent<unknown>>;
-  #settings;
   #provider: LoggingProvider | null;
 
   constructor(
     emitter: EventEmitter<LogEvent<unknown>>,
-    settings: any,
+    provider: LoggingProvider | null,
     args?: TLoggerOptions,
-    provider?: LoggingProvider,
   ) {
-    this.#settings = settings;
     this.#emitter = emitter;
-    this.#provider = provider ?? null;
+    this.#provider = provider;
     if (args?.sourceName) this.#options.sourceName = args.sourceName;
     if (args?.sourceType) this.#options.sourceType = args.sourceType;
   }
@@ -70,39 +44,17 @@ export class EventDrivenLogger implements TEventDrivenLogger {
   private log(
     level: LogLevel,
     msg: string,
-    metadata?: Record<string, unknown>,
+    _metadata?: Record<string, unknown>,
   ) {
-    if (
-      !this.#settings.ALLOWED_LOGGING_SOURCE_TYPES.includes(
-        this.#options.sourceType,
-      )
-    ) return;
+    if (!this.#provider) return;
 
-    if (
-      !this.#settings.DEFAULT_LOGGING_ENABLED ||
-      level < this.#settings.DEFAULT_LOGGING_LEVEL
-    ) return;
-
-    if (this.#provider) {
-      this.#provider.log({
-        level,
-        sourceType: this.#options.sourceType,
-        sourceName: this.#options.sourceName,
-        message: msg,
-        timestamp: new Date(),
-        metadata,
-      });
-    } else {
-      const date = new Date();
-      const time =
-        `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}.${date.getMilliseconds()}`;
-
-      console.log(colorizeByLevel[level](
-        `${time} ${this.#options.sourceType} [${
-          levelName[level]
-        }] ${this.#options.sourceName} : ${msg}`,
-      ));
-    }
+    this.#provider.log({
+      level,
+      sourceType: this.#options.sourceType,
+      sourceName: this.#options.sourceName,
+      message: msg,
+      timestamp: new Date(),
+    });
   }
 
   dbg(msg: string) {

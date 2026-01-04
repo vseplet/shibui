@@ -8,7 +8,7 @@ import type {
 import { UNKNOWN_TARGET } from "$shibui/types";
 import { type Pot, TaskBuilder } from "$shibui/core";
 import type { PotFactory } from "$shibui/types";
-import { CoreStartPot } from "$shibui/api";
+import { CoreStartPot } from "./CoreStartPot.ts";
 
 // Helper to check if input is PotFactory
 // deno-lint-ignore no-explicit-any

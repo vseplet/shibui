@@ -1,16 +1,13 @@
 import { emitters } from "$shibui/emitters";
 import {
   isPotFactory,
-  LogLevel,
+  type LoggingProvider,
   type PotFactory,
   type PotInput,
   type PotInstance,
-  SourceType,
-  type StorageProvider,
   type TCore,
   type TCoreOptions,
   type TLoggerOptions,
-  type TLoggingConfig,
   type ToPots,
   type TPot,
   type TSpicy,
@@ -26,8 +23,6 @@ import {
   WorkflowBuilder,
 } from "$shibui/core";
 import type { Constructor } from "$helpers/types";
-import { DenoKvProvider, MemoryProvider } from "$shibui/providers";
-import { isDeno } from "$helpers";
 
 // deno-lint-ignore no-explicit-any
 function toConstructor(input: PotInput): Constructor<Pot<any>> {
@@ -37,128 +32,20 @@ function toConstructor(input: PotInput): Constructor<Pot<any>> {
   return input;
 }
 
-// Internal settings structure used by logger
-type TInternalSettings = {
-  DEFAULT_LOGGING_ENABLED: boolean;
-  DEFAULT_LOGGING_LEVEL: number;
-  ALLOWED_LOGGING_SOURCE_TYPES: SourceType[];
-};
-
-// Normalize log level from string or number
-function normalizeLogLevel(level: LogLevel | string | undefined): number {
-  if (level === undefined) return 0;
-  if (typeof level === "number") return level;
-  const map: Record<string, number> = {
-    trace: LogLevel.Trace,
-    debug: LogLevel.Debug,
-    verbose: LogLevel.Verbose,
-    info: LogLevel.Info,
-    warn: LogLevel.Warn,
-    error: LogLevel.Error,
-    fatal: LogLevel.Fatal,
-  };
-  return map[level] ?? 0;
-}
-
-// Normalize source type from string or SourceType
-function normalizeSourceType(source: SourceType | string): SourceType {
-  if (typeof source !== "string") return source;
-  const map: Record<string, SourceType> = {
-    core: SourceType.Core,
-    task: SourceType.Task,
-    workflow: SourceType.Workflow,
-    framework: SourceType.Framework,
-    plugin: SourceType.Plugin,
-  };
-  return map[source] ?? SourceType.Unknown;
-}
-
-// Create provider based on options
-function createProvider<S>(options: TCoreOptions<S>): StorageProvider {
-  if (options.provider) {
-    return options.provider;
-  }
-
-  const storage = options.storage ?? "auto";
-
-  if (storage === "memory") {
-    return new MemoryProvider();
-  }
-
-  if (storage === "auto") {
-    return isDeno ? new DenoKvProvider() : new MemoryProvider();
-  }
-
-  // File path - only works in Deno
-  if (!isDeno) {
-    throw new Error(
-      `File-based storage "${storage}" is only supported in Deno. Use "memory" or a custom provider.`,
-    );
-  }
-  return new DenoKvProvider(storage);
-}
-
-// Normalize options to internal format
-function normalizeOptions<S>(options: TCoreOptions<S>): {
-  provider: StorageProvider;
-  settings: TInternalSettings;
-  context: S | undefined;
-} {
-  // Provider
-  const provider = createProvider(options);
-
-  // Logging
-  let loggingEnabled = true;
-  let loggingLevel = 0;
-  let allowedSources: SourceType[] = [
-    SourceType.Core,
-    SourceType.Task,
-    SourceType.Workflow,
-    SourceType.Framework,
-    SourceType.Unknown,
-    SourceType.Plugin,
-  ];
-
-  if (options.logging !== undefined) {
-    if (typeof options.logging === "boolean") {
-      loggingEnabled = options.logging;
-    } else {
-      loggingEnabled = true;
-      const config = options.logging as TLoggingConfig;
-      loggingLevel = normalizeLogLevel(config.level);
-      if (config.sources) {
-        allowedSources = config.sources.map(normalizeSourceType);
-      }
-    }
-  }
-
-  return {
-    provider,
-    settings: {
-      DEFAULT_LOGGING_ENABLED: loggingEnabled,
-      DEFAULT_LOGGING_LEVEL: loggingLevel,
-      ALLOWED_LOGGING_SOURCE_TYPES: allowedSources,
-    },
-    context: options.context,
-  };
-}
-
 export class Core<S extends TSpicy> implements TCore<S> {
   emitters = emitters;
 
   #globalPotDistributor: Distributor;
-  #settings: TInternalSettings;
-  #loggingProvider: import("$shibui/types").LoggingProvider | undefined;
+  #loggingProvider: LoggingProvider | null;
 
   constructor(options: TCoreOptions<S>) {
-    const normalized = normalizeOptions(options);
-    this.#settings = normalized.settings;
-    this.#loggingProvider = options.loggingProvider;
+    this.#loggingProvider = options.logger;
 
     this.#globalPotDistributor = new Distributor(
-      normalized.provider,
+      options.queue,
+      options.storage,
       this,
-      normalized.context,
+      options.context,
     );
   }
 
@@ -200,9 +87,8 @@ export class Core<S extends TSpicy> implements TCore<S> {
   createLogger = (options: TLoggerOptions): EventDrivenLogger => {
     return new EventDrivenLogger(
       emitters.logEventEmitter,
-      this.#settings,
-      options,
       this.#loggingProvider,
+      options,
     );
   };
 

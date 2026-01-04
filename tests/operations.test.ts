@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
-import { core, execute, pot, task, TriggerRule } from "$shibui";
+import { execute, pot, shibui, task, TriggerRule } from "$shibui";
 
 const TestPot = pot("TestPot", { value: 0 });
 const DataPot = pot("DataPot", { a: 0, b: "" });
@@ -17,8 +17,7 @@ Deno.test("Operations - finish() completes task successfully", async () => {
     });
 
   const success = await execute(t, [TestPot.create()], {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(success, true);
@@ -33,21 +32,20 @@ Deno.test("Operations - fail() completes task with error", async () => {
     });
 
   const success = await execute(t, [TestPot.create()], {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(success, false);
 });
 
 Deno.test("Operations - next() sends pot to another task", async () => {
-  const c = core({ storage: "memory", logging: false });
+  const c = shibui({ logger: false });
 
   let task1Executed = false;
   let task2Executed = false;
   let receivedValue = 0;
 
-  const task2 = c.task(TestPot)
+  const task2 = task(TestPot)
     .name("Task 2")
     .onRule(TriggerRule.ForThisTask, TestPot)
     .do(async ({ pots, finish }) => {
@@ -56,7 +54,7 @@ Deno.test("Operations - next() sends pot to another task", async () => {
       return finish();
     });
 
-  const task1 = c.task(TestPot)
+  const task1 = task(TestPot)
     .name("Task 1")
     .onRule(TriggerRule.ForThisTask, TestPot)
     .do(async ({ next }) => {
@@ -83,13 +81,13 @@ Deno.test("Operations - next() sends pot to another task", async () => {
 });
 
 Deno.test("Operations - next() with multiple tasks", async () => {
-  const c = core({ storage: "memory", logging: false });
+  const c = shibui({ logger: false });
 
   let task1Executed = false;
   let task2AExecuted = false;
   let task2BExecuted = false;
 
-  const task2A = c.task(TestPot)
+  const task2A = task(TestPot)
     .name("Task 2A")
     .onRule(TriggerRule.ForThisTask, TestPot)
     .do(async ({ finish }) => {
@@ -97,7 +95,7 @@ Deno.test("Operations - next() with multiple tasks", async () => {
       return finish();
     });
 
-  const task2B = c.task(TestPot)
+  const task2B = task(TestPot)
     .name("Task 2B")
     .onRule(TriggerRule.ForThisTask, TestPot)
     .do(async ({ finish }) => {
@@ -105,7 +103,7 @@ Deno.test("Operations - next() with multiple tasks", async () => {
       return finish();
     });
 
-  const task1 = c.task(TestPot)
+  const task1 = task(TestPot)
     .name("Task 1")
     .onRule(TriggerRule.ForThisTask, TestPot)
     .do(async ({ next }) => {
@@ -133,12 +131,12 @@ Deno.test("Operations - next() with multiple tasks", async () => {
 });
 
 Deno.test("Operations - next() passes data", async () => {
-  const c = core({ storage: "memory", logging: false });
+  const c = shibui({ logger: false });
 
   let receivedA = 0;
   let receivedB = "";
 
-  const task2 = c.task(DataPot)
+  const task2 = task(DataPot)
     .name("Task 2")
     .onRule(TriggerRule.ForThisTask, DataPot)
     .do(async ({ pots, finish }) => {
@@ -147,7 +145,7 @@ Deno.test("Operations - next() passes data", async () => {
       return finish();
     });
 
-  const task1 = c.task(DataPot)
+  const task1 = task(DataPot)
     .name("Task 1")
     .onRule(TriggerRule.ForThisTask, DataPot)
     .do(async ({ next }) => {
@@ -186,8 +184,7 @@ Deno.test("Operations - repeat() retries task", async () => {
     });
 
   const success = await execute(t, [RetryPot.create()], {
-    storage: "memory",
-    logging: false,
+    logger: false,
   });
 
   assertEquals(success, true);
@@ -195,11 +192,11 @@ Deno.test("Operations - repeat() retries task", async () => {
 });
 
 Deno.test("Operations - chaining multiple tasks", async () => {
-  const c = core({ storage: "memory", logging: false });
+  const c = shibui({ logger: false });
 
   const results: number[] = [];
 
-  const task3 = c.task(CountPot)
+  const task3 = task(CountPot)
     .name("Task 3")
     .onRule(TriggerRule.ForThisTask, CountPot)
     .do(async ({ pots, finish }) => {
@@ -208,7 +205,7 @@ Deno.test("Operations - chaining multiple tasks", async () => {
       return finish();
     });
 
-  const task2 = c.task(CountPot)
+  const task2 = task(CountPot)
     .name("Task 2")
     .onRule(TriggerRule.ForThisTask, CountPot)
     .do(async ({ pots, next }) => {
@@ -217,7 +214,7 @@ Deno.test("Operations - chaining multiple tasks", async () => {
       return next(task3, { count });
     });
 
-  const task1 = c.task(CountPot)
+  const task1 = task(CountPot)
     .name("Task 1")
     .onRule(TriggerRule.ForThisTask, CountPot)
     .do(async ({ pots, next }) => {
