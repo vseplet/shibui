@@ -1,7 +1,7 @@
 {
   "name": "@vseplet/shibui",
   "lock": false,
-  "version": "1.6.3",
+  "version": "1.6.4",
   "exports": "./source/mod.ts",
   "publish": {
     "exclude": [
