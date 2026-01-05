@@ -58,7 +58,6 @@ export default class Runner {
 
       const doPromise = () =>
         task.do({
-          core: this.#core,
           ...this.#spicy,
           log: this.#core.createLogger({
             sourceType: SourceType.Task,
@@ -66,16 +65,47 @@ export default class Runner {
           }),
           pots,
           ctx,
+          send: (
+            potLike: TPot | any,
+            builder?: TTaskBuilder,
+          ) => {
+            this.#core.send(potLike, builder);
+          },
           next: (
             taskBuilders: TTaskBuilder | Array<TTaskBuilder>,
-            data?: Partial<TPot["data"]>,
-          ) => ({
-            op: DoOperation.Next,
-            taskBuilders: taskBuilders instanceof Array
-              ? taskBuilders
-              : [taskBuilders],
-            data,
-          }),
+            dataOrPot?: Partial<TPot["data"]> | TPot | any,
+          ) => {
+            // Check if dataOrPot is a PotFactory (has create and _class methods)
+            const isPotFactory = dataOrPot && typeof dataOrPot === "object" &&
+              "create" in dataOrPot && "_class" in dataOrPot;
+
+            // Check if dataOrPot is a PotInstance (has uuid, name, type fields)
+            const isPotInstance = dataOrPot && typeof dataOrPot === "object" &&
+              "uuid" in dataOrPot && "name" in dataOrPot && "type" in dataOrPot;
+
+            let pot: TPot | undefined;
+            let data: Partial<TPot["data"]> | undefined;
+
+            if (isPotFactory) {
+              // Auto-create from factory with default data
+              pot = dataOrPot.create() as unknown as TPot;
+            } else if (isPotInstance) {
+              // Use pot instance as-is
+              pot = dataOrPot as TPot;
+            } else {
+              // Plain data object
+              data = dataOrPot;
+            }
+
+            return {
+              op: DoOperation.Next,
+              taskBuilders: taskBuilders instanceof Array
+                ? taskBuilders
+                : [taskBuilders],
+              data,
+              pot,
+            };
+          },
           fail: (reason?: string) => ({
             op: DoOperation.Fail,
             reason: reason || "",
@@ -142,6 +172,7 @@ export default class Runner {
             task,
             nextTasks: result.taskBuilders || [],
             data: result.data,
+            pot: result.pot,
           });
           break;
         case DoOperation.Repeat:
@@ -196,12 +227,14 @@ export default class Runner {
     task,
     nextTasks,
     data,
+    pot,
   }: {
     pots: Array<Pot>;
     ctx?: Pot;
     task: TTask;
     nextTasks: Array<TTaskBuilder>;
     data?: Partial<unknown> | undefined;
+    pot?: TPot;
   }) {
     this.#core.emitters.coreEventEmitter.emit(new TaskFinishedEvent());
 
@@ -215,7 +248,15 @@ export default class Runner {
           `calling the next task ${builder.task.name}`,
         );
       }
-      if (ctx) {
+
+      // If custom pot provided, use it directly
+      if (pot) {
+        pot.from.task = task.name;
+        pot.from.workflow = task.belongsToWorkflow || UNKNOWN_TARGET;
+        pot.to.task = builder.task.name;
+        pot.to.workflow = builder.task.belongsToWorkflow || UNKNOWN_TARGET;
+        this.#core.send(pot);
+      } else if (ctx) {
         const newContextPot = ctx.copy(data || ctx.data);
         newContextPot.from.task = task.name;
         newContextPot.from.workflow = task.belongsToWorkflow || UNKNOWN_TARGET;

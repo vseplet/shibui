@@ -29,7 +29,8 @@
     "example:custom-context": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/08-custom-context-injection.ts",
     "example:providers": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/11-providers-configuration.ts",
     "example:aggregator": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/10-multi-api-aggregator.ts",
-    "example:custom-triggers": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/12-dependent-task-custom-triggers.ts"
+    "example:custom-triggers": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/12-dependent-task-custom-triggers.ts",
+    "example:send-next-pots": "deno run --allow-all --unstable-broadcast-channel --unstable-kv ./examples/13-send-and-next-with-pots.ts"
   },
   "imports": {
     "$versions": "./source/versions.ts",

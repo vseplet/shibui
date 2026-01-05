@@ -192,9 +192,14 @@ The `.do()` handler receives:
 - `pots` - array of input pots
 - `ctx` - workflow context (in workflows)
 - `log` - logger with methods: `trc`, `dbg`, `vrb`, `inf`, `wrn`, `err`, `flt`
+- `send(pot, task?)` - send a pot to the system without completing current task (fire-and-forget)
 - `finish()` - complete successfully
 - `fail(reason)` - complete with error
-- `next(task, data?)` - chain to another task
+- `next(task, dataOrPot?)` - chain to another task
+  - `next(task)` - chain without data
+  - `next(task, data)` - chain with data object (creates new pot with data)
+  - `next(task, pot)` - chain with custom PotInstance
+  - `next(task, PotFactory)` - chain with PotFactory (auto-creates with defaults)
 - `repeat()` - retry the task
 
 ### workflow(contextFactory?)
@@ -494,6 +499,68 @@ const resilientTask = task(Job)
   });
 ```
 
+### Using send() - Fire-and-Forget
+
+The `send()` method allows you to dispatch pots without blocking or completing the current task:
+
+```typescript
+const Notification = pot("Notification", { message: "" });
+const Report = pot("Report", { content: "" });
+
+const notifier = task(Notification)
+  .name("Notifier")
+  .do(async ({ pots, log, finish }) => {
+    log.inf(`📝 ${pots[0].data.message}`);
+    return finish();
+  });
+
+const processor = task(Report)
+  .name("Processor")
+  .do(async ({ pots, send, finish }) => {
+    // Send notification without blocking
+    send(Notification.create({ message: "Processing started" }), notifier);
+
+    // Continue processing
+    log.inf(`Processing: ${pots[0].data.content}`);
+
+    // Send completion notification
+    send(Notification.create({ message: "Processing complete" }), notifier);
+
+    return finish();
+  });
+```
+
+### Using next() with Different Pot Types
+
+The `next()` method now supports multiple ways to pass data:
+
+```typescript
+const InputData = pot("InputData", { value: 0 });
+const OutputData = pot("OutputData", { result: "" });
+
+const step2 = task(OutputData)
+  .name("Step 2")
+  .onRule(TriggerRule.ForThisTask, OutputData)
+  .do(async ({ pots, log, finish }) => {
+    log.inf(`Result: ${pots[0].data.result}`);
+    return finish();
+  });
+
+const step1 = task(InputData)
+  .name("Step 1")
+  .onRule(TriggerRule.ForThisTask, InputData)
+  .do(async ({ pots, next }) => {
+    // Option 1: Pass data object (old way)
+    // return next(step2, { value: pots[0].data.value * 2 });
+
+    // Option 2: Pass PotInstance with custom data
+    return next(step2, OutputData.create({ result: "custom value" }));
+
+    // Option 3: Pass PotFactory (uses default data)
+    // return next(step2, OutputData);
+  });
+```
+
 ### Simple Workflow
 
 ```typescript
@@ -568,6 +635,9 @@ deno task example:providers
 
 # Multi-API aggregator with Telegram notification
 deno task example:aggregator
+
+# Using send() and next() with Pots
+deno task example:send-next-pots
 ```
 
 ## License
