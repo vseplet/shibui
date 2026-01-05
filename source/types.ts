@@ -438,6 +438,7 @@ export type TDoHandlerResult = {
   taskBuilders?: Array<TTaskBuilder>;
   data?: Partial<TPot["data"]>;
   pot?: TPot;
+  pots?: TPot[];
   afterMs?: number;
 };
 
@@ -455,12 +456,17 @@ export type TDoHandlerContext<Spicy, CtxPot, Pots extends Pot[]> =
     next: (
       builders: Array<TTaskBuilder> | TTaskBuilder,
       // deno-lint-ignore no-explicit-any
-      dataOrPot?: Partial<Pots[0]["data"]> | TPot | PotFactory<any>,
+      dataOrPot?:
+        | Partial<Pots[0]["data"]>
+        | TPot
+        | PotFactory<any>
+        | Array<TPot | PotFactory<any>>,
     ) => {
       op: DoOperation.Next;
       taskBuilders: Array<TTaskBuilder>;
       data?: Partial<Pots[0]["data"]>;
       pot?: TPot;
+      pots?: TPot[];
     };
     finish: () => {
       op: DoOperation.Finish;

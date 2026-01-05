@@ -28,7 +28,11 @@ const logger = app.task(Notification)
 const reporter = app.task(Report)
   .name("Reporter")
   .do(async ({ pots, log, finish }) => {
-    log.inf(`📊 Report: ${pots[0].data.content} (${new Date(pots[0].data.timestamp).toISOString()})`);
+    log.inf(
+      `📊 Report: ${pots[0].data.content} (${
+        new Date(pots[0].data.timestamp).toISOString()
+      })`,
+    );
     return finish();
   });
 
@@ -41,18 +45,24 @@ const processor = app.task(WorkOrder)
     log.inf(`🔧 Processing order: ${order.data.orderId}`);
 
     // Send notification (fire-and-forget, doesn't block)
-    send(Notification.create({
-      message: `Started processing order ${order.data.orderId}`
-    }), logger);
+    send(
+      Notification.create({
+        message: `Started processing order ${order.data.orderId}`,
+      }),
+      logger,
+    );
 
     // Continue processing...
     log.inf(`⚙️  Working on order ${order.data.orderId}...`);
 
     // Pass Report using PotInstance (custom data)
-    return next(finalizer, Report.create({
-      content: `Order ${order.data.orderId} processed successfully`,
-      timestamp: Date.now(),
-    }));
+    return next(
+      finalizer,
+      Report.create({
+        content: `Order ${order.data.orderId} processed successfully`,
+        timestamp: Date.now(),
+      }),
+    );
   });
 
 // Task 4: Finalizer - demonstrates next(PotFactory)
@@ -64,9 +74,12 @@ const finalizer = app.task(Report)
     log.inf(`✅ Finalizing: ${report.data.content}`);
 
     // Send notification about completion
-    send(Notification.create({
-      message: "Workflow completed!",
-    }), logger);
+    send(
+      Notification.create({
+        message: "Workflow completed!",
+      }),
+      logger,
+    );
 
     // Pass report to reporter using PotFactory (uses default data)
     // This creates Report with default content and timestamp
@@ -84,7 +97,10 @@ await app.start();
 
 // Send a work order
 console.log("\n🚀 Starting workflow...\n");
-app.send(WorkOrder.create({ orderId: "ORD-12345", priority: "high" }), processor);
+app.send(
+  WorkOrder.create({ orderId: "ORD-12345", priority: "high" }),
+  processor,
+);
 
 // Wait for execution
 await new Promise((resolve) => setTimeout(resolve, 2000));

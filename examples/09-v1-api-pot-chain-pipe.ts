@@ -27,7 +27,10 @@ const NumberPot = pot("NumberPot", { value: 0 });
 
 const processTask = task(NumberPot)
   .name("Process Number")
-  .on(NumberPot, ({ pot, allow, deny }) => pot.data.value > 0 ? allow() : deny())
+  .on(
+    NumberPot,
+    ({ pot, allow, deny }) => pot.data.value > 0 ? allow() : deny(),
+  )
   .retry({ attempts: 3, interval: 100, timeout: 5000 })
   .do(async ({ pots, finish, log }) => {
     const value = pots[0].data.value;

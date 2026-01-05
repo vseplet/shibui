@@ -192,14 +192,21 @@ The `.do()` handler receives:
 - `pots` - array of input pots
 - `ctx` - workflow context (in workflows)
 - `log` - logger with methods: `trc`, `dbg`, `vrb`, `inf`, `wrn`, `err`, `flt`
-- `send(pot, task?)` - send a pot to the system without completing current task (fire-and-forget)
+- `send(pot, task?)` - send a pot to the system without completing current task
+  (fire-and-forget)
 - `finish()` - complete successfully
 - `fail(reason)` - complete with error
-- `next(task, dataOrPot?)` - chain to another task
-  - `next(task)` - chain without data
+- `next(task | tasks[], dataOrPot | pots[])` - chain to another task(s)
+  - `next(task)` - chain to single task without data
   - `next(task, data)` - chain with data object (creates new pot with data)
   - `next(task, pot)` - chain with custom PotInstance
-  - `next(task, PotFactory)` - chain with PotFactory (auto-creates with defaults)
+  - `next(task, PotFactory)` - chain with PotFactory (auto-creates with
+    defaults)
+  - `next([task1, task2, ...], data | pot | PotFactory)` - send to multiple
+    tasks (each gets a copy)
+  - `next(task, [pot1, pot2, ...])` - send multiple pots to one task
+  - `next([task1, task2], [pot1, pot2, ...])` - send multiple pots to multiple
+    tasks (each task gets all pots)
 - `repeat()` - retry the task
 
 ### workflow(contextFactory?)
@@ -501,7 +508,8 @@ const resilientTask = task(Job)
 
 ### Using send() - Fire-and-Forget
 
-The `send()` method allows you to dispatch pots without blocking or completing the current task:
+The `send()` method allows you to dispatch pots without blocking or completing
+the current task:
 
 ```typescript
 const Notification = pot("Notification", { message: "" });
@@ -558,6 +566,18 @@ const step1 = task(InputData)
 
     // Option 3: Pass PotFactory (uses default data)
     // return next(step2, OutputData);
+
+    // Option 4: Send to multiple tasks (each gets a unique copy)
+    // return next([step2, step3, step4], OutputData.create({ result: "broadcast" }));
+
+    // Option 5: Send multiple pots to one task
+    // return next(step2, [
+    //   OutputData.create({ result: "first" }),
+    //   OutputData.create({ result: "second" }),
+    // ]);
+
+    // Option 6: Send multiple pots to multiple tasks
+    // return next([step2, step3], [pot1, pot2, pot3]);
   });
 ```
 

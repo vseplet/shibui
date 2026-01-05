@@ -81,7 +81,8 @@ export default class Runner {
             pot.from.workflow = task.belongsToWorkflow || UNKNOWN_TARGET;
             if (builder) {
               pot.to.task = builder.task.name;
-              pot.to.workflow = builder.task.belongsToWorkflow || UNKNOWN_TARGET;
+              pot.to.workflow = builder.task.belongsToWorkflow ||
+                UNKNOWN_TARGET;
             }
 
             this.#core.send(pot);
@@ -90,6 +91,28 @@ export default class Runner {
             taskBuilders: TTaskBuilder | Array<TTaskBuilder>,
             dataOrPot?: Partial<TPot["data"]> | TPot | any,
           ) => {
+            // Check if dataOrPot is an array of pots
+            if (Array.isArray(dataOrPot)) {
+              const pots: TPot[] = dataOrPot.map((item) => {
+                const isPotFactory = item && typeof item === "object" &&
+                  "create" in item && "_class" in item;
+
+                if (isPotFactory) {
+                  return item.create() as unknown as TPot;
+                } else {
+                  return item as TPot;
+                }
+              });
+
+              return {
+                op: DoOperation.Next,
+                taskBuilders: taskBuilders instanceof Array
+                  ? taskBuilders
+                  : [taskBuilders],
+                pots,
+              };
+            }
+
             // Check if dataOrPot is a PotFactory (has create and _class methods)
             const isPotFactory = dataOrPot && typeof dataOrPot === "object" &&
               "create" in dataOrPot && "_class" in dataOrPot;
@@ -188,6 +211,7 @@ export default class Runner {
             nextTasks: result.taskBuilders || [],
             data: result.data,
             pot: result.pot,
+            potArray: result.pots,
           });
           break;
         case DoOperation.Repeat:
@@ -243,6 +267,7 @@ export default class Runner {
     nextTasks,
     data,
     pot,
+    potArray,
   }: {
     pots: Array<Pot>;
     ctx?: Pot;
@@ -250,6 +275,7 @@ export default class Runner {
     nextTasks: Array<TTaskBuilder>;
     data?: Partial<unknown> | undefined;
     pot?: TPot;
+    potArray?: TPot[];
   }) {
     this.#core.emitters.coreEventEmitter.emit(new TaskFinishedEvent());
 
@@ -264,8 +290,36 @@ export default class Runner {
         );
       }
 
-      // If custom pot provided, create a copy for each task
-      if (pot) {
+      // If array of pots provided, send all copies to task in one call
+      if (potArray && potArray.length > 0) {
+        const potsCopies: Pot[] = potArray.map((originalPot) => {
+          let potCopy: TPot;
+
+          if (originalPot instanceof Pot) {
+            potCopy = originalPot.copy(originalPot.data);
+          } else {
+            potCopy = {
+              ...originalPot,
+              uuid: crypto.randomUUID(),
+              data: self.structuredClone(originalPot.data),
+              from: { ...originalPot.from },
+              to: { ...originalPot.to },
+            };
+          }
+
+          potCopy.from.task = task.name;
+          potCopy.from.workflow = task.belongsToWorkflow || UNKNOWN_TARGET;
+          potCopy.to.task = builder.task.name;
+          potCopy.to.workflow = builder.task.belongsToWorkflow ||
+            UNKNOWN_TARGET;
+
+          return potCopy as Pot;
+        });
+
+        // Run task directly with all pots
+        this.run(builder.task.name, potsCopies);
+      } else if (pot) {
+        // If custom pot provided, create a copy for each task
         let potCopy: TPot;
 
         if (pot instanceof Pot) {
