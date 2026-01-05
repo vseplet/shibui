@@ -1,4 +1,4 @@
-import type { Pot } from "$shibui/runtime";
+import { Pot } from "$shibui/runtime";
 import {
   SourceType,
   type StorageProvider,
@@ -69,7 +69,22 @@ export default class Runner {
             potLike: TPot | any,
             builder?: TTaskBuilder,
           ) => {
-            this.#core.send(potLike, builder);
+            // Auto-create if PotFactory
+            const isPotFactory = potLike && typeof potLike === "object" &&
+              "create" in potLike && "_class" in potLike;
+            const pot = isPotFactory
+              ? potLike.create() as unknown as TPot
+              : potLike as TPot;
+
+            // Set routing info
+            pot.from.task = task.name;
+            pot.from.workflow = task.belongsToWorkflow || UNKNOWN_TARGET;
+            if (builder) {
+              pot.to.task = builder.task.name;
+              pot.to.workflow = builder.task.belongsToWorkflow || UNKNOWN_TARGET;
+            }
+
+            this.#core.send(pot);
           },
           next: (
             taskBuilders: TTaskBuilder | Array<TTaskBuilder>,
@@ -249,13 +264,30 @@ export default class Runner {
         );
       }
 
-      // If custom pot provided, use it directly
+      // If custom pot provided, create a copy for each task
       if (pot) {
-        pot.from.task = task.name;
-        pot.from.workflow = task.belongsToWorkflow || UNKNOWN_TARGET;
-        pot.to.task = builder.task.name;
-        pot.to.workflow = builder.task.belongsToWorkflow || UNKNOWN_TARGET;
-        this.#core.send(pot);
+        let potCopy: TPot;
+
+        if (pot instanceof Pot) {
+          // Pot class instance - use copy() method
+          potCopy = pot.copy(pot.data);
+        } else {
+          // Plain object (PotInstance) - create a deep copy with new UUID
+          potCopy = {
+            ...pot,
+            uuid: crypto.randomUUID(),
+            data: self.structuredClone(pot.data),
+            from: { ...pot.from },
+            to: { ...pot.to },
+          };
+        }
+
+        potCopy.from.task = task.name;
+        potCopy.from.workflow = task.belongsToWorkflow || UNKNOWN_TARGET;
+        potCopy.to.task = builder.task.name;
+        potCopy.to.workflow = builder.task.belongsToWorkflow || UNKNOWN_TARGET;
+
+        this.#core.send(potCopy);
       } else if (ctx) {
         const newContextPot = ctx.copy(data || ctx.data);
         newContextPot.from.task = task.name;
