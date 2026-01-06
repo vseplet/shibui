@@ -506,15 +506,23 @@ const resilientTask = task(Job)
   });
 ```
 
-### Using send() - Fire-and-Forget
+## Task Communication Patterns
 
-The `send()` method allows you to dispatch pots without blocking or completing
-the current task:
+Shibui provides two powerful methods for inter-task communication: `send()` for
+fire-and-forget messaging and `next()` for task chaining with automatic
+completion.
+
+### send() - Fire-and-Forget Messaging
+
+The `send()` method dispatches pots **without completing** the current task.
+Perfect for notifications, logging, or triggering parallel workflows.
 
 ```typescript
 const Notification = pot("Notification", { message: "" });
+const Analytics = pot("Analytics", { event: "", data: {} });
 const Report = pot("Report", { content: "" });
 
+// Notification handler (receives sent messages)
 const notifier = task(Notification)
   .name("Notifier")
   .do(async ({ pots, log, finish }) => {
@@ -522,64 +530,224 @@ const notifier = task(Notification)
     return finish();
   });
 
+// Analytics handler
+const analytics = task(Analytics)
+  .name("Analytics")
+  .do(async ({ pots, finish }) => {
+    // Record analytics event
+    return finish();
+  });
+
+// Main processor that sends notifications
 const processor = task(Report)
   .name("Processor")
-  .do(async ({ pots, send, finish }) => {
-    // Send notification without blocking
+  .do(async ({ pots, send, log, finish }) => {
+    const content = pots[0].data.content;
+
+    // Send start notification (fire-and-forget)
     send(Notification.create({ message: "Processing started" }), notifier);
 
-    // Continue processing
-    log.inf(`Processing: ${pots[0].data.content}`);
+    // Send analytics event
+    send(
+      Analytics.create({ event: "process_start", data: { content } }),
+      analytics,
+    );
+
+    // Do actual processing
+    await processData(content);
+    log.inf(`Processed: ${content}`);
 
     // Send completion notification
     send(Notification.create({ message: "Processing complete" }), notifier);
 
+    // Task continues and finishes
     return finish();
   });
 ```
 
-### Using next() with Different Pot Types
+**Key points:**
 
-The `next()` method now supports multiple ways to pass data:
+- Task continues executing after `send()`
+- Multiple `send()` calls are allowed
+- Doesn't complete the current task
+- Great for side effects (logging, notifications, metrics)
+
+### next() - Task Chaining with Completion
+
+The `next()` method transfers control to another task(s) and **completes** the
+current task. Supports multiple patterns:
+
+#### 1. Single Task, Single Pot
 
 ```typescript
 const InputData = pot("InputData", { value: 0 });
 const OutputData = pot("OutputData", { result: "" });
 
 const step2 = task(OutputData)
-  .name("Step 2")
+  .name("Step2")
   .onRule(TriggerRule.ForThisTask, OutputData)
-  .do(async ({ pots, log, finish }) => {
-    log.inf(`Result: ${pots[0].data.result}`);
+  .do(async ({ pots, finish }) => {
+    console.log("Received:", pots[0].data.result);
     return finish();
   });
 
 const step1 = task(InputData)
-  .name("Step 1")
+  .name("Step1")
   .onRule(TriggerRule.ForThisTask, InputData)
   .do(async ({ pots, next }) => {
-    // Option 1: Pass data object (old way)
-    // return next(step2, { value: pots[0].data.value * 2 });
+    // Option A: Pass plain data (merges with current pot type)
+    return next(step2, { value: pots[0].data.value * 2 });
 
-    // Option 2: Pass PotInstance with custom data
-    return next(step2, OutputData.create({ result: "custom value" }));
+    // Option B: Pass PotInstance with custom data
+    return next(step2, OutputData.create({ result: "custom" }));
 
-    // Option 3: Pass PotFactory (uses default data)
-    // return next(step2, OutputData);
-
-    // Option 4: Send to multiple tasks (each gets a unique copy)
-    // return next([step2, step3, step4], OutputData.create({ result: "broadcast" }));
-
-    // Option 5: Send multiple pots to one task
-    // return next(step2, [
-    //   OutputData.create({ result: "first" }),
-    //   OutputData.create({ result: "second" }),
-    // ]);
-
-    // Option 6: Send multiple pots to multiple tasks
-    // return next([step2, step3], [pot1, pot2, pot3]);
+    // Option C: Pass PotFactory (uses defaults)
+    return next(step2, OutputData);
   });
 ```
+
+#### 2. Multiple Tasks, Single Pot (Broadcast)
+
+```typescript
+const Result = pot("Result", { data: "" });
+
+const taskA = task(Result).name("TaskA").do(async ({ pots, finish }) => {
+  console.log("TaskA got:", pots[0].data.data);
+  return finish();
+});
+
+const taskB = task(Result).name("TaskB").do(async ({ pots, finish }) => {
+  console.log("TaskB got:", pots[0].data.data);
+  return finish();
+});
+
+const broadcaster = task(InputData)
+  .name("Broadcaster")
+  .do(async ({ next }) => {
+    // Each task gets a UNIQUE COPY of the pot
+    return next(
+      [taskA, taskB, taskC],
+      Result.create({ data: "broadcast message" }),
+    );
+  });
+```
+
+**Key points:**
+
+- Each task receives a unique copy (different UUID)
+- All tasks execute in parallel
+- Current task completes after broadcasting
+
+#### 3. Single Task, Multiple Pots
+
+```typescript
+const PotA = pot("PotA", { a: "" });
+const PotB = pot("PotB", { b: 0 });
+const PotC = pot("PotC", { c: boolean });
+
+// Task that accepts multiple pot types
+const consumer = task(PotA, PotB, PotC)
+  .name("Consumer")
+  .onRule(TriggerRule.ForThisTask, PotA)
+  .do(async ({ pots, finish }) => {
+    console.log("Received pots:", pots.length); // 3
+    console.log("PotA:", pots[0].data.a);
+    console.log("PotB:", pots[1].data.b);
+    console.log("PotC:", pots[2].data.c);
+    return finish();
+  });
+
+const producer = task(InputData)
+  .name("Producer")
+  .do(async ({ next }) => {
+    // Send multiple pots to one task
+    return next(consumer, [
+      PotA.create({ a: "test" }),
+      PotB.create({ b: 42 }),
+      PotC.create({ c: true }),
+    ]);
+  });
+```
+
+**Key points:**
+
+- All pots arrive at the task together
+- Task receives them in `pots` array in order
+- Useful for tasks that need multiple inputs
+
+#### 4. Multiple Tasks, Multiple Pots (Full Broadcast)
+
+```typescript
+const taskA = task(PotA, PotB)
+  .name("TaskA")
+  .onRule(TriggerRule.ForThisTask, PotA)
+  .do(async ({ pots, finish }) => {
+    console.log("TaskA got", pots.length, "pots");
+    return finish();
+  });
+
+const taskB = task(PotA, PotB)
+  .name("TaskB")
+  .onRule(TriggerRule.ForThisTask, PotA)
+  .do(async ({ pots, finish }) => {
+    console.log("TaskB got", pots.length, "pots");
+    return finish();
+  });
+
+const producer = task(InputData)
+  .name("Producer")
+  .do(async ({ next }) => {
+    // Each task gets ALL pots (as unique copies)
+    return next(
+      [taskA, taskB],
+      [
+        PotA.create({ a: "hello" }),
+        PotB.create({ b: 100 }),
+      ],
+    );
+  });
+```
+
+**Key points:**
+
+- Each task receives all pots
+- Each task gets unique copies (different UUIDs)
+- Tasks execute in parallel
+
+### Combining send() and next()
+
+You can use both in the same task:
+
+```typescript
+const processor = task(Data)
+  .name("Processor")
+  .do(async ({ pots, send, next }) => {
+    // Send notification without blocking
+    send(Notification.create({ message: "Processing..." }), notifier);
+
+    // Send analytics
+    send(Analytics.create({ event: "process" }), analytics);
+
+    // Chain to next task (completes current task)
+    return next(nextStep, ProcessedData.create({ result: "done" }));
+  });
+```
+
+### When to use send() vs next()
+
+**Use `send()`:**
+
+- Notifications, alerts, logging
+- Triggering parallel workflows
+- Side effects that don't affect main flow
+- Task should continue executing
+
+**Use `next()`:**
+
+- Sequential workflow steps
+- Task chaining (A → B → C)
+- Broadcasting to multiple tasks
+- Task should complete after dispatching
 
 ### Simple Workflow
 
