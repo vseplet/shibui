@@ -1,4 +1,5 @@
 import { emitters } from "$shibui/emitters";
+import { Dashboard } from "$shibui/dashboard";
 import {
   isPotFactory,
   type LoggingProvider,
@@ -37,6 +38,8 @@ export class Core<S extends TSpicy> implements TCore<S> {
 
   #globalPotDistributor: Distributor;
   #loggingProvider: LoggingProvider | null;
+  #dashboard: Dashboard | null = null;
+  #dashboardOptions: { port: number; enabled: boolean } | null = null;
 
   constructor(options: TCoreOptions<S>) {
     this.#loggingProvider = options.logger;
@@ -47,6 +50,18 @@ export class Core<S extends TSpicy> implements TCore<S> {
       this,
       options.context,
     );
+
+    // Setup dashboard if enabled
+    if (options.dashboard) {
+      if (typeof options.dashboard === "boolean") {
+        this.#dashboardOptions = { port: 3000, enabled: true };
+      } else {
+        this.#dashboardOptions = {
+          port: options.dashboard.port ?? 3000,
+          enabled: options.dashboard.enabled ?? true,
+        };
+      }
+    }
   }
 
   // Overloads for workflow with proper type inference
@@ -94,6 +109,12 @@ export class Core<S extends TSpicy> implements TCore<S> {
 
   async start() {
     await this.#globalPotDistributor.start();
+
+    // Start dashboard if enabled
+    if (this.#dashboardOptions?.enabled) {
+      this.#dashboard = new Dashboard(this.#dashboardOptions.port);
+      this.#dashboard.start();
+    }
   }
 
   register(builder: TTaskBuilder | TWorkflowBuilder) {
@@ -130,5 +151,11 @@ export class Core<S extends TSpicy> implements TCore<S> {
 
   close(): void {
     this.#globalPotDistributor.close();
+
+    // Stop dashboard if running
+    if (this.#dashboard) {
+      this.#dashboard.stop();
+      this.#dashboard = null;
+    }
   }
 }

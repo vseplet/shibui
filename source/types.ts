@@ -355,6 +355,14 @@ export type TCoreOptions<S = TSpicy> = {
 
   /** Custom context data available in tasks */
   context?: S;
+
+  /** Dashboard configuration (optional) */
+  dashboard?: {
+    /** Port for dashboard server (default: 3000) */
+    port?: number;
+    /** Enable dashboard (default: false) */
+    enabled?: boolean;
+  } | boolean;
 };
 
 /**
@@ -395,6 +403,14 @@ export type TShibuiOptions<S = TSpicy> = {
 
   /** Custom context data available in tasks */
   context?: S;
+
+  /** Dashboard configuration (optional) */
+  dashboard?: {
+    /** Port for dashboard server (default: 3000) */
+    port?: number;
+    /** Enable dashboard (default: false) */
+    enabled?: boolean;
+  } | boolean; // true = enabled with defaults
 };
 
 export type TOnHandlerResult = {

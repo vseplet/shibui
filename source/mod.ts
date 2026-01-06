@@ -50,6 +50,7 @@ export function shibui<S extends TSpicy = {}>(
     storage,
     logger,
     context: options.context,
+    dashboard: options.dashboard,
   });
 }
 
