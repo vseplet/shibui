@@ -112,7 +112,7 @@ export class Core<S extends TSpicy> implements TCore<S> {
 
     // Start dashboard if enabled
     if (this.#dashboardOptions?.enabled) {
-      this.#dashboard = new Dashboard(this.#dashboardOptions.port);
+      this.#dashboard = new Dashboard(this.#dashboardOptions.port, this);
       this.#dashboard.start();
     }
   }
@@ -157,5 +157,10 @@ export class Core<S extends TSpicy> implements TCore<S> {
       this.#dashboard.stop();
       this.#dashboard = null;
     }
+  }
+
+  /** Get current system state for dashboard */
+  getState() {
+    return this.#globalPotDistributor.getState();
   }
 }

@@ -316,4 +316,23 @@ export class Tester {
   #testWorkflowDependedTaskTriggers(pot: Pot): boolean {
     return false;
   }
+
+  /** Get info about registered tasks for dashboard */
+  getTasksInfo() {
+    return Object.entries(this.#tasks).map(([name, task]) => ({
+      name,
+      belongsToWorkflow: task.belongsToWorkflow,
+      triggersCount: Object.keys(task.triggers).length,
+      triggers: Object.keys(task.triggers),
+    }));
+  }
+
+  /** Get info about registered workflows for dashboard */
+  getWorkflowsInfo() {
+    return Object.entries(this.#workflows).map(([name, workflow]) => ({
+      name,
+      tasksCount: workflow.tasks.length,
+      firstTaskName: workflow.firstTaskName,
+    }));
+  }
 }

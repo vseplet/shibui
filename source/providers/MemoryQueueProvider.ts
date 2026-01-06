@@ -47,4 +47,15 @@ export class MemoryQueueProvider implements QueueProvider {
       this.#processing = false;
     });
   }
+
+  getQueueState() {
+    return {
+      length: this.#queue.length,
+      pots: this.#queue.map((pot) => ({
+        name: pot.name,
+        uuid: pot.uuid,
+        type: pot.type,
+      })),
+    };
+  }
 }

@@ -113,6 +113,17 @@ export default class Distributor {
     this.#queue.close();
     this.#storage.close();
   }
+
+  /** Get current system state for dashboard */
+  getState() {
+    const queueState = this.#queue.getQueueState?.() || { length: 0, pots: [] };
+
+    return {
+      tasks: this.#tester.getTasksInfo(),
+      workflows: this.#tester.getWorkflowsInfo(),
+      queue: queueState,
+    };
+  }
 }
 
 export { Distributor };
