@@ -55,7 +55,8 @@
   "fmt": {
     "exclude": [
       "deno.json",
-      "source/versions.ts"
+      "source/versions.ts",
+      "source/dashboard/Dashboard.ts"
     ]
   },
   "lint": {

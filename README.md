@@ -16,6 +16,7 @@ Universal workflow automation engine for Deno.
 - [Core Concepts](#core-concepts)
 - [API Reference](#api-reference)
 - [Configuration](#configuration)
+- [Dashboard (Experimental)](#dashboard-experimental)
 - [Examples](#examples)
 - [License](#license)
 
@@ -399,6 +400,43 @@ const myTask = app.task(Data)
     return finish();
   });
 ```
+
+### Dashboard (Experimental)
+
+> **Warning:** This feature is experimental and may change in future versions.
+
+Shibui includes an optional web dashboard for monitoring tasks, workflows, and
+pot events in real-time.
+
+```typescript
+import { shibui } from "@vseplet/shibui";
+
+// Enable dashboard with default port (3000)
+const app = shibui({ dashboard: true });
+
+// Enable dashboard with custom port
+const app = shibui({
+  dashboard: { port: 8080 },
+});
+
+// Disable dashboard (default)
+const app = shibui({ dashboard: false });
+
+app.register(myTask);
+await app.start();
+// Dashboard available at http://localhost:3000
+```
+
+The dashboard displays:
+
+- **Tasks** — registered tasks with their triggers
+- **Workflows** — registered workflows with task counts
+- **Pot Events** — real-time feed of pot queue operations (enqueued, dequeued,
+  dropped)
+- **Logs** — streaming log output from all tasks and workflows
+
+The dashboard uses Server-Sent Events (SSE) for real-time updates without
+polling.
 
 ## Examples
 

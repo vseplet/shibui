@@ -24,6 +24,57 @@ export class WorkflowFailedEvent extends CoreEvent {}
 export class WorkflowFinishedEvent extends CoreEvent {}
 export class WorkflowStartedEvent extends CoreEvent {}
 
+// Registration Events
+export class TaskRegisteredEvent extends CoreEvent {
+  constructor(
+    public readonly taskName: string,
+    public readonly triggers: string[],
+    public readonly belongsToWorkflow?: string,
+  ) {
+    super();
+  }
+}
+
+export class WorkflowRegisteredEvent extends CoreEvent {
+  constructor(
+    public readonly workflowName: string,
+    public readonly tasksCount: number,
+    public readonly firstTaskName: string,
+  ) {
+    super();
+  }
+}
+
+// Queue Events
+export class PotEnqueuedEvent extends CoreEvent {
+  constructor(
+    public readonly potName: string,
+    public readonly potUuid: string,
+    public readonly potType: string,
+  ) {
+    super();
+  }
+}
+
+export class PotDequeuedEvent extends CoreEvent {
+  constructor(
+    public readonly potName: string,
+    public readonly potUuid: string,
+  ) {
+    super();
+  }
+}
+
+export class PotDroppedEvent extends CoreEvent {
+  constructor(
+    public readonly potName: string,
+    public readonly potUuid: string,
+    public readonly reason: string,
+  ) {
+    super();
+  }
+}
+
 // Log Events
 export class LogEvent<T> extends SEvent {
   override type = EventType.Log;

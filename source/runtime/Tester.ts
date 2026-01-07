@@ -15,6 +15,7 @@ import {
   type WorkflowsStorage,
 } from "$shibui/types";
 import { Filler, Runner } from "$shibui/runtime";
+import { TaskRegisteredEvent, WorkflowRegisteredEvent } from "$shibui/events";
 
 export class Tester {
   #core: TAnyCore;
@@ -81,6 +82,15 @@ export class Tester {
         task.belongsToWorkflow ? ` of workflow '${task.belongsToWorkflow}'` : ""
       }`,
     );
+
+    // Emit registration event
+    this.#core.emitters.coreEventEmitter.emit(
+      new TaskRegisteredEvent(
+        task.name,
+        Object.keys(task.triggers),
+        task.belongsToWorkflow,
+      ),
+    );
   }
 
   registerWorkflow(workflow: TWorkflow) {
@@ -90,6 +100,15 @@ export class Tester {
       this.#workflowTriggers[potName] ||= [];
       this.#workflowTriggers[potName].push(workflow.triggers[potName]);
     }
+
+    // Emit registration event
+    this.#core.emitters.coreEventEmitter.emit(
+      new WorkflowRegisteredEvent(
+        workflow.name,
+        workflow.tasks.length,
+        workflow.firstTaskName,
+      ),
+    );
   }
 
   async test(pot: Pot): Promise<boolean> {
