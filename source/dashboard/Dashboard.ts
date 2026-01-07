@@ -36,161 +36,102 @@ export class Dashboard {
           firstTaskName: e.firstTaskName as string,
         });
       }
-      // Pot events are handled in SSE stream directly, no need to store state
     });
   }
 
+  #renderTaskItem(task: { taskName: string; triggers: string[]; belongsToWorkflow?: string }): string {
+    return `<div class="task-item">
+      <div class="task-name">${task.taskName}</div>
+      <div class="task-detail">
+        Triggers: ${task.triggers.join(', ') || 'none'}
+        ${task.belongsToWorkflow ? ' | Workflow: ' + task.belongsToWorkflow : ''}
+      </div>
+    </div>`;
+  }
+
+  #renderWorkflowItem(wf: { workflowName: string; tasksCount: number; firstTaskName: string }): string {
+    return `<div class="workflow-item">
+      <div class="workflow-name">${wf.workflowName}</div>
+      <div class="workflow-detail">
+        Tasks: ${wf.tasksCount} | First: ${wf.firstTaskName}
+      </div>
+    </div>`;
+  }
+
+  #renderTasksList(): string {
+    if (this.#tasks.size === 0) {
+      return '<div class="empty-state">Waiting for tasks...</div>';
+    }
+    return Array.from(this.#tasks.values()).map(t => this.#renderTaskItem(t)).join('');
+  }
+
+  #renderWorkflowsList(): string {
+    if (this.#workflows.size === 0) {
+      return '<div class="empty-state">Waiting for workflows...</div>';
+    }
+    return Array.from(this.#workflows.values()).map(w => this.#renderWorkflowItem(w)).join('');
+  }
+
+  #renderLogEntry(data: { time: string; level: string; sourceType: string; sourceName: string; msg: string }): string {
+    return `<div class="log-entry">
+      <span class="log-time">${data.time}</span>
+      <span class="log-level ${data.level.toLowerCase()}">${data.level}</span>
+      <span class="log-source">[${data.sourceType}] ${data.sourceName}</span>
+      <span class="log-message">${data.msg}</span>
+    </div>`;
+  }
+
+  #renderPotEvent(type: string, potName: string, extra?: string): string {
+    const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    let icon = '';
+    if (type === 'enqueued') icon = '📥';
+    else if (type === 'dequeued') icon = '📤';
+    else if (type === 'dropped') icon = '✅';
+
+    return `<div class="pot-event pot-event-${type}">
+      <span class="pot-event-time">${time}</span>
+      <span class="pot-event-icon">${icon}</span>
+      <span class="pot-event-name">${potName}</span>
+      <span class="pot-event-type">${type}${extra ? ' (' + extra + ')' : ''}</span>
+    </div>`;
+  }
+
   start() {
-    // Dashboard page component
+    // Dashboard page component with HTMX SSE
     const dashboardPage = component(() =>
       html`
-        <div class="dashboard">
+        <div class="dashboard" hx-ext="sse" sse-connect="/events">
           <div class="header">
             <h1>Shibui Dashboard</h1>
-            <span class="status" id="connection-status">Connecting...</span>
+            <span class="status connected">Connected</span>
           </div>
 
           <div class="info-grid">
             <div class="info-section">
               <h2>Tasks</h2>
-              <div id="tasks-content">
+              <div id="tasks-content" sse-swap="tasks" hx-swap="innerHTML">
                 <div class="empty-state">Waiting for tasks...</div>
               </div>
             </div>
 
             <div class="info-section">
               <h2>Workflows</h2>
-              <div id="workflows-content">
+              <div id="workflows-content" sse-swap="workflows" hx-swap="innerHTML">
                 <div class="empty-state">Waiting for workflows...</div>
               </div>
             </div>
 
             <div class="info-section">
               <h2>Pot Events</h2>
-              <div class="pot-events-container" id="pot-events-content"></div>
+              <div class="pot-events-container" id="pot-events-content" sse-swap="pot_event" hx-swap="afterbegin"></div>
             </div>
           </div>
 
           <div class="logs-section">
             <h2>Logs</h2>
-            <div class="logs-container" id="logs-content"></div>
+            <div class="logs-container" id="logs-content" sse-swap="log" hx-swap="afterbegin"></div>
           </div>
         </div>
-
-        <script>
-          // State
-          const state = {
-            tasks: new Map(),
-            workflows: new Map(),
-          };
-
-          // SSE connection
-          const evtSource = new EventSource('/events');
-
-          evtSource.onopen = () => {
-            document.getElementById('connection-status').textContent = 'Connected';
-            document.getElementById('connection-status').classList.add('connected');
-          };
-
-          evtSource.onerror = () => {
-            document.getElementById('connection-status').textContent = 'Disconnected';
-            document.getElementById('connection-status').classList.remove('connected');
-          };
-
-          evtSource.addEventListener('log', (e) => {
-            const data = JSON.parse(e.data);
-            const logsEl = document.getElementById('logs-content');
-            const logEntry = document.createElement('div');
-            logEntry.className = 'log-entry';
-            logEntry.innerHTML = \`<span class="log-time">\${data.time}</span><span class="log-level \${data.level.toLowerCase()}">\${data.level}</span><span class="log-source">[\${data.sourceType}] \${data.sourceName}</span><span class="log-message">\${data.msg}</span>\`;
-            logsEl.insertBefore(logEntry, logsEl.firstChild);
-
-            // Keep only last 100 logs
-            while (logsEl.children.length > 100) {
-              logsEl.removeChild(logsEl.lastChild);
-            }
-          });
-
-          evtSource.addEventListener('task_registered', (e) => {
-            const data = JSON.parse(e.data);
-            state.tasks.set(data.taskName, data);
-            renderTasks();
-          });
-
-          evtSource.addEventListener('workflow_registered', (e) => {
-            const data = JSON.parse(e.data);
-            state.workflows.set(data.workflowName, data);
-            renderWorkflows();
-          });
-
-          evtSource.addEventListener('pot_enqueued', (e) => {
-            const data = JSON.parse(e.data);
-            addPotEvent('enqueued', data.potName, data.potUuid, data.potType);
-          });
-
-          evtSource.addEventListener('pot_dequeued', (e) => {
-            const data = JSON.parse(e.data);
-            addPotEvent('dequeued', data.potName, data.potUuid);
-          });
-
-          evtSource.addEventListener('pot_dropped', (e) => {
-            const data = JSON.parse(e.data);
-            addPotEvent('dropped', data.potName, data.potUuid, data.reason);
-          });
-
-          function addPotEvent(type, potName, potUuid, extra) {
-            const el = document.getElementById('pot-events-content');
-            const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const entry = document.createElement('div');
-            entry.className = 'pot-event pot-event-' + type;
-
-            let icon = '';
-            if (type === 'enqueued') icon = '📥';
-            else if (type === 'dequeued') icon = '📤';
-            else if (type === 'dropped') icon = '✅';
-
-            entry.innerHTML = \`<span class="pot-event-time">\${time}</span><span class="pot-event-icon">\${icon}</span><span class="pot-event-name">\${potName}</span><span class="pot-event-type">\${type}\${extra ? ' (' + extra + ')' : ''}</span>\`;
-            el.insertBefore(entry, el.firstChild);
-
-            // Keep only last 50 events
-            while (el.children.length > 50) {
-              el.removeChild(el.lastChild);
-            }
-          }
-
-          function renderTasks() {
-            const el = document.getElementById('tasks-content');
-            if (state.tasks.size === 0) {
-              el.innerHTML = '<div class="empty-state">Waiting for tasks...</div>';
-              return;
-            }
-            el.innerHTML = Array.from(state.tasks.values()).map(task => \`
-              <div class="task-item">
-                <div class="task-name">\${task.taskName}</div>
-                <div class="task-detail">
-                  Triggers: \${task.triggers.join(', ') || 'none'}
-                  \${task.belongsToWorkflow ? ' | Workflow: ' + task.belongsToWorkflow : ''}
-                </div>
-              </div>
-            \`).join('');
-          }
-
-          function renderWorkflows() {
-            const el = document.getElementById('workflows-content');
-            if (state.workflows.size === 0) {
-              el.innerHTML = '<div class="empty-state">Waiting for workflows...</div>';
-              return;
-            }
-            el.innerHTML = Array.from(state.workflows.values()).map(wf => \`
-              <div class="workflow-item">
-                <div class="workflow-name">\${wf.workflowName}</div>
-                <div class="workflow-detail">
-                  Tasks: \${wf.tasksCount} | First: \${wf.firstTaskName}
-                </div>
-              </div>
-            \`).join('');
-          }
-        </script>
 
         <style>
         * {
@@ -357,11 +298,13 @@ export class Dashboard {
       `
     );
 
-    // Create morph website
+    // Create morph website with SSE support
     const website = morph
       .layout(
         basic({
           title: "Shibui Dashboard",
+          htmx: true,
+          sse: true,
         }),
       )
       .page("/", dashboardPage);
@@ -369,7 +312,7 @@ export class Dashboard {
     // Create Hono app
     const app = new Hono();
 
-    // SSE endpoint
+    // SSE endpoint - sends HTML for HTMX
     app.get("/events", (c) => {
       return streamSSE(c, async (stream) => {
         // Log event listener
@@ -381,96 +324,44 @@ export class Dashboard {
             second: "2-digit",
           });
 
-          const data = {
+          const html = this.#renderLogEntry({
             time,
             level: this.#getLevelName(event.level),
             sourceType: this.#getSourceTypeName(Number(event.sourceType)),
             sourceName: event.sourceName,
             msg: event.msg,
-          };
-
-          stream.writeSSE({
-            event: "log",
-            data: JSON.stringify(data),
           });
+
+          stream.writeSSE({ event: "log", data: html });
         };
 
         // Core event listener
-        // Note: BroadcastChannel serializes events, so instanceof checks don't work
         const coreListener = (event: CoreEvent) => {
           const e = event as CoreEvent & Record<string, unknown>;
           if (e.name === "TaskRegisteredEvent") {
-            stream.writeSSE({
-              event: "task_registered",
-              data: JSON.stringify({
-                taskName: e.taskName,
-                triggers: e.triggers,
-                belongsToWorkflow: e.belongsToWorkflow,
-              }),
-            });
+            // Send full tasks list
+            stream.writeSSE({ event: "tasks", data: this.#renderTasksList() });
           } else if (e.name === "WorkflowRegisteredEvent") {
-            stream.writeSSE({
-              event: "workflow_registered",
-              data: JSON.stringify({
-                workflowName: e.workflowName,
-                tasksCount: e.tasksCount,
-                firstTaskName: e.firstTaskName,
-              }),
-            });
+            // Send full workflows list
+            stream.writeSSE({ event: "workflows", data: this.#renderWorkflowsList() });
           } else if (e.name === "PotEnqueuedEvent") {
-            stream.writeSSE({
-              event: "pot_enqueued",
-              data: JSON.stringify({
-                potName: e.potName,
-                potUuid: e.potUuid,
-                potType: e.potType,
-              }),
-            });
+            const html = this.#renderPotEvent('enqueued', e.potName as string, e.potType as string);
+            stream.writeSSE({ event: "pot_event", data: html });
           } else if (e.name === "PotDequeuedEvent") {
-            stream.writeSSE({
-              event: "pot_dequeued",
-              data: JSON.stringify({
-                potName: e.potName,
-                potUuid: e.potUuid,
-              }),
-            });
+            const html = this.#renderPotEvent('dequeued', e.potName as string);
+            stream.writeSSE({ event: "pot_event", data: html });
           } else if (e.name === "PotDroppedEvent") {
-            stream.writeSSE({
-              event: "pot_dropped",
-              data: JSON.stringify({
-                potName: e.potName,
-                potUuid: e.potUuid,
-                reason: e.reason,
-              }),
-            });
+            const html = this.#renderPotEvent('dropped', e.potName as string, e.reason as string);
+            stream.writeSSE({ event: "pot_event", data: html });
           }
         };
 
         emitters.logEventEmitter.addListener(logListener);
         emitters.coreEventEmitter.addListener(coreListener);
 
-        // Send initial connected event
-        await stream.writeSSE({
-          event: "connected",
-          data: JSON.stringify({ status: "connected" }),
-        });
-
-        // Send current state to new client
-        for (const task of this.#tasks.values()) {
-          await stream.writeSSE({
-            event: "task_registered",
-            data: JSON.stringify(task),
-          });
-        }
-
-        for (const workflow of this.#workflows.values()) {
-          await stream.writeSSE({
-            event: "workflow_registered",
-            data: JSON.stringify(workflow),
-          });
-        }
-
-        // Pot events are real-time only, no initial state needed
+        // Send initial state
+        await stream.writeSSE({ event: "tasks", data: this.#renderTasksList() });
+        await stream.writeSSE({ event: "workflows", data: this.#renderWorkflowsList() });
 
         // Keep connection alive
         while (true) {
@@ -502,7 +393,6 @@ export class Dashboard {
   }
 
   stop() {
-    // Stop HTTP server
     if (this.#server) {
       this.#server.abort();
       this.#server = null;
