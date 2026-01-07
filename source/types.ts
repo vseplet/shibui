@@ -610,9 +610,6 @@ export interface QueueProvider {
 
   /** Subscribe to queue messages */
   listen(handler: (pot: TPot) => void): void;
-
-  /** Get current queue state for monitoring */
-  getQueueState?(): { length: number; pots: Array<{ name: string; uuid: string; type: string }> };
 }
 
 /**

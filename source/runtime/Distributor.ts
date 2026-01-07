@@ -11,6 +11,11 @@ import {
   type TWorkflowBuilder,
 } from "$shibui/types";
 import { TaskBuilder, Tester, WorkflowBuilder } from "$shibui/runtime";
+import {
+  PotDequeuedEvent,
+  PotDroppedEvent,
+  PotEnqueuedEvent,
+} from "$shibui/events";
 
 export default class Distributor {
   #queue: QueueProvider;
@@ -40,11 +45,21 @@ export default class Distributor {
     try {
       const pot = new Pot().deserialize(rawPotObj);
       if (!pot) return;
+
+      // Emit dequeued event
+      this.#core.emitters.coreEventEmitter.emit(
+        new PotDequeuedEvent(pot.name, pot.uuid),
+      );
+
       this.#log.vrb(`received a pot '${pot.name}', ttl:{${pot.ttl}}`);
       if (!await this.#tester.test(pot) && pot.ttl > 0) {
         this.resend(pot);
       } else {
         this.#log.vrb(`drop the pot '${pot.name}' from queue`);
+        // Emit dropped event (processed or ttl exhausted)
+        this.#core.emitters.coreEventEmitter.emit(
+          new PotDroppedEvent(pot.name, pot.uuid, "processed"),
+        );
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -97,9 +112,18 @@ export default class Distributor {
       );
       pot.ttl--;
       this.#queue.enqueue(pot);
+
+      // Emit enqueued event
+      this.#core.emitters.coreEventEmitter.emit(
+        new PotEnqueuedEvent(pot.name, pot.uuid, pot.type),
+      );
     } else {
       this.#log.wrn(
         `pot '${pot.name}' ran out of ttl =(`,
+      );
+      // Emit dropped event (ttl exhausted)
+      this.#core.emitters.coreEventEmitter.emit(
+        new PotDroppedEvent(pot.name, pot.uuid, "ttl_exhausted"),
       );
     }
   }
@@ -107,22 +131,16 @@ export default class Distributor {
   send(pot: TPot) {
     this.#log.trc(`sending pot '${pot.name} to queue'`);
     this.#queue.enqueue(pot);
+
+    // Emit enqueued event
+    this.#core.emitters.coreEventEmitter.emit(
+      new PotEnqueuedEvent(pot.name, pot.uuid, pot.type),
+    );
   }
 
   close(): void {
     this.#queue.close();
     this.#storage.close();
-  }
-
-  /** Get current system state for dashboard */
-  getState() {
-    const queueState = this.#queue.getQueueState?.() || { length: 0, pots: [] };
-
-    return {
-      tasks: this.#tester.getTasksInfo(),
-      workflows: this.#tester.getWorkflowsInfo(),
-      queue: queueState,
-    };
   }
 }
 

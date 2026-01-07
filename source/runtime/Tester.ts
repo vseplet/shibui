@@ -15,6 +15,7 @@ import {
   type WorkflowsStorage,
 } from "$shibui/types";
 import { Filler, Runner } from "$shibui/runtime";
+import { TaskRegisteredEvent, WorkflowRegisteredEvent } from "$shibui/events";
 
 export class Tester {
   #core: TAnyCore;
@@ -81,6 +82,15 @@ export class Tester {
         task.belongsToWorkflow ? ` of workflow '${task.belongsToWorkflow}'` : ""
       }`,
     );
+
+    // Emit registration event
+    this.#core.emitters.coreEventEmitter.emit(
+      new TaskRegisteredEvent(
+        task.name,
+        Object.keys(task.triggers),
+        task.belongsToWorkflow,
+      ),
+    );
   }
 
   registerWorkflow(workflow: TWorkflow) {
@@ -90,6 +100,15 @@ export class Tester {
       this.#workflowTriggers[potName] ||= [];
       this.#workflowTriggers[potName].push(workflow.triggers[potName]);
     }
+
+    // Emit registration event
+    this.#core.emitters.coreEventEmitter.emit(
+      new WorkflowRegisteredEvent(
+        workflow.name,
+        workflow.tasks.length,
+        workflow.firstTaskName,
+      ),
+    );
   }
 
   async test(pot: Pot): Promise<boolean> {
@@ -315,24 +334,5 @@ export class Tester {
 
   #testWorkflowDependedTaskTriggers(pot: Pot): boolean {
     return false;
-  }
-
-  /** Get info about registered tasks for dashboard */
-  getTasksInfo() {
-    return Object.entries(this.#tasks).map(([name, task]) => ({
-      name,
-      belongsToWorkflow: task.belongsToWorkflow,
-      triggersCount: Object.keys(task.triggers).length,
-      triggers: Object.keys(task.triggers),
-    }));
-  }
-
-  /** Get info about registered workflows for dashboard */
-  getWorkflowsInfo() {
-    return Object.entries(this.#workflows).map(([name, workflow]) => ({
-      name,
-      tasksCount: workflow.tasks.length,
-      firstTaskName: workflow.firstTaskName,
-    }));
   }
 }

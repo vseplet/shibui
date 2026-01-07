@@ -51,7 +51,7 @@ export class Core<S extends TSpicy> implements TCore<S> {
       options.context,
     );
 
-    // Setup dashboard if enabled
+    // Setup dashboard if enabled - create early to capture registration events
     if (options.dashboard) {
       if (typeof options.dashboard === "boolean") {
         this.#dashboardOptions = { port: 3000, enabled: true };
@@ -60,6 +60,11 @@ export class Core<S extends TSpicy> implements TCore<S> {
           port: options.dashboard.port ?? 3000,
           enabled: options.dashboard.enabled ?? true,
         };
+      }
+
+      // Create dashboard instance early to start listening to events
+      if (this.#dashboardOptions.enabled) {
+        this.#dashboard = new Dashboard(this.#dashboardOptions.port);
       }
     }
   }
@@ -110,9 +115,8 @@ export class Core<S extends TSpicy> implements TCore<S> {
   async start() {
     await this.#globalPotDistributor.start();
 
-    // Start dashboard if enabled
-    if (this.#dashboardOptions?.enabled) {
-      this.#dashboard = new Dashboard(this.#dashboardOptions.port, this);
+    // Start dashboard HTTP server if enabled
+    if (this.#dashboard) {
       this.#dashboard.start();
     }
   }
@@ -157,10 +161,5 @@ export class Core<S extends TSpicy> implements TCore<S> {
       this.#dashboard.stop();
       this.#dashboard = null;
     }
-  }
-
-  /** Get current system state for dashboard */
-  getState() {
-    return this.#globalPotDistributor.getState();
   }
 }
